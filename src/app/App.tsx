@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Phone, Mail, MapPin, Users, Clock, Check, Star, Shield, Award, Car, Plane, Building2, Heart, Navigation, ChevronRight, MessageCircle, FileText, DollarSign, Zap, UserCheck, ArrowUp, X, CreditCard, ShoppingCart, Play, Quote, CheckCircle2, ArrowRight, Calendar, Sparkles, TrendingUp, Globe, Award as Trophy, Target } from 'lucide-react';
+import { Phone, Mail, MapPin, Users, Check, Star, Shield, Award, Car, ChevronRight, MessageCircle, FileText, ArrowUp, X, CreditCard, ShoppingCart, CheckCircle2, ArrowRight, Calendar, Quote, ChevronLeft } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
+import { LocationAutocomplete } from './components/LocationAutocomplete';
+import { SectionHeader } from './components/SectionHeader';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -20,11 +22,19 @@ export default function App() {
     specialRequests: ''
   });
 
+  const [currentPage, setCurrentPage] = useState('home');
   const [bookingStep, setBookingStep] = useState(1);
   const [showInquiryForm, setShowInquiryForm] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [currentClient, setCurrentClient] = useState(0);
+
+  const navigateTo = (page: string) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,7 +55,6 @@ export default function App() {
   };
 
   const proceedToCheckout = () => {
-    // Here you would integrate with Shopify Buy SDK
     const shopifyData = {
       ...formData,
       package: selectedPackage,
@@ -56,275 +65,459 @@ export default function App() {
     setShowBookingModal(false);
   };
 
-  const fadeIn = {
-    initial: { opacity: 0, y: 30 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true },
-    transition: { duration: 0.6 }
-  };
-
-  const slideIn = {
-    initial: { opacity: 0, x: -50 },
-    whileInView: { opacity: 1, x: 0 },
-    viewport: { once: true },
-    transition: { duration: 0.7 }
-  };
-
-  const scaleIn = {
-    initial: { opacity: 0, scale: 0.8 },
-    whileInView: { opacity: 1, scale: 1 },
-    viewport: { once: true },
-    transition: { duration: 0.6 }
-  };
-
-  const tourPackages = [
+  // Data
+  const majorCities = [
     {
-      id: 1,
-      name: 'AUCKLAND CITY HIGHLIGHTS',
-      duration: '3 Hours',
-      price: 499,
-      vanPrice: 990,
-      image: 'https://images.unsplash.com/photo-1595125989588-36d745a2a828?w=800',
-      highlights: ['Sky Tower Visit', 'Harbour Bridge', 'Viaduct Harbour', 'Queen Street', 'Mission Bay', 'Parnell Village'],
-      includes: ['Professional Guide', 'Free WiFi', 'Bottled Water', 'Photo Stops']
+      city: 'Auckland',
+      routes: 120,
+      image: 'https://images.unsplash.com/photo-1595125989588-36d745a2a828?w=600',
+      description: 'Premium airport transfers and city tours'
     },
     {
-      id: 2,
-      name: 'WAIHEKE ISLAND WINE TOUR',
-      duration: '6 Hours',
-      price: 899,
-      vanPrice: 1790,
-      image: 'https://images.unsplash.com/photo-1602847189686-6bb361a3066d?w=800',
-      highlights: ['Ferry Transport', '3 Premium Wineries', 'Gourmet Lunch', 'Scenic Beaches', 'Wine Tasting', 'Island Tour'],
-      includes: ['All Entrance Fees', 'Lunch Included', 'Wine Tasting', 'Return Ferry']
+      city: 'Hamilton',
+      routes: 45,
+      image: 'https://images.unsplash.com/photo-1602847189686-6bb361a3066d?w=600',
+      description: 'Comfortable intercity luxury travel'
     },
     {
-      id: 3,
-      name: 'WEST COAST BEACHES',
-      duration: '5 Hours',
-      price: 749,
-      vanPrice: 1490,
-      image: 'https://images.unsplash.com/photo-1677557769755-875d8141c0c6?w=800',
-      highlights: ['Piha Beach', 'Karekare Falls', 'Rainforest Walk', 'Black Sand Beach', 'Lion Rock', 'Surf Culture'],
-      includes: ['Nature Guide', 'Beach Time', 'Photo Stops', 'Refreshments']
+      city: 'Rotorua',
+      routes: 38,
+      image: 'https://images.unsplash.com/photo-1677557769755-875d8141c0c6?w=600',
+      description: 'Geothermal tours and attractions'
     },
     {
-      id: 4,
-      name: 'HOBBITON & ROTORUA',
-      duration: 'Full Day',
-      price: 1499,
-      vanPrice: 2990,
-      image: 'https://images.unsplash.com/photo-1677557771394-f4fa56446952?w=800',
-      highlights: ['Hobbiton Movie Set', 'Rotorua Geothermal', 'Maori Culture', 'Te Puia Geysers', 'Lunch Included', 'Return Transport'],
-      includes: ['All Entry Tickets', 'Lunch & Snacks', 'Expert Guide', 'Photo Package']
+      city: 'Tauranga',
+      routes: 52,
+      image: 'https://images.unsplash.com/photo-1677557771394-f4fa56446952?w=600',
+      description: 'Coastal destinations and beaches'
+    },
+    {
+      city: 'Wellington',
+      routes: 67,
+      image: 'https://images.unsplash.com/photo-1595125988905-8f407ecb399f?w=600',
+      description: 'Capital city transfers and tours'
+    },
+    {
+      city: 'Queenstown',
+      routes: 41,
+      image: 'https://images.unsplash.com/photo-1558222209-134191edfe0d?w=600',
+      description: 'Adventure capital luxury transport'
+    }
+  ];
+
+  const offers = [
+    {
+      title: '10% OFF ALL TOURS',
+      description: 'Book any Auckland city tour package online',
+      validUntil: 'May 31, 2026',
+      code: 'TOUR10',
+      image: 'https://images.unsplash.com/photo-1558222209-134191edfe0d?w=600',
+      discount: '10%'
+    },
+    {
+      title: 'AIRPORT TRANSFER SPECIAL',
+      description: 'Fixed rate $65 to Auckland city center',
+      validUntil: 'Limited Time',
+      code: 'AIRPORT65',
+      image: 'https://images.unsplash.com/photo-1574849693510-00ab036e8978?w=600',
+      discount: 'FIXED'
+    },
+    {
+      title: 'WEDDING PACKAGE DEAL',
+      description: 'Free vehicle decorations worth $200',
+      validUntil: 'June 30, 2026',
+      code: 'WEDDING200',
+      image: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600',
+      discount: '$200'
     }
   ];
 
   const services = [
-    { icon: Plane, title: 'AIRPORT TRANSFERS', desc: '24/7 Auckland Airport pickup & drop-off', color: 'from-blue-500 to-blue-600' },
-    { icon: Heart, title: 'WEDDING SERVICES', desc: 'Luxury wedding car hire with chauffeur', color: 'from-pink-500 to-pink-600' },
-    { icon: Building2, title: 'CITY TOURS', desc: 'Guided Auckland sightseeing packages', color: 'from-purple-500 to-purple-600' },
-    { icon: Navigation, title: 'INTERCITY TRAVEL', desc: 'Comfortable rides to Hamilton, Rotorua & more', color: 'from-orange-500 to-orange-600' },
-    { icon: Sparkles, title: 'CORPORATE EVENTS', desc: 'Business meetings & conference transport', color: 'from-green-500 to-green-600' },
-    { icon: Trophy, title: 'SPECIAL OCCASIONS', desc: 'Birthdays, anniversaries & celebrations', color: 'from-red-500 to-red-600' }
+    {
+      title: 'AIRPORT TRANSFERS',
+      description: '24/7 Auckland Airport premium pickup and drop-off services',
+      image: 'https://images.unsplash.com/photo-1616804947838-6646ae0e423d?w=600',
+      features: ['Flight Tracking', 'Meet & Greet', 'Free Wait Time']
+    },
+    {
+      title: 'WEDDING SERVICES',
+      description: 'Luxury wedding transportation with decorated vehicles',
+      image: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600',
+      features: ['Decorated Cars', 'Red Carpet', 'Champagne']
+    },
+    {
+      title: 'CITY TOURS',
+      description: 'Guided Auckland sightseeing in luxury comfort',
+      image: 'https://images.unsplash.com/photo-1595125989588-36d745a2a828?w=600',
+      features: ['Professional Guide', 'All Attractions', 'Photo Stops']
+    },
+    {
+      title: 'INTERCITY TRAVEL',
+      description: 'Comfortable rides to Hamilton, Rotorua, Wellington',
+      image: 'https://images.unsplash.com/photo-1602847189686-6bb361a3066d?w=600',
+      features: ['Long Distance', 'Spacious Vans', 'Rest Stops']
+    },
+    {
+      title: 'CORPORATE EVENTS',
+      description: 'Business meetings and conference transportation',
+      image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600',
+      features: ['Professional', 'Punctual', 'Discreet']
+    },
+    {
+      title: 'SPECIAL OCCASIONS',
+      description: 'Birthdays, anniversaries, and celebrations',
+      image: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=600',
+      features: ['Customizable', 'Decorations', 'VIP Service']
+    }
   ];
 
-  const vehicles = [
+  const uniqueFeatures = [
     {
-      name: 'LUXURY SEDAN',
-      passengers: '1-4 Passengers',
-      luggage: '3-4 Suitcases',
-      hourlyRate: 75,
-      cityTour: 499,
+      title: 'PREMIUM FLEET',
+      description: 'Latest model luxury vehicles maintained to perfection',
       image: 'https://images.unsplash.com/photo-1599912027667-755b68b4dd3b?w=600',
-      features: ['Premium Leather', 'Climate Control', 'Free WiFi', 'Phone Chargers', 'Bottled Water', 'Professional Chauffeur']
+      stat: '15+ Vehicles'
     },
     {
-      name: 'MINI VAN',
-      passengers: '5-7 Passengers',
-      luggage: '5-7 Suitcases',
-      hourlyRate: 95,
-      cityTour: 699,
+      title: 'PROFESSIONAL DRIVERS',
+      description: 'Licensed, background-checked chauffeurs with 10+ years experience',
+      image: 'https://images.unsplash.com/photo-1603122101829-e56305b0a5f7?w=600',
+      stat: '100% Verified'
+    },
+    {
+      title: '24/7 AVAILABILITY',
+      description: 'Round-the-clock service with instant booking confirmation',
+      image: 'https://images.unsplash.com/photo-1618866157430-b4d2e6a8800b?w=600',
+      stat: 'Always Ready'
+    },
+    {
+      title: 'LUXURY AMENITIES',
+      description: 'Free WiFi, charging ports, bottled water, climate control',
       image: 'https://images.unsplash.com/photo-1624976609551-0d7577bd4ce2?w=600',
-      features: ['Spacious Interior', 'Entertainment System', 'USB Charging', 'Climate Control', 'Free WiFi', 'Luxury Seating']
+      stat: 'Premium Comfort'
+    }
+  ];
+
+  const popularDestinations = [
+    {
+      name: 'Sky Tower',
+      description: 'Auckland\'s iconic landmark with stunning views',
+      image: 'https://images.unsplash.com/photo-1595125989588-36d745a2a828?w=600',
+      distance: '10 min from city'
     },
     {
-      name: 'LARGE VAN (12 SEATER)',
-      passengers: 'Up to 11 Passengers',
-      luggage: '10-12 Suitcases',
-      hourlyRate: 125,
-      cityTour: 990,
-      image: 'https://images.unsplash.com/photo-1649136378672-b965cb9935d5?w=600',
-      features: ['Maximum Capacity', 'Full Air Con', 'Entertainment', 'Ample Storage', 'Group Friendly', 'Professional Driver']
+      name: 'Waiheke Island',
+      description: 'Wine country paradise with premium wineries',
+      image: 'https://images.unsplash.com/photo-1602847189686-6bb361a3066d?w=600',
+      distance: '40 min ferry ride'
+    },
+    {
+      name: 'Piha Beach',
+      description: 'Famous black sand surfing beach',
+      image: 'https://images.unsplash.com/photo-1677557769755-875d8141c0c6?w=600',
+      distance: '45 min drive'
+    },
+    {
+      name: 'Hobbiton',
+      description: 'Movie set experience in Matamata',
+      image: 'https://images.unsplash.com/photo-1677557771394-f4fa56446952?w=600',
+      distance: '2h 30min drive'
+    }
+  ];
+
+  const driverReviews = [
+    {
+      name: 'John Smith',
+      rating: 4.9,
+      trips: 1250,
+      experience: '8 years',
+      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
+      specialty: 'Airport Transfers',
+      quote: 'Punctual and professional service is my priority'
+    },
+    {
+      name: 'Michael Chen',
+      rating: 5.0,
+      trips: 980,
+      experience: '6 years',
+      image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200',
+      specialty: 'City Tours',
+      quote: 'Making Auckland tours unforgettable'
+    },
+    {
+      name: 'David Kumar',
+      rating: 4.8,
+      trips: 1560,
+      experience: '10 years',
+      image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200',
+      specialty: 'Intercity Travel',
+      quote: 'Safe and comfortable long-distance journeys'
+    },
+    {
+      name: 'James Wilson',
+      rating: 4.9,
+      trips: 890,
+      experience: '5 years',
+      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200',
+      specialty: 'Wedding Services',
+      quote: 'Making your special day perfect'
+    }
+  ];
+
+  const clientLogos = [
+    {
+      name: 'Air New Zealand',
+      logo: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=200',
+      type: 'Airline Partner'
+    },
+    {
+      name: 'Hilton Hotels',
+      logo: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200',
+      type: 'Hospitality'
+    },
+    {
+      name: 'Microsoft NZ',
+      logo: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=200',
+      type: 'Corporate'
+    },
+    {
+      name: 'Tourism Auckland',
+      logo: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=200',
+      type: 'Tourism Board'
+    },
+    {
+      name: 'Sky City',
+      logo: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=200',
+      type: 'Entertainment'
+    },
+    {
+      name: 'Auckland Council',
+      logo: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=200',
+      type: 'Government'
+    }
+  ];
+
+  const pressReleases = [
+    {
+      title: 'Luxury Cabs Ltd Wins "Best Transport Service 2026" Award',
+      date: 'April 2026',
+      excerpt: 'Recognized for outstanding customer service and premium fleet management excellence.',
+      image: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600'
+    },
+    {
+      title: 'Expansion to Wellington: New Fleet of Luxury Vans',
+      date: 'March 2026',
+      excerpt: 'Major expansion with introduction of premium intercity services to capital city.',
+      image: 'https://images.unsplash.com/photo-1552581234-26160f608093?w=600'
+    },
+    {
+      title: 'Partnership with Auckland Airport for VIP Services',
+      date: 'February 2026',
+      excerpt: 'Exclusive deal to provide premium transfers for business travelers and VIP guests.',
+      image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600'
+    }
+  ];
+
+  const popularRoutes = [
+    {
+      from: 'Auckland Airport',
+      to: 'City Center',
+      price: 65,
+      time: '35 min',
+      demand: 'High',
+      image: 'https://images.unsplash.com/photo-1574849693510-00ab036e8978?w=400'
+    },
+    {
+      from: 'Auckland',
+      to: 'Hamilton',
+      price: 180,
+      time: '1h 45min',
+      demand: 'Medium',
+      image: 'https://images.unsplash.com/photo-1576566465339-2b99f6b33277?w=400'
+    },
+    {
+      from: 'Auckland',
+      to: 'Rotorua',
+      price: 350,
+      time: '3h 15min',
+      demand: 'High',
+      image: 'https://images.unsplash.com/photo-1616804947838-6646ae0e423d?w=400'
+    },
+    {
+      from: 'Auckland Airport',
+      to: 'North Shore',
+      price: 75,
+      time: '45 min',
+      demand: 'High',
+      image: 'https://images.unsplash.com/photo-1603122101829-e56305b0a5f7?w=400'
     }
   ];
 
   const testimonials = [
-    { name: 'Sarah Thompson', country: 'UK', rating: 5, text: 'Absolutely fantastic service! Driver was on time, professional, and the vehicle was immaculate. Highly recommend for airport transfers.', service: 'Airport Transfer' },
-    { name: 'David Chen', country: 'Singapore', rating: 5, text: 'Best city tour we\'ve ever experienced. Our guide was knowledgeable and friendly. Great value for money!', service: 'City Tour' },
-    { name: 'Emily Wilson', country: 'Australia', rating: 5, text: 'Perfect for our wedding day! The 12-seater van was spacious and elegant. Made our day extra special.', service: 'Wedding' },
-    { name: 'Michael Brown', country: 'USA', rating: 5, text: 'Reliable intercity transfer from Auckland to Hamilton. Comfortable ride and great communication.', service: 'Intercity' },
-    { name: 'Lisa Anderson', country: 'Canada', rating: 5, text: 'The Waiheke wine tour was incredible! Everything was organized perfectly. Will book again!', service: 'Wine Tour' },
-    { name: 'James Kumar', country: 'India', rating: 5, text: 'Professional corporate transport for our conference. Punctual, clean vehicles, and excellent service.', service: 'Corporate' }
+    {
+      name: 'Sarah Thompson',
+      country: 'United Kingdom',
+      rating: 5,
+      text: 'Absolutely fantastic service! Driver was punctual, professional, and the vehicle was immaculate. Highly recommend for airport transfers.',
+      service: 'Airport Transfer',
+      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200'
+    },
+    {
+      name: 'David Chen',
+      country: 'Singapore',
+      rating: 5,
+      text: 'Best city tour we\'ve ever experienced. Our guide was knowledgeable and friendly. Great value for money!',
+      service: 'City Tour',
+      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200'
+    },
+    {
+      name: 'Emily Wilson',
+      country: 'Australia',
+      rating: 5,
+      text: 'Perfect for our wedding day! The 12-seater van was spacious and elegant. Made our day extra special.',
+      service: 'Wedding',
+      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200'
+    }
   ];
 
-  const membershipPlans = [
+  const faqs = [
     {
-      name: 'SILVER',
-      price: 99,
-      period: 'month',
-      features: ['5% Discount on All Rides', 'Priority Booking', 'Free Cancellation', '24/7 Support', 'Loyalty Points'],
-      color: 'from-gray-400 to-gray-500'
+      question: 'How do I book a luxury cab in Auckland?',
+      answer: 'You can book online through our website, call +64 27 777 7242, or WhatsApp us. We provide instant confirmation and 24/7 booking support.'
     },
     {
-      name: 'GOLD',
-      price: 199,
-      period: 'month',
-      popular: true,
-      features: ['10% Discount on All Rides', 'Airport Fast Track', 'Free Upgrades', 'Dedicated Manager', 'VIP Lounge Access', 'Double Loyalty Points'],
-      color: 'from-yellow-400 to-yellow-600'
+      question: 'Do you provide airport pickup services?',
+      answer: 'Yes! We offer 24/7 Auckland Airport transfers with flight tracking, meet & greet service, and complimentary wait time.'
     },
     {
-      name: 'PLATINUM',
-      price: 399,
-      period: 'month',
-      features: ['15% Discount on All Rides', 'Guaranteed Availability', 'Complimentary Tours (2/year)', 'Personal Concierge', 'Premium Vehicles Only', 'Triple Loyalty Points'],
-      color: 'from-purple-400 to-purple-600'
+      question: 'What vehicles do you have for weddings?',
+      answer: 'We offer luxury sedans and decorated 12-seater vans perfect for weddings with professional chauffeurs.'
+    },
+    {
+      question: 'Are your drivers licensed and insured?',
+      answer: 'Absolutely! All chauffeurs are fully licensed, background-checked, and insured.'
     }
   ];
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Top Bar */}
-      <motion.div
-        className="bg-gradient-to-r from-orange-600 via-red-600 to-orange-700 text-white py-2.5 text-center font-bold shadow-lg overflow-hidden"
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white py-2.5 text-center font-bold shadow-lg">
         <div className="flex items-center justify-center gap-3 text-sm md:text-base">
-          <Sparkles className="w-4 h-4 animate-pulse" />
-          <span>SPECIAL OFFER: Book Any Auckland Tour & Get 10% OFF! Call +64 27 777 7242</span>
-          <Sparkles className="w-4 h-4 animate-pulse" />
+          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+          <span>LUXURY SPECIAL: Book Any Auckland Tour & Get 10% OFF | Call +64 27 777 7242</span>
+          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
         </div>
-      </motion.div>
+      </div>
 
-      {/* Header */}
-      <motion.header
-        className="bg-white shadow-lg sticky top-0 z-40 border-b-2 border-orange-200"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
+      {/* BMW/Porsche Style Header */}
+      <header className="bg-white shadow-md sticky top-0 z-40 border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <motion.div
-              className="flex items-center gap-3"
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="bg-gradient-to-br from-orange-500 to-red-500 p-3 rounded-xl shadow-xl">
-                <Car className="w-8 h-8 text-white" />
+            {/* BMW/Porsche Style Logo */}
+            <div className="flex items-center gap-4">
+              <div className="relative w-16 h-16">
+                {/* Outer Ring - Gold */}
+                <div className="absolute inset-0 rounded-full border-4 border-yellow-500 shadow-2xl"></div>
+                {/* Inner Circle - Black */}
+                <div className="absolute inset-2 rounded-full bg-black flex items-center justify-center">
+                  {/* Logo Text */}
+                  <div className="text-center">
+                    <div className="text-yellow-500 font-black text-2xl leading-none">L</div>
+                    <div className="text-yellow-500 font-black text-xs leading-none mt-0.5">C</div>
+                  </div>
+                </div>
+                {/* Shine Effect */}
+                <div className="absolute top-2 left-3 w-4 h-4 bg-white/30 rounded-full blur-sm"></div>
               </div>
               <div>
-                <h1 className="font-black text-xl md:text-2xl text-gray-900 tracking-tight">LUXURY CABS LTD</h1>
-                <p className="text-xs font-bold text-orange-600 tracking-wider">PREMIUM VANS & TOURS</p>
+                <h1 className="text-2xl font-black text-gray-900 tracking-tight">LUXURY CABS LTD</h1>
+                <p className="text-xs font-bold text-yellow-600 tracking-widest">PREMIUM TRANSPORTATION</p>
               </div>
-            </motion.div>
+            </div>
+
+            {/* Navigation */}
             <div className="hidden lg:flex items-center gap-6">
-              <a href="#services" className="font-bold text-gray-700 hover:text-orange-600 transition-colors">SERVICES</a>
-              <a href="#fleet" className="font-bold text-gray-700 hover:text-orange-600 transition-colors">FLEET</a>
-              <a href="#tours" className="font-bold text-gray-700 hover:text-orange-600 transition-colors">TOURS</a>
-              <a href="#membership" className="font-bold text-gray-700 hover:text-orange-600 transition-colors">MEMBERSHIP</a>
-              <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 font-bold shadow-lg">
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                BOOK NOW
-              </Button>
+              <a href="#home" className="font-bold text-gray-700 hover:text-yellow-600 transition-all duration-300 hover:scale-105">
+                HOME
+              </a>
+              <a href="#services" className="font-bold text-gray-700 hover:text-yellow-600 transition-all duration-300 hover:scale-105">
+                SERVICES
+              </a>
+              <a href="#cities" className="font-bold text-gray-700 hover:text-yellow-600 transition-all duration-300 hover:scale-105">
+                CITIES
+              </a>
+              <a href="#tours" className="font-bold text-gray-700 hover:text-yellow-600 transition-all duration-300 hover:scale-105">
+                TOURS
+              </a>
+              <a href="#contact" className="font-bold text-gray-700 hover:text-yellow-600 transition-all duration-300 hover:scale-105">
+                CONTACT
+              </a>
+              <a href="#booking">
+                <Button className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black shadow-lg transition-all duration-300 hover:scale-110">
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  BOOK NOW
+                </Button>
+              </a>
             </div>
           </div>
         </div>
-      </motion.header>
+      </header>
 
       {/* Contact Bar */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-3 shadow-xl">
+      <div className="bg-black text-white py-3 shadow-xl">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center justify-center md:justify-between gap-4">
-            <motion.a
-              href="tel:+64277777242"
-              className="flex items-center gap-2 hover:text-orange-400 transition group"
-              whileHover={{ scale: 1.05 }}
-            >
-              <div className="bg-orange-500 p-2 rounded-full group-hover:scale-110 transition">
-                <Phone className="w-4 h-4" />
+            <a href="tel:+64277777242" className="flex items-center gap-2 hover:text-yellow-400 transition group hover:scale-105">
+              <div className="bg-yellow-500 p-2 rounded-full group-hover:scale-110 transition">
+                <Phone className="w-4 h-4 text-black" />
               </div>
               <span className="font-bold">+64 27 777 7242</span>
-            </motion.a>
-            <motion.a
-              href="mailto:Luxurycabsltd@gmail.com"
-              className="flex items-center gap-2 hover:text-orange-400 transition group"
-              whileHover={{ scale: 1.05 }}
-            >
-              <div className="bg-orange-500 p-2 rounded-full group-hover:scale-110 transition">
-                <Mail className="w-4 h-4" />
+            </a>
+            <a href="mailto:Luxurycabsltd@gmail.com" className="flex items-center gap-2 hover:text-yellow-400 transition group hover:scale-105">
+              <div className="bg-yellow-500 p-2 rounded-full group-hover:scale-110 transition">
+                <Mail className="w-4 h-4 text-black" />
               </div>
               <span className="font-bold text-sm md:text-base">Luxurycabsltd@gmail.com</span>
-            </motion.a>
-            <motion.div
-              className="flex items-center gap-2"
-              whileHover={{ scale: 1.05 }}
-            >
-              <div className="bg-orange-500 p-2 rounded-full">
-                <MapPin className="w-4 h-4" />
+            </a>
+            <div className="flex items-center gap-2 hover:scale-105 transition">
+              <div className="bg-yellow-500 p-2 rounded-full">
+                <MapPin className="w-4 h-4 text-black" />
               </div>
               <span className="font-bold text-sm md:text-base">Auckland Airport & City</span>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Floating Buttons */}
-      <motion.a
+      <a
         href="https://wa.me/64277777242"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed left-6 bottom-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-2xl"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 1 }}
+        className="fixed left-6 bottom-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-all"
       >
         <MessageCircle className="w-7 h-7" />
         <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
           1
         </div>
-      </motion.a>
+      </a>
 
-      <motion.button
+      <button
         onClick={() => setShowInquiryForm(true)}
-        className="fixed right-6 bottom-24 z-50 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white p-4 rounded-full shadow-2xl"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 1.2 }}
+        className="fixed right-6 bottom-24 z-50 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black p-4 rounded-full shadow-2xl hover:scale-110 transition-all"
       >
         <FileText className="w-7 h-7" />
-      </motion.button>
+      </button>
 
       <AnimatePresence>
         {showScrollTop && (
-          <motion.button
+          <button
             onClick={scrollToTop}
-            className="fixed right-6 bottom-6 z-50 bg-gray-900 hover:bg-black text-white p-4 rounded-full shadow-2xl"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
+            className="fixed right-6 bottom-6 z-50 bg-gray-900 hover:bg-black text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-all"
           >
             <ArrowUp className="w-7 h-7" />
-          </motion.button>
+          </button>
         )}
       </AnimatePresence>
 
@@ -342,30 +535,37 @@ export default function App() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", duration: 0.5 }}
               onClick={(e) => e.stopPropagation()}
             >
               <Card className="max-w-md w-full shadow-2xl">
-                <CardHeader className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-lg">
+                <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-t-lg">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-2xl font-black">QUICK INQUIRY</CardTitle>
-                    <button onClick={() => setShowInquiryForm(false)} className="hover:bg-white/20 p-2 rounded-full transition">
+                    <button onClick={() => setShowInquiryForm(false)} className="hover:bg-black/10 p-2 rounded-full transition">
                       <X className="w-6 h-6" />
                     </button>
                   </div>
-                  <CardDescription className="text-orange-100 font-bold">Get response within 30 minutes!</CardDescription>
+                  <CardDescription className="text-gray-900 font-bold">Get response within 30 minutes!</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
                   <Input placeholder="Your Name *" className="font-semibold border-2" />
                   <Input placeholder="Phone Number *" type="tel" className="font-semibold border-2" />
                   <Input placeholder="Email Address *" type="email" className="font-semibold border-2" />
-                  <Input placeholder="Pickup Location" className="font-semibold border-2" />
-                  <Input placeholder="Drop-off Location" className="font-semibold border-2" />
+                  <LocationAutocomplete
+                    placeholder="Pickup Location"
+                    value={formData.pickup}
+                    onChange={(value) => setFormData({...formData, pickup: value})}
+                  />
+                  <LocationAutocomplete
+                    placeholder="Drop-off Location"
+                    value={formData.dropoff}
+                    onChange={(value) => setFormData({...formData, dropoff: value})}
+                  />
                   <textarea
                     placeholder="Additional Requirements..."
                     className="w-full border-2 rounded-md p-3 font-semibold min-h-24"
                   />
-                  <Button className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 font-black text-lg py-6">
+                  <Button className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-6">
                     SUBMIT INQUIRY
                   </Button>
                 </CardContent>
@@ -375,7 +575,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Multi-Step Booking Modal */}
+      {/* Multi-Step Booking Modal - Same as before but with new colors */}
       <AnimatePresence>
         {showBookingModal && (
           <motion.div
@@ -389,20 +589,19 @@ export default function App() {
               initial={{ scale: 0.8, y: 50 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.8, y: 50 }}
-              transition={{ type: "spring", duration: 0.5 }}
               onClick={(e) => e.stopPropagation()}
               className="my-8"
             >
               <Card className="max-w-2xl w-full shadow-2xl">
-                <CardHeader className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-lg">
+                <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-t-lg">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-2xl font-black">BOOK YOUR LUXURY RIDE</CardTitle>
-                    <button onClick={() => setShowBookingModal(false)} className="hover:bg-white/20 p-2 rounded-full transition">
+                    <button onClick={() => setShowBookingModal(false)} className="hover:bg-black/10 p-2 rounded-full transition">
                       <X className="w-6 h-6" />
                     </button>
                   </div>
                   {selectedPackage && (
-                    <CardDescription className="text-white font-bold text-lg mt-2">
+                    <CardDescription className="text-gray-900 font-bold text-lg mt-2">
                       {selectedPackage.name} - ${selectedPackage.price}
                     </CardDescription>
                   )}
@@ -413,13 +612,13 @@ export default function App() {
                     {[1, 2, 3].map((step) => (
                       <div key={step} className="flex items-center">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black transition-all ${
-                          bookingStep >= step ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-500'
+                          bookingStep >= step ? 'bg-yellow-500 text-black' : 'bg-gray-200 text-gray-500'
                         }`}>
                           {bookingStep > step ? <Check className="w-5 h-5" /> : step}
                         </div>
                         {step < 3 && (
                           <div className={`w-16 md:w-32 h-1 mx-2 transition-all ${
-                            bookingStep > step ? 'bg-orange-500' : 'bg-gray-200'
+                            bookingStep > step ? 'bg-yellow-500' : 'bg-gray-200'
                           }`} />
                         )}
                       </div>
@@ -428,25 +627,18 @@ export default function App() {
 
                   {/* Step 1: Trip Details */}
                   {bookingStep === 1 && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -50 }}
-                      className="space-y-4"
-                    >
+                    <div className="space-y-4">
                       <h3 className="text-xl font-black text-gray-900 mb-4">TRIP DETAILS</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Input
+                        <LocationAutocomplete
                           placeholder="Pickup Location *"
                           value={formData.pickup}
-                          onChange={(e) => setFormData({...formData, pickup: e.target.value})}
-                          className="font-semibold border-2"
+                          onChange={(value) => setFormData({...formData, pickup: value})}
                         />
-                        <Input
+                        <LocationAutocomplete
                           placeholder="Drop-off Location *"
                           value={formData.dropoff}
-                          onChange={(e) => setFormData({...formData, dropoff: e.target.value})}
-                          className="font-semibold border-2"
+                          onChange={(value) => setFormData({...formData, dropoff: value})}
                         />
                         <Input
                           type="date"
@@ -490,21 +682,16 @@ export default function App() {
                       />
                       <Button
                         onClick={() => setBookingStep(2)}
-                        className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 font-black text-lg py-6"
+                        className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-6"
                       >
                         CONTINUE <ArrowRight className="w-5 h-5 ml-2" />
                       </Button>
-                    </motion.div>
+                    </div>
                   )}
 
                   {/* Step 2: Personal Details */}
                   {bookingStep === 2 && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -50 }}
-                      className="space-y-4"
-                    >
+                    <div className="space-y-4">
                       <h3 className="text-xl font-black text-gray-900 mb-4">YOUR DETAILS</h3>
                       <Input
                         placeholder="Full Name *"
@@ -536,53 +723,35 @@ export default function App() {
                         </Button>
                         <Button
                           onClick={() => setBookingStep(3)}
-                          className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 font-black text-lg py-6"
+                          className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-6"
                         >
                           CONTINUE <ArrowRight className="w-5 h-5 ml-2" />
                         </Button>
                       </div>
-                    </motion.div>
+                    </div>
                   )}
 
-                  {/* Step 3: Confirmation & Checkout */}
+                  {/* Step 3: Confirmation */}
                   {bookingStep === 3 && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -50 }}
-                      className="space-y-4"
-                    >
+                    <div className="space-y-4">
                       <h3 className="text-xl font-black text-gray-900 mb-4">REVIEW & CHECKOUT</h3>
-                      <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-6 space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-700">Package:</span>
-                          <span className="font-black text-gray-900">{selectedPackage?.name}</span>
+                      <div className="bg-yellow-50 border-2 border-yellow-500 rounded-lg p-6 space-y-3">
+                        <div className="flex justify-between">
+                          <span className="font-bold">Date & Time:</span>
+                          <span className="font-black">{formData.date} at {formData.time}</span>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-700">Date & Time:</span>
-                          <span className="font-black text-gray-900">{formData.date} at {formData.time}</span>
+                        <div className="flex justify-between">
+                          <span className="font-bold">Pickup:</span>
+                          <span className="font-black">{formData.pickup}</span>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-700">Pickup:</span>
-                          <span className="font-black text-gray-900">{formData.pickup}</span>
+                        <div className="flex justify-between">
+                          <span className="font-bold">Passengers:</span>
+                          <span className="font-black">{formData.passengers}</span>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-700">Passengers:</span>
-                          <span className="font-black text-gray-900">{formData.passengers}</span>
-                        </div>
-                        <div className="border-t-2 border-orange-300 pt-3 mt-3">
-                          <div className="flex justify-between items-center">
-                            <span className="font-bold text-gray-700 text-lg">TOTAL:</span>
-                            <span className="font-black text-orange-600 text-3xl">${selectedPackage?.price}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
-                        <div className="flex items-start gap-3">
-                          <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-bold text-gray-900">Secure Shopify Checkout</p>
-                            <p className="text-sm font-semibold text-gray-600">Your payment is processed securely through Shopify. You can pay with credit card, PayPal, or other payment methods.</p>
+                        <div className="border-t-2 border-yellow-400 pt-3 mt-3">
+                          <div className="flex justify-between">
+                            <span className="font-bold text-lg">TOTAL:</span>
+                            <span className="font-black text-yellow-600 text-3xl">${selectedPackage?.price || 499}</span>
                           </div>
                         </div>
                       </div>
@@ -596,13 +765,13 @@ export default function App() {
                         </Button>
                         <Button
                           onClick={proceedToCheckout}
-                          className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 font-black text-lg py-6"
+                          className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black text-lg py-6"
                         >
                           <CreditCard className="w-5 h-5 mr-2" />
-                          PROCEED TO CHECKOUT
+                          CHECKOUT
                         </Button>
                       </div>
-                    </motion.div>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -611,80 +780,162 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-orange-600 via-red-600 to-orange-700 text-white py-20 md:py-32 overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
+      {/* Hero Section with Direct Booking Form */}
+      <section id="home" className="relative min-h-screen bg-black">
+        <div className="absolute inset-0">
           <ImageWithFallback
             src="https://images.unsplash.com/photo-1603122101829-e56305b0a5f7?w=1920"
             alt="Luxury Car"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover opacity-40"
           />
         </div>
-        <div className="container mx-auto px-4 relative z-10">
-          <motion.div
-            className="max-w-4xl mx-auto text-center"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <motion.h2
-              className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-            >
-              AUCKLAND'S PREMIER LUXURY CAB & TOUR SERVICE
-            </motion.h2>
-            <motion.p
-              className="text-xl md:text-2xl font-bold text-orange-100 mb-8"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-            >
-              Airport Transfers | City Tours | Intercity Travel | Wedding Cars
-            </motion.p>
+        <div className="container mx-auto px-4 relative z-10 min-h-screen flex items-center py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full">
+            {/* Left: Heading */}
             <motion.div
-              className="flex flex-wrap gap-4 justify-center mb-12"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
+              className="text-white flex flex-col justify-center"
+              initial={{ opacity: 0, x: -100 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
             >
-              <div className="flex items-center gap-2 bg-white/20 backdrop-blur px-6 py-3 rounded-full">
-                <Check className="w-6 h-6" />
-                <span className="font-bold text-lg">24/7 Service</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/20 backdrop-blur px-6 py-3 rounded-full">
-                <Check className="w-6 h-6" />
-                <span className="font-bold text-lg">Best Prices</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/20 backdrop-blur px-6 py-3 rounded-full">
-                <Check className="w-6 h-6" />
-                <span className="font-bold text-lg">Professional Drivers</span>
-              </div>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.8, duration: 0.5 }}
-            >
-              <Button
-                size="lg"
-                onClick={() => {
-                  setSelectedPackage(tourPackages[0]);
-                  setShowBookingModal(true);
-                }}
-                className="bg-white text-orange-600 hover:bg-gray-100 font-black text-xl px-12 py-8 shadow-2xl"
+              <motion.h1
+                className="text-5xl md:text-7xl font-black mb-6 leading-tight"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.8 }}
               >
-                <ShoppingCart className="w-6 h-6 mr-3" />
-                BOOK YOUR RIDE NOW
-              </Button>
+                AUCKLAND'S PREMIER LUXURY TRANSPORTATION
+              </motion.h1>
+              <motion.p
+                className="text-2xl font-bold text-yellow-400 mb-8"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+              >
+                Airport Transfers | City Tours | Intercity | Wedding Cars
+              </motion.p>
+              <motion.div
+                className="flex flex-wrap gap-4"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.8 }}
+              >
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur px-6 py-3 rounded-full">
+                  <Check className="w-6 h-6 text-yellow-400" />
+                  <span className="font-bold">24/7 Service</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur px-6 py-3 rounded-full">
+                  <Check className="w-6 h-6 text-yellow-400" />
+                  <span className="font-bold">Best Prices</span>
+                </div>
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur px-6 py-3 rounded-full">
+                  <Check className="w-6 h-6 text-yellow-400" />
+                  <span className="font-bold">Professional Drivers</span>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
+
+            {/* Right: Direct Booking Form */}
+            <motion.div
+              id="booking"
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
+            >
+              <Card className="bg-white/95 backdrop-blur shadow-2xl border-2 border-yellow-500">
+                <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-t-lg">
+                  <CardTitle className="text-3xl font-black">BOOK YOUR LUXURY RIDE</CardTitle>
+                  <CardDescription className="text-gray-900 font-bold text-lg">Get instant quote & confirmation</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <LocationAutocomplete
+                      placeholder="Pickup Location *"
+                      value={formData.pickup}
+                      onChange={(value) => setFormData({...formData, pickup: value})}
+                    />
+                    <LocationAutocomplete
+                      placeholder="Drop-off Location *"
+                      value={formData.dropoff}
+                      onChange={(value) => setFormData({...formData, dropoff: value})}
+                    />
+                    <Input
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => setFormData({...formData, date: e.target.value})}
+                      className="font-semibold border-2"
+                    />
+                    <Input
+                      type="time"
+                      value={formData.time}
+                      onChange={(e) => setFormData({...formData, time: e.target.value})}
+                      className="font-semibold border-2"
+                    />
+                  </div>
+                  <select
+                    className="w-full border-2 rounded-md p-2.5 font-semibold"
+                    value={formData.passengers}
+                    onChange={(e) => setFormData({...formData, passengers: e.target.value})}
+                  >
+                    <option value="">Number of Passengers *</option>
+                    <option value="1-2">1-2 Passengers</option>
+                    <option value="3-4">3-4 Passengers</option>
+                    <option value="5-7">5-7 Passengers</option>
+                    <option value="8-11">8-11 Passengers</option>
+                  </select>
+                  <select
+                    className="w-full border-2 rounded-md p-2.5 font-semibold"
+                    value={formData.vehicle}
+                    onChange={(e) => setFormData({...formData, vehicle: e.target.value})}
+                  >
+                    <option value="">Select Vehicle Type *</option>
+                    <option value="sedan">Luxury Sedan (1-4 pax)</option>
+                    <option value="minivan">Mini Van (5-7 pax)</option>
+                    <option value="largevan">Large Van (8-11 pax)</option>
+                  </select>
+                  <Input
+                    placeholder="Your Name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    className="font-semibold border-2"
+                  />
+                  <Input
+                    placeholder="Phone Number"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    className="font-semibold border-2"
+                  />
+                  <Button
+                    onClick={proceedToCheckout}
+                    className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-7 shadow-xl transition-all duration-300 hover:scale-105"
+                  >
+                    <ShoppingCart className="w-6 h-6 mr-3" />
+                    GET INSTANT QUOTE NOW
+                  </Button>
+                  <div className="flex gap-3">
+                    <a href="tel:+64277777242" className="flex-1">
+                      <Button variant="outline" className="w-full font-bold border-2 border-yellow-600 text-yellow-600 hover:bg-yellow-50 transition-all duration-300">
+                        <Phone className="w-5 h-5 mr-2" />
+                        CALL US
+                      </Button>
+                    </a>
+                    <a href="https://wa.me/64277777242" target="_blank" rel="noopener noreferrer" className="flex-1">
+                      <Button variant="outline" className="w-full font-bold border-2 border-green-600 text-green-600 hover:bg-green-50 transition-all duration-300">
+                        <MessageCircle className="w-5 h-5 mr-2" />
+                        WHATSAPP
+                      </Button>
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="bg-gray-900 text-white py-16">
+      {/* Stats */}
+      <section className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
@@ -695,12 +946,14 @@ export default function App() {
             ].map((stat, index) => (
               <motion.div
                 key={index}
-                className="text-center p-6 bg-white/5 rounded-xl hover:bg-white/10 transition-all"
-                {...fadeIn}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.05 }}
+                className="text-center"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ scale: 1.1, y: -10 }}
               >
-                <div className="text-4xl md:text-5xl font-black text-orange-500 mb-2">{stat.number}</div>
+                <div className="text-5xl font-black text-yellow-500 mb-2">{stat.number}</div>
                 <div className="font-bold text-gray-300">{stat.label}</div>
               </motion.div>
             ))}
@@ -708,394 +961,588 @@ export default function App() {
         </div>
       </section>
 
-      {/* Services Section */}
-      <section id="services" className="py-20 bg-gradient-to-br from-gray-50 to-orange-50">
+      {/* Advertisement Banner */}
+      <section className="bg-gradient-to-r from-yellow-500 to-yellow-600 py-8">
         <div className="container mx-auto px-4">
-          <motion.div className="text-center mb-16" {...fadeIn}>
-            <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-4 uppercase">OUR PREMIUM SERVICES</h2>
-            <p className="text-xl font-bold text-gray-600 max-w-3xl mx-auto">
-              Comprehensive luxury transportation for every occasion
-            </p>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex-1">
+              <h3 className="text-3xl font-black text-black mb-2">SPECIAL OFFER: 10% OFF ALL TOURS</h3>
+              <p className="text-lg font-bold text-gray-900">Book online now and save! Use code: TOUR10</p>
+            </div>
+            <Button
+              onClick={() => setShowBookingModal(true)}
+              size="lg"
+              className="bg-black hover:bg-gray-900 text-white font-black px-12 py-6"
+            >
+              CLAIM OFFER
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Services in Major Cities */}
+      <section id="cities" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <SectionHeader
+              title="OUR SERVICES IN MAJOR CITIES"
+              subtitle="Premium transportation across New Zealand's top destinations"
+              showNavigation
+              onPrev={() => {}}
+              onNext={() => {}}
+            />
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {majorCities.map((city, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ scale: 1.05, y: -10 }}
+              >
+              <Card className="overflow-hidden shadow-2xl transition-all group cursor-pointer h-full">
+                <div className="h-64 overflow-hidden relative">
+                  <ImageWithFallback
+                    src={city.image}
+                    alt={city.city}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <h3 className="text-3xl font-black mb-1">{city.city}</h3>
+                    <p className="font-semibold">{city.routes} Available Routes</p>
+                  </div>
+                </div>
+                <CardContent className="p-6">
+                  <p className="font-semibold text-gray-600 mb-4">{city.description}</p>
+                  <Button className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black transition-all duration-300 hover:scale-105">
+                    VIEW ROUTES
+                  </Button>
+                </CardContent>
+              </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Offers Section */}
+      <section id="tours" className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <SectionHeader
+            title="EXCLUSIVE OFFERS"
+            subtitle="Limited time deals and special packages"
+            showSeeMore
+            onSeeMore={() => {}}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {offers.map((offer, index) => (
+              <Card key={index} className="overflow-hidden hover:shadow-2xl transition-all border-2 border-yellow-500">
+                <div className="h-48 overflow-hidden relative">
+                  <ImageWithFallback
+                    src={offer.image}
+                    alt={offer.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-4 right-4 bg-yellow-500 text-black px-6 py-3 rounded-full font-black text-xl shadow-lg">
+                    {offer.discount}
+                  </div>
+                </div>
+                <CardContent className="p-6">
+                  <h3 className="text-2xl font-black text-gray-900 mb-2">{offer.title}</h3>
+                  <p className="font-semibold text-gray-600 mb-4">{offer.description}</p>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm font-bold text-gray-500">Valid until: {offer.validUntil}</span>
+                    <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-black text-sm">
+                      {offer.code}
+                    </span>
+                  </div>
+                  <Button className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black">
+                    CLAIM OFFER
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* OUR PREMIUM SERVICES */}
+      <section id="services" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <SectionHeader
+              title="OUR PREMIUM SERVICES"
+              subtitle="Comprehensive luxury transportation for every occasion"
+              showNavigation
+              onPrev={() => {}}
+              onNext={() => {}}
+            />
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {services.map((service, index) => (
               <motion.div
                 key={index}
-                {...fadeIn}
-                transition={{ delay: index * 0.1 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.15 }}
                 whileHover={{ scale: 1.05, y: -10 }}
               >
-                <Card className="h-full hover:shadow-2xl transition-all border-t-4 border-orange-500 cursor-pointer">
-                  <CardContent className="pt-8 pb-6 px-6">
-                    <div className={`bg-gradient-to-br ${service.color} w-20 h-20 rounded-2xl flex items-center justify-center mb-6 shadow-lg`}>
-                      <service.icon className="w-10 h-10 text-white" />
+              <Card className="overflow-hidden shadow-2xl transition-all group cursor-pointer h-full">
+                <div className="h-72 overflow-hidden relative">
+                  <ImageWithFallback
+                    src={service.image}
+                    alt={service.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+                  <div className="absolute bottom-6 left-6 right-6 text-white">
+                    <h3 className="text-2xl font-black mb-2">{service.title}</h3>
+                    <p className="font-semibold text-sm mb-4">{service.description}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {service.features.map((feature, fIndex) => (
+                        <span key={fIndex} className="bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs font-bold">
+                          {feature}
+                        </span>
+                      ))}
                     </div>
-                    <h3 className="font-black text-xl mb-3 text-gray-900">{service.title}</h3>
-                    <p className="font-semibold text-gray-600 mb-4">{service.desc}</p>
-                    <Button variant="outline" className="font-bold border-2 border-orange-500 text-orange-600 hover:bg-orange-50">
-                      LEARN MORE <ChevronRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
+                <CardContent className="p-6">
+                  <Button className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black transition-all duration-300 hover:scale-105">
+                    BOOK NOW <ChevronRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Tour Packages with Shopify Integration */}
-      <section id="tours" className="py-20 bg-white">
+      {/* What Makes Us Unique */}
+      <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <motion.div className="text-center mb-16" {...fadeIn}>
-            <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-4 uppercase">AUCKLAND TOUR PACKAGES</h2>
-            <p className="text-xl font-bold text-gray-600 max-w-3xl mx-auto">
-              Book directly online with secure Shopify checkout
-            </p>
-          </motion.div>
+          <SectionHeader
+            title="WHAT MAKES US UNIQUE"
+            subtitle="Luxury features that set us apart from the rest"
+            showSeeMore
+            onSeeMore={() => {}}
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {tourPackages.map((tour, index) => (
-              <motion.div
-                key={tour.id}
-                {...scaleIn}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.03, y: -10 }}
-              >
-                <Card className="h-full overflow-hidden hover:shadow-2xl transition-all cursor-pointer">
-                  <div className="h-64 overflow-hidden relative">
-                    <ImageWithFallback
-                      src={tour.image}
-                      alt={tour.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-4 right-4 bg-orange-500 text-white px-4 py-2 rounded-full font-black text-sm shadow-lg">
-                      {tour.duration}
-                    </div>
+            {uniqueFeatures.map((feature, index) => (
+              <Card key={index} className="overflow-hidden hover:shadow-2xl transition-all">
+                <div className="h-48 overflow-hidden">
+                  <ImageWithFallback
+                    src={feature.image}
+                    alt={feature.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <CardContent className="p-6 text-center">
+                  <div className="bg-yellow-500 text-black px-6 py-2 rounded-full font-black text-2xl inline-block mb-4">
+                    {feature.stat}
                   </div>
-                  <CardContent className="p-6">
-                    <h3 className="font-black text-xl mb-3 text-gray-900">{tour.name}</h3>
-                    <div className="bg-orange-50 border-l-4 border-orange-500 p-4 mb-4">
-                      <div className="text-sm font-black text-gray-700 mb-1">SEDAN (1-4 PAX)</div>
-                      <div className="text-3xl font-black text-orange-600">${tour.price}</div>
-                      <div className="text-sm font-black text-gray-700 mt-3 mb-1">VAN (8-11 PAX)</div>
-                      <div className="text-2xl font-black text-gray-900">${tour.vanPrice}</div>
-                    </div>
-                    <div className="mb-4">
-                      <p className="font-bold text-gray-700 mb-2 text-sm">HIGHLIGHTS:</p>
-                      <div className="space-y-1">
-                        {tour.highlights.slice(0, 4).map((highlight, i) => (
-                          <div key={i} className="flex items-center gap-2 text-sm font-semibold text-gray-600">
-                            <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
-                            {highlight}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => handleShopifyCheckout(tour)}
-                      className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 font-black text-base py-6"
-                    >
-                      <ShoppingCart className="w-5 h-5 mr-2" />
-                      BOOK NOW
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                  <h3 className="text-xl font-black text-gray-900 mb-2">{feature.title}</h3>
+                  <p className="font-semibold text-gray-600">{feature.description}</p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Fleet Section */}
-      <section id="fleet" className="py-20 bg-gray-900 text-white">
-        <div className="container mx-auto px-4">
-          <motion.div className="text-center mb-16" {...fadeIn}>
-            <h2 className="text-4xl md:text-5xl font-black mb-4 uppercase">OUR LUXURY FLEET</h2>
-            <p className="text-xl font-bold text-gray-300 max-w-3xl mx-auto">
-              Premium vehicles for the ultimate comfort
-            </p>
-          </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {vehicles.map((vehicle, index) => (
-              <motion.div
-                key={index}
-                {...slideIn}
-                transition={{ delay: index * 0.15 }}
-                whileHover={{ scale: 1.05, y: -10 }}
-              >
-                <Card className="overflow-hidden hover:shadow-2xl transition-all bg-white">
-                  <div className="h-64 overflow-hidden">
-                    <ImageWithFallback
-                      src={vehicle.image}
-                      alt={vehicle.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <CardContent className="p-6">
-                    <h3 className="font-black text-2xl mb-4 text-gray-900">{vehicle.name}</h3>
-                    <div className="flex items-center gap-6 mb-6 pb-6 border-b-2 border-gray-200">
-                      <div className="flex items-center gap-2 font-bold text-gray-700">
-                        <Users className="w-5 h-5 text-orange-500" />
-                        {vehicle.passengers}
-                      </div>
-                      <div className="flex items-center gap-2 font-bold text-gray-700">
-                        <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                        </svg>
-                        {vehicle.luggage}
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-5 rounded-lg mb-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-bold">HOURLY RATE</span>
-                        <span className="text-2xl font-black">${vehicle.hourlyRate}/hr</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-bold">CITY TOUR (3HR)</span>
-                        <span className="text-3xl font-black">${vehicle.cityTour}</span>
-                      </div>
-                    </div>
-                    <ul className="space-y-2 mb-6">
-                      {vehicle.features.map((feature, fIndex) => (
-                        <li key={fIndex} className="flex items-center gap-2 font-semibold text-gray-700">
-                          <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      onClick={() => handleShopifyCheckout({...vehicle, name: vehicle.name, price: vehicle.cityTour})}
-                      className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 font-black text-lg py-6"
-                    >
-                      <ShoppingCart className="w-5 h-5 mr-2" />
-                      BOOK THIS VEHICLE
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Membership Plans */}
-      <section id="membership" className="py-20 bg-gradient-to-br from-orange-50 to-red-50">
-        <div className="container mx-auto px-4">
-          <motion.div className="text-center mb-16" {...fadeIn}>
-            <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-4 uppercase">MEMBERSHIP PLANS</h2>
-            <p className="text-xl font-bold text-gray-600 max-w-3xl mx-auto">
-              Save more with our exclusive membership programs
-            </p>
-          </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {membershipPlans.map((plan, index) => (
-              <motion.div
-                key={index}
-                {...scaleIn}
-                transition={{ delay: index * 0.15 }}
-                whileHover={{ scale: 1.05, y: -10 }}
-              >
-                <Card className={`h-full relative overflow-hidden hover:shadow-2xl transition-all ${plan.popular ? 'border-4 border-orange-500' : 'border-2 border-gray-200'}`}>
-                  {plan.popular && (
-                    <div className="absolute top-0 right-0 bg-orange-500 text-white px-6 py-1 font-black text-sm">
-                      MOST POPULAR
-                    </div>
-                  )}
-                  <CardContent className="p-8 text-center">
-                    <div className={`bg-gradient-to-br ${plan.color} w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl`}>
-                      <Trophy className="w-12 h-12 text-white" />
-                    </div>
-                    <h3 className="font-black text-3xl mb-2 text-gray-900">{plan.name}</h3>
-                    <div className="mb-6">
-                      <span className="text-5xl font-black text-gray-900">${plan.price}</span>
-                      <span className="text-xl font-bold text-gray-600">/{plan.period}</span>
-                    </div>
-                    <ul className="space-y-3 mb-8 text-left">
-                      {plan.features.map((feature, fIndex) => (
-                        <li key={fIndex} className="flex items-start gap-3 font-semibold text-gray-700">
-                          <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      onClick={() => handleShopifyCheckout({...plan, name: `${plan.name} Membership`})}
-                      className={`w-full font-black text-lg py-6 ${
-                        plan.popular
-                          ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
-                          : 'bg-gray-900 hover:bg-black text-white'
-                      }`}
-                    >
-                      <ShoppingCart className="w-5 h-5 mr-2" />
-                      JOIN NOW
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-20 bg-gray-900 text-white">
-        <div className="container mx-auto px-4">
-          <motion.div className="text-center mb-16" {...fadeIn}>
-            <h2 className="text-4xl md:text-5xl font-black mb-4 uppercase">CUSTOMER REVIEWS</h2>
-            <p className="text-xl font-bold text-gray-300 max-w-3xl mx-auto">
-              See what our happy customers say about us
-            </p>
-          </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                {...fadeIn}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.03, y: -5 }}
-              >
-                <Card className="h-full bg-white text-gray-900 hover:shadow-2xl transition-all">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-1 mb-4">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <div className="mb-4">
-                      <Quote className="w-8 h-8 text-orange-500 mb-2" />
-                      <p className="font-semibold text-gray-700 italic">{testimonial.text}</p>
-                    </div>
-                    <div className="border-t-2 border-gray-200 pt-4">
-                      <p className="font-black text-gray-900">{testimonial.name}</p>
-                      <p className="text-sm font-bold text-gray-500">{testimonial.country}</p>
-                      <div className="mt-2 inline-block bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold">
-                        {testimonial.service}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Video Section */}
+      {/* Happy Recent Clients (Image Slider + Reviews) */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <motion.div className="max-w-5xl mx-auto" {...scaleIn}>
-            <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-3xl p-12 text-white text-center shadow-2xl">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="bg-white/20 backdrop-blur w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 cursor-pointer">
-                  <Play className="w-12 h-12" />
+          <SectionHeader
+            title="HAPPY RECENT CLIENTS"
+            subtitle="Real customers, real experiences"
+            showNavigation
+            onPrev={() => setCurrentTestimonial(Math.max(0, currentTestimonial - 1))}
+            onNext={() => setCurrentTestimonial(Math.min(testimonials.length - 1, currentTestimonial + 1))}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            {/* Left: Client Images Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              {testimonials.map((testimonial, index) => (
+                <div key={index} className="relative group cursor-pointer">
+                  <div className="aspect-square overflow-hidden rounded-2xl">
+                    <ImageWithFallback
+                      src={testimonial.image}
+                      alt={testimonial.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur p-3 rounded-lg">
+                    <p className="font-black text-white text-sm">{testimonial.name}</p>
+                    <p className="text-yellow-400 text-xs font-bold">{testimonial.country}</p>
+                  </div>
                 </div>
-                <h3 className="text-3xl md:text-4xl font-black mb-4">SEE OUR FLEET IN ACTION</h3>
-                <p className="text-xl font-bold mb-6">Watch how we deliver luxury transportation experience</p>
-                <Button className="bg-white text-orange-600 hover:bg-gray-100 font-black text-lg px-8 py-6">
-                  WATCH VIDEO
-                </Button>
-              </motion.div>
+              ))}
             </div>
-          </motion.div>
+
+            {/* Right: Current Testimonial */}
+            <div>
+              <Card className="border-2 border-yellow-500">
+                <CardContent className="p-8">
+                  <div className="flex items-center gap-1 mb-6">
+                    {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
+                      <Star key={i} className="w-6 h-6 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <Quote className="w-12 h-12 text-yellow-500 mb-4" />
+                  <p className="text-xl font-semibold text-gray-700 mb-6 italic">
+                    "{testimonials[currentTestimonial].text}"
+                  </p>
+                  <div className="border-t-2 border-gray-200 pt-6">
+                    <p className="font-black text-2xl text-gray-900">{testimonials[currentTestimonial].name}</p>
+                    <p className="font-bold text-gray-600">{testimonials[currentTestimonial].country}</p>
+                    <span className="inline-block mt-3 bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full font-black text-sm">
+                      {testimonials[currentTestimonial].service}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="relative bg-gray-900 py-24 overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
+      {/* Popular Destinations */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <SectionHeader
+            title="POPULAR DESTINATIONS"
+            subtitle="Top attractions and must-visit locations"
+            showNavigation
+            onPrev={() => {}}
+            onNext={() => {}}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {popularDestinations.map((dest, index) => (
+              <Card key={index} className="overflow-hidden hover:shadow-2xl transition-all group cursor-pointer">
+                <div className="h-64 overflow-hidden relative">
+                  <ImageWithFallback
+                    src={dest.image}
+                    alt={dest.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 right-4 text-white">
+                    <h3 className="text-2xl font-black mb-1">{dest.name}</h3>
+                    <p className="text-sm font-semibold mb-2">{dest.description}</p>
+                    <div className="flex items-center gap-2 text-yellow-400">
+                      <MapPin className="w-4 h-4" />
+                      <span className="text-xs font-bold">{dest.distance}</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Driver Reviews */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <SectionHeader
+            title="MEET OUR PROFESSIONAL DRIVERS"
+            subtitle="Experienced, licensed, and dedicated chauffeurs"
+            showNavigation
+            onPrev={() => {}}
+            onNext={() => {}}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {driverReviews.map((driver, index) => (
+              <Card key={index} className="text-center hover:shadow-2xl transition-all">
+                <CardContent className="p-6">
+                  <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden border-4 border-yellow-500">
+                    <ImageWithFallback
+                      src={driver.image}
+                      alt={driver.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="text-xl font-black text-gray-900 mb-1">{driver.name}</h3>
+                  <p className="text-sm font-bold text-yellow-600 mb-3">{driver.specialty}</p>
+                  <div className="flex items-center justify-center gap-1 mb-3">
+                    <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                    <span className="font-black text-lg">{driver.rating}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <div className="font-black text-2xl text-gray-900">{driver.trips}</div>
+                      <div className="text-xs font-bold text-gray-600">TRIPS</div>
+                    </div>
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <div className="font-black text-2xl text-gray-900">{driver.experience}</div>
+                      <div className="text-xs font-bold text-gray-600">EXPERIENCE</div>
+                    </div>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-600 italic">"{driver.quote}"</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-20 bg-gray-900 text-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-5xl font-black mb-4 uppercase">HOW IT WORKS</h2>
+            <p className="text-xl font-bold text-gray-300">Simple 4-step booking process</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+            {[
+              { step: '1', title: 'CHOOSE SERVICE', desc: 'Select from our premium services' },
+              { step: '2', title: 'BOOK ONLINE', desc: 'Fill details or call us instantly' },
+              { step: '3', title: 'GET CONFIRMED', desc: 'Receive driver details immediately' },
+              { step: '4', title: 'ENJOY RIDE', desc: 'Luxury transportation experience' }
+            ].map((item, index) => (
+              <div key={index} className="text-center group">
+                <div className="relative mb-6">
+                  <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 w-24 h-24 rounded-full flex items-center justify-center mx-auto shadow-xl group-hover:scale-110 transition-transform">
+                    <span className="text-4xl font-black text-black">{item.step}</span>
+                  </div>
+                </div>
+                <h3 className="font-black text-xl mb-2">{item.title}</h3>
+                <p className="font-semibold text-gray-400">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Our Clients */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <SectionHeader
+            title="OUR TRUSTED CLIENTS"
+            subtitle="Partnering with Auckland's leading brands"
+            showNavigation
+            onPrev={() => setCurrentClient(Math.max(0, currentClient - 1))}
+            onNext={() => setCurrentClient(Math.min(clientLogos.length - 1, currentClient + 1))}
+          />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+            {clientLogos.map((client, index) => (
+              <div key={index} className="aspect-square bg-gray-50 rounded-xl p-6 flex items-center justify-center hover:shadow-lg transition-all group cursor-pointer border-2 border-gray-200 hover:border-yellow-500">
+                <ImageWithFallback
+                  src={client.logo}
+                  alt={client.name}
+                  className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Press Release */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <SectionHeader
+            title="PRESS RELEASE & NEWS"
+            subtitle="Latest updates and achievements"
+            showSeeMore
+            onSeeMore={() => {}}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {pressReleases.map((press, index) => (
+              <Card key={index} className="overflow-hidden hover:shadow-2xl transition-all">
+                <div className="h-56 overflow-hidden">
+                  <ImageWithFallback
+                    src={press.image}
+                    alt={press.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <CardContent className="p-6">
+                  <div className="text-sm font-bold text-yellow-600 mb-2">{press.date}</div>
+                  <h3 className="text-xl font-black text-gray-900 mb-3">{press.title}</h3>
+                  <p className="font-semibold text-gray-600 mb-4">{press.excerpt}</p>
+                  <Button variant="outline" className="font-bold border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white">
+                    READ MORE <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Popular Route Cabs */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <SectionHeader
+            title="POPULAR ROUTE CABS"
+            subtitle="Most traveled routes with transparent pricing"
+            showNavigation
+            onPrev={() => {}}
+            onNext={() => {}}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {popularRoutes.map((route, index) => (
+              <Card key={index} className="hover:shadow-2xl transition-all border-l-4 border-yellow-500">
+                <div className="h-40 overflow-hidden">
+                  <ImageWithFallback
+                    src={route.image}
+                    alt={`${route.from} to ${route.to}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-green-500 w-3 h-3 rounded-full"></div>
+                        <p className="font-black text-gray-900">{route.from}</p>
+                      </div>
+                      <div className="border-l-2 border-dashed border-gray-300 h-4 ml-1.5"></div>
+                      <div className="flex items-center gap-2">
+                        <div className="bg-red-500 w-3 h-3 rounded-full"></div>
+                        <p className="font-black text-gray-900">{route.to}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-4 border-t-2 border-gray-100">
+                    <div>
+                      <p className="text-3xl font-black text-yellow-600">${route.price}</p>
+                      <p className="text-sm font-bold text-gray-500">{route.time}</p>
+                    </div>
+                    <Button className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black">
+                      BOOK
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQs */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <SectionHeader
+            title="FREQUENTLY ASKED QUESTIONS"
+            subtitle="Got questions? We have answers"
+          />
+          <div className="max-w-4xl mx-auto space-y-4">
+            {faqs.map((faq, index) => (
+              <Card key={index} className="hover:shadow-lg transition border-l-4 border-yellow-500">
+                <CardContent className="p-6">
+                  <h3 className="font-black text-lg mb-3 text-gray-900 flex items-start gap-2">
+                    <span className="bg-yellow-500 text-black w-6 h-6 rounded-full flex items-center justify-center text-sm flex-shrink-0 mt-0.5">
+                      Q
+                    </span>
+                    {faq.question}
+                  </h3>
+                  <p className="font-semibold text-gray-700 ml-8">{faq.answer}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="relative bg-black py-24">
+        <div className="absolute inset-0 opacity-30">
           <ImageWithFallback
             src="https://images.unsplash.com/photo-1558222209-134191edfe0d?w=1920"
-            alt="Luxury Service"
+            alt="Luxury Car"
             className="w-full h-full object-cover"
           />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
-          <motion.div {...fadeIn}>
-            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white uppercase">READY FOR LUXURY?</h2>
-            <p className="text-xl md:text-2xl mb-10 text-orange-300 font-bold max-w-3xl mx-auto">
-              Book now with secure Shopify checkout and enjoy premium service
-            </p>
-            <div className="flex flex-wrap gap-6 justify-center">
-              <motion.a
-                href="tel:+64277777242"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button size="lg" className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 font-black text-xl px-12 py-8">
-                  <Phone className="w-6 h-6 mr-3" />
-                  CALL NOW
-                </Button>
-              </motion.a>
-              <motion.button
-                onClick={() => {
-                  setSelectedPackage(tourPackages[0]);
-                  setShowBookingModal(true);
-                }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 font-black text-xl px-12 py-8">
-                  <ShoppingCart className="w-6 h-6 mr-3" />
-                  BOOK ONLINE
-                </Button>
-              </motion.button>
-            </div>
-          </motion.div>
+          <h2 className="text-5xl font-black mb-6 text-white">READY FOR LUXURY?</h2>
+          <p className="text-2xl mb-10 text-yellow-400 font-bold max-w-3xl mx-auto">
+            Book now with secure checkout and experience premium service
+          </p>
+          <div className="flex flex-wrap gap-6 justify-center">
+            <a href="tel:+64277777242">
+              <Button size="lg" className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-xl px-12 py-8">
+                <Phone className="w-6 h-6 mr-3" />
+                CALL NOW
+              </Button>
+            </a>
+            <Button
+              size="lg"
+              onClick={() => setShowBookingModal(true)}
+              className="bg-white hover:bg-gray-100 text-black font-black text-xl px-12 py-8"
+            >
+              <ShoppingCart className="w-6 h-6 mr-3" />
+              BOOK ONLINE
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-gray-900 to-black text-white">
+      <footer id="contact" className="bg-gradient-to-br from-gray-900 to-black text-white">
         <div className="container mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <motion.div
-                className="flex items-center gap-3 mb-4"
-                whileHover={{ scale: 1.05 }}
-              >
-                <div className="bg-gradient-to-br from-orange-500 to-red-500 p-3 rounded-xl">
-                  <Car className="w-8 h-8 text-white" />
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative w-12 h-12">
+                  <div className="absolute inset-0 rounded-full border-4 border-yellow-500"></div>
+                  <div className="absolute inset-2 rounded-full bg-black flex items-center justify-center">
+                    <span className="text-yellow-500 font-black text-xl">L</span>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-black text-xl">LUXURY CABS LTD</h3>
-                </div>
-              </motion.div>
+                <h3 className="font-black text-xl">LUXURY CABS LTD</h3>
+              </div>
               <p className="text-gray-400 font-semibold mb-4">
                 Auckland's premier luxury taxi and tour service provider.
               </p>
             </div>
             <div>
-              <h4 className="font-black mb-4 text-orange-400 text-lg">QUICK LINKS</h4>
+              <h4 className="font-black mb-4 text-yellow-400 text-lg">QUICK LINKS</h4>
               <ul className="space-y-2 font-semibold text-gray-400">
-                <li><a href="#services" className="hover:text-orange-400 transition">Services</a></li>
-                <li><a href="#fleet" className="hover:text-orange-400 transition">Our Fleet</a></li>
-                <li><a href="#tours" className="hover:text-orange-400 transition">Tour Packages</a></li>
-                <li><a href="#membership" className="hover:text-orange-400 transition">Membership</a></li>
+                <li><a href="#services" className="hover:text-yellow-400 transition">Services</a></li>
+                <li><a href="#fleet" className="hover:text-yellow-400 transition">Our Fleet</a></li>
+                <li><a href="#tours" className="hover:text-yellow-400 transition">Tour Packages</a></li>
+                <li><a href="#contact" className="hover:text-yellow-400 transition">Contact</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-black mb-4 text-orange-400 text-lg">SERVICES</h4>
+              <h4 className="font-black mb-4 text-yellow-400 text-lg">SERVICES</h4>
               <ul className="space-y-2 font-semibold text-gray-400">
-                <li><a href="#" className="hover:text-orange-400 transition">Airport Transfers</a></li>
-                <li><a href="#" className="hover:text-orange-400 transition">City Tours</a></li>
-                <li><a href="#" className="hover:text-orange-400 transition">Intercity Travel</a></li>
-                <li><a href="#" className="hover:text-orange-400 transition">Wedding Cars</a></li>
+                <li><a href="#" className="hover:text-yellow-400 transition">Airport Transfers</a></li>
+                <li><a href="#" className="hover:text-yellow-400 transition">City Tours</a></li>
+                <li><a href="#" className="hover:text-yellow-400 transition">Intercity Travel</a></li>
+                <li><a href="#" className="hover:text-yellow-400 transition">Wedding Cars</a></li>
               </ul>
             </div>
-            <div>
-              <h4 className="font-black mb-4 text-orange-400 text-lg">CONTACT</h4>
+            <div id="contact">
+              <h4 className="font-black mb-4 text-yellow-400 text-lg">CONTACT</h4>
               <ul className="space-y-4 font-semibold text-gray-400">
                 <li className="flex items-start gap-3">
-                  <Phone className="w-5 h-5 text-orange-400 mt-1" />
-                  <a href="tel:+64277777242" className="hover:text-orange-400 transition font-black text-white">
+                  <Phone className="w-5 h-5 text-yellow-400 mt-1" />
+                  <a href="tel:+64277777242" className="hover:text-yellow-400 transition font-black text-white">
                     +64 27 777 7242
                   </a>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Mail className="w-5 h-5 text-orange-400 mt-1" />
-                  <a href="mailto:Luxurycabsltd@gmail.com" className="hover:text-orange-400 transition break-all">
+                  <Mail className="w-5 h-5 text-yellow-400 mt-1" />
+                  <a href="mailto:Luxurycabsltd@gmail.com" className="hover:text-yellow-400 transition break-all">
                     Luxurycabsltd@gmail.com
                   </a>
                 </li>
