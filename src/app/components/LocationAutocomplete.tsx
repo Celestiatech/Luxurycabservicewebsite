@@ -11,7 +11,7 @@ interface LocationAutocompleteProps {
 export function LocationAutocomplete({ placeholder, value, onChange, className }: LocationAutocompleteProps) {
   return (
     <div className="relative">
-      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-orange-500 z-10" />
+      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-yellow-500 z-10" />
       <Input
         type="text"
         placeholder={placeholder}
