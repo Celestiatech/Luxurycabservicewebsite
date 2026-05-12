@@ -42,7 +42,7 @@ const productsQuery = `
   }
 `;
 
-export async function GET() {
+export async function GET(req: Request) {
   const storeDomain = process.env.SHOPIFY_STORE_DOMAIN?.trim();
   const storefrontAccessToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN?.trim();
   const apiVersion = process.env.SHOPIFY_API_VERSION?.trim() || '2024-10';
@@ -52,12 +52,25 @@ export async function GET() {
   }
 
   try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (storefrontAccessToken.startsWith('shpat_')) {
+      headers['Shopify-Storefront-Private-Token'] = storefrontAccessToken;
+      const buyerIp =
+        req.headers.get('shopify-storefront-buyer-ip') ||
+        req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+        req.headers.get('x-real-ip') ||
+        req.headers.get('cf-connecting-ip');
+      if (buyerIp) headers['Shopify-Storefront-Buyer-IP'] = buyerIp;
+    } else {
+      headers['X-Shopify-Storefront-Access-Token'] = storefrontAccessToken;
+    }
+
     const res = await fetch(`https://${storeDomain}/api/${apiVersion}/graphql.json`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': storefrontAccessToken,
-      },
+      headers,
       body: JSON.stringify({ query: productsQuery, variables: { first: 30 } }),
       cache: 'no-store',
     });

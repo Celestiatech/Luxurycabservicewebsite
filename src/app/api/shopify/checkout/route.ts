@@ -51,12 +51,25 @@ export async function POST(req: Request) {
     const quantity = typeof body.quantity === 'number' && body.quantity > 0 ? body.quantity : 1;
     const attributes = Array.isArray(body.attributes) ? body.attributes : [];
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (storefrontAccessToken.startsWith('shpat_')) {
+      headers['Shopify-Storefront-Private-Token'] = storefrontAccessToken;
+      const buyerIp =
+        req.headers.get('shopify-storefront-buyer-ip') ||
+        req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+        req.headers.get('x-real-ip') ||
+        req.headers.get('cf-connecting-ip');
+      if (buyerIp) headers['Shopify-Storefront-Buyer-IP'] = buyerIp;
+    } else {
+      headers['X-Shopify-Storefront-Access-Token'] = storefrontAccessToken;
+    }
+
     const res = await fetch(`https://${storeDomain}/api/${apiVersion}/graphql.json`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': storefrontAccessToken,
-      },
+      headers,
       body: JSON.stringify({
         query: cartCreateMutation,
         variables: {
