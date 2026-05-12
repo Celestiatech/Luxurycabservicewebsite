@@ -53,6 +53,11 @@
   --sidebar-ring: #808080;
 }
 
+/* Google Places Autocomplete dropdown (ensure above modals/headers) */
+.pac-container {
+  z-index: 99999 !important;
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

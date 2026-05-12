@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+'use client';
+
+import { useState, useEffect, startTransition } from 'react';
 import { Phone, Mail, MapPin, Users, Check, Star, Shield, Award, Car, ChevronRight, MessageCircle, FileText, ArrowUp, X, CreditCard, ShoppingCart, CheckCircle2, ArrowRight, Calendar, Quote, ChevronLeft } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
@@ -7,6 +9,10 @@ import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { LocationAutocomplete } from './components/LocationAutocomplete';
 import { SectionHeader } from './components/SectionHeader';
 import { motion, AnimatePresence } from 'motion/react';
+import { createShopifyCheckoutUrl } from './lib/shopify';
+import { DatePicker } from './components/DatePicker';
+import { ShopifyVariantSelect, type ShopifyVariantOption } from './components/ShopifyVariantSelect';
+import { PassengersSelect } from './components/PassengersSelect';
 
 export default function App() {
   const [formData, setFormData] = useState({
@@ -30,6 +36,27 @@ export default function App() {
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [currentClient, setCurrentClient] = useState(0);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [shopifyVariants, setShopifyVariants] = useState<ShopifyVariantOption[]>([]);
+  const [shopifyVariantsError, setShopifyVariantsError] = useState<string | null>(null);
+
+  const validateStep1 = (): string | null => {
+    if (!formData.pickup.trim()) return 'Please enter pickup location.';
+    if (!formData.dropoff.trim()) return 'Please enter drop-off location.';
+    if (!formData.date.trim()) return 'Please select pickup date.';
+    if (!formData.time.trim()) return 'Please select pickup time.';
+    if (!formData.passengers.trim()) return 'Please select passengers.';
+    if (!formData.vehicle.trim()) return 'Please select vehicle/product.';
+    return null;
+  };
+
+  const validateStep2 = (): string | null => {
+    if (!formData.name.trim()) return 'Please enter your full name.';
+    if (!formData.email.trim()) return 'Please enter your email address.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) return 'Please enter a valid email address.';
+    if (!formData.phone.trim()) return 'Please enter your phone number.';
+    return null;
+  };
 
   const navigateTo = (page: string) => {
     setCurrentPage(page);
@@ -44,8 +71,55 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    // Optional: if Shopify is configured, show products/variants in selects.
+    fetch('/api/shopify/products')
+      .then((r) => r.json())
+      .then((json: any) => {
+        const variants = Array.isArray(json?.variants) ? (json.variants as ShopifyVariantOption[]) : [];
+        setShopifyVariants(variants);
+        setShopifyVariantsError(typeof json?.error === 'string' && json.error ? json.error : null);
+      })
+      .catch(() => {
+        setShopifyVariants([]);
+        setShopifyVariantsError(null);
+      });
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const focusBookingForm = (opts?: { pickup?: string; dropoff?: string; focus?: 'pickup' | 'dropoff' | 'date'; openModal?: boolean }) => {
+    const pickup = opts?.pickup;
+    const dropoff = opts?.dropoff;
+
+    if (pickup !== undefined || dropoff !== undefined) {
+      startTransition(() =>
+        setFormData((prev) => ({
+          ...prev,
+          pickup: pickup !== undefined ? pickup : prev.pickup,
+          dropoff: dropoff !== undefined ? dropoff : prev.dropoff,
+        })),
+      );
+    }
+
+    if (opts?.openModal) {
+      setSelectedPackage(null);
+      setShowBookingModal(true);
+      setBookingStep(1);
+      window.setTimeout(() => {
+        const id = opts?.focus === 'dropoff' ? 'modal-dropoff' : opts?.focus === 'date' ? 'modal-date' : 'modal-pickup';
+        document.getElementById(id)?.focus();
+      }, 350);
+      return;
+    }
+
+    document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.setTimeout(() => {
+      const id = opts?.focus === 'dropoff' ? 'booking-dropoff' : opts?.focus === 'date' ? 'booking-date' : 'booking-pickup';
+      document.getElementById(id)?.focus();
+    }, 450);
   };
 
   const handleShopifyCheckout = (packageData: any) => {
@@ -54,15 +128,85 @@ export default function App() {
     setBookingStep(1);
   };
 
-  const proceedToCheckout = () => {
-    const shopifyData = {
-      ...formData,
-      package: selectedPackage,
-      totalAmount: selectedPackage?.price
-    };
-    console.log('Proceeding to Shopify checkout with:', shopifyData);
-    alert('Redirecting to secure Shopify checkout...\n\nYour booking details have been saved!');
-    setShowBookingModal(false);
+  const proceedToCheckout = async () => {
+    if (isCheckingOut) return;
+    const s1 = validateStep1();
+    if (s1) {
+      alert(s1);
+      return;
+    }
+    const s2 = validateStep2();
+    if (s2) {
+      alert(s2);
+      return;
+    }
+    const chosenVariant =
+      shopifyVariants.find((v) => v.id === formData.vehicle) ||
+      null;
+    const effectivePackage =
+      selectedPackage ||
+      (chosenVariant
+        ? {
+            name: chosenVariant.label,
+            price: chosenVariant.priceAmount ? Number(chosenVariant.priceAmount) : undefined,
+            variantId: chosenVariant.id,
+          }
+        : null);
+
+    if (!effectivePackage) {
+      alert('Please choose a package (Book Now) or select a vehicle/product.');
+      return;
+    }
+
+    setIsCheckingOut(true);
+    try {
+      try {
+        localStorage.setItem(
+          'latest_booking',
+          JSON.stringify({
+            pickup: formData.pickup,
+            dropoff: formData.dropoff,
+            date: formData.date,
+            time: formData.time,
+            passengers: formData.passengers,
+            vehicle: formData.vehicle,
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            specialRequests: formData.specialRequests,
+          }),
+        );
+      } catch {
+        // ignore
+      }
+
+      const checkoutUrl = await createShopifyCheckoutUrl({
+        merchandiseId: effectivePackage?.variantId || effectivePackage?.shopifyVariantId || null,
+        quantity: 1,
+        attributes: {
+          booking_type: effectivePackage?.name || effectivePackage?.title || 'Booking',
+          booking_price_display: effectivePackage?.price,
+          pickup: formData.pickup,
+          dropoff: formData.dropoff,
+          date: formData.date,
+          time: formData.time,
+          passengers: formData.passengers,
+          vehicle: chosenVariant?.label || formData.vehicle,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          special_requests: formData.specialRequests,
+        },
+      });
+
+      window.location.assign(checkoutUrl);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to start Shopify checkout.';
+      alert(message);
+    } finally {
+      setIsCheckingOut(false);
+      setShowBookingModal(false);
+    }
   };
 
   // Data
@@ -416,20 +560,11 @@ export default function App() {
           <div className="flex items-center justify-between">
             {/* BMW/Porsche Style Logo */}
             <div className="flex items-center gap-4">
-              <div className="relative w-16 h-16">
-                {/* Outer Ring - Gold */}
-                <div className="absolute inset-0 rounded-full border-4 border-yellow-500 shadow-2xl"></div>
-                {/* Inner Circle - Black */}
-                <div className="absolute inset-2 rounded-full bg-black flex items-center justify-center">
-                  {/* Logo Text */}
-                  <div className="text-center">
-                    <div className="text-yellow-500 font-black text-2xl leading-none">L</div>
-                    <div className="text-yellow-500 font-black text-xs leading-none mt-0.5">C</div>
-                  </div>
-                </div>
-                {/* Shine Effect */}
-                <div className="absolute top-2 left-3 w-4 h-4 bg-white/30 rounded-full blur-sm"></div>
-              </div>
+              <img
+                src="/logo.png"
+                alt="Luxury Cabs"
+                className="w-16 h-16 rounded-full shadow-2xl bg-white"
+              />
               <div>
                 <h1 className="text-2xl font-black text-gray-900 tracking-tight">LUXURY CABS LTD</h1>
                 <p className="text-xs font-bold text-yellow-600 tracking-widest">PREMIUM TRANSPORTATION</p>
@@ -453,12 +588,13 @@ export default function App() {
               <a href="#contact" className="font-bold text-gray-700 hover:text-yellow-600 transition-all duration-300 hover:scale-105">
                 CONTACT
               </a>
-              <a href="#booking">
-                <Button className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black shadow-lg transition-all duration-300 hover:scale-110">
-                  <ShoppingCart className="w-4 h-4 mr-2" />
-                  BOOK NOW
-                </Button>
-              </a>
+              <Button
+                onClick={() => focusBookingForm({ focus: 'pickup' })}
+                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black shadow-lg transition-all duration-300 hover:scale-110"
+              >
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                BOOK NOW
+              </Button>
             </div>
           </div>
         </div>
@@ -627,52 +763,91 @@ export default function App() {
 
                   {/* Step 1: Trip Details */}
                   {bookingStep === 1 && (
-                    <div className="space-y-4">
+                    <div className="space-y-4 text-left">
                       <h3 className="text-xl font-black text-gray-900 mb-4">TRIP DETAILS</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1 group">
+                          <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                            Pickup Location <span className="text-red-600">*</span>
+                          </div>
                         <LocationAutocomplete
                           placeholder="Pickup Location *"
                           value={formData.pickup}
-                          onChange={(value) => setFormData({...formData, pickup: value})}
+                          onChange={(value) => startTransition(() => setFormData({...formData, pickup: value}))}
+                          inputId="modal-pickup"
                         />
+                        </div>
+                        <div className="space-y-1 group">
+                          <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                            Drop-off Location <span className="text-red-600">*</span>
+                          </div>
                         <LocationAutocomplete
                           placeholder="Drop-off Location *"
                           value={formData.dropoff}
-                          onChange={(value) => setFormData({...formData, dropoff: value})}
+                          onChange={(value) => startTransition(() => setFormData({...formData, dropoff: value}))}
+                          inputId="modal-dropoff"
                         />
-                        <Input
-                          type="date"
+                        </div>
+                        <div className="space-y-1 group">
+                          <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                            Pickup Date <span className="text-red-600">*</span>
+                          </div>
+                        <DatePicker
                           value={formData.date}
-                          onChange={(e) => setFormData({...formData, date: e.target.value})}
-                          className="font-semibold border-2"
+                          onChange={(date) => setFormData({ ...formData, date })}
+                          className="h-9"
+                          id="modal-date"
                         />
-                        <Input
-                          type="time"
-                          value={formData.time}
-                          onChange={(e) => setFormData({...formData, time: e.target.value})}
-                          className="font-semibold border-2"
-                        />
-                        <select
-                          className="w-full border-2 rounded-md p-2.5 font-semibold"
-                          value={formData.passengers}
-                          onChange={(e) => setFormData({...formData, passengers: e.target.value})}
-                        >
-                          <option value="">Number of Passengers *</option>
-                          <option value="1-2">1-2 Passengers</option>
-                          <option value="3-4">3-4 Passengers</option>
-                          <option value="5-7">5-7 Passengers</option>
-                          <option value="8-11">8-11 Passengers</option>
-                        </select>
-                        <select
-                          className="w-full border-2 rounded-md p-2.5 font-semibold"
-                          value={formData.vehicle}
-                          onChange={(e) => setFormData({...formData, vehicle: e.target.value})}
-                        >
-                          <option value="">Select Vehicle Type *</option>
-                          <option value="sedan">Luxury Sedan</option>
-                          <option value="minivan">Mini Van (7-Seater)</option>
-                          <option value="largevan">Large Van (12-Seater)</option>
-                        </select>
+                        </div>
+                        <div className="space-y-1 group">
+                          <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                            Pickup Time <span className="text-red-600">*</span>
+                          </div>
+                          <Input
+                            type="time"
+                            value={formData.time}
+                            onChange={(e) => setFormData({...formData, time: e.target.value})}
+                            className="font-semibold border-2"
+                          />
+                        </div>
+                        <div className="space-y-1 group">
+                          <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                            Passengers <span className="text-red-600">*</span>
+                          </div>
+                          <PassengersSelect
+                            value={formData.passengers}
+                            onChange={(passengers) => setFormData({ ...formData, passengers })}
+                          />
+                        </div>
+                        <div className="space-y-1 group">
+                          <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                            Vehicle Type <span className="text-red-600">*</span>
+                          </div>
+                          {shopifyVariants.length > 0 ? (
+                            <ShopifyVariantSelect
+                              value={formData.vehicle}
+                              onChange={(v) => setFormData({ ...formData, vehicle: v })}
+                              options={shopifyVariants}
+                              placeholder="Select vehicle / product"
+                            />
+                          ) : (
+                            <select
+                              className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                              value={formData.vehicle}
+                              onChange={(e) => setFormData({...formData, vehicle: e.target.value})}
+                            >
+                              <option value="">Select vehicle</option>
+                              <option value="sedan">Luxury Sedan</option>
+                              <option value="minivan">Mini Van (7-Seater)</option>
+                              <option value="largevan">Large Van (12-Seater)</option>
+                            </select>
+                          )}
+                          {shopifyVariantsError ? (
+                            <div className="text-[11px] font-semibold text-gray-500">
+                              Shopify products not loaded: {shopifyVariantsError}
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
                       <textarea
                         placeholder="Special Requests (Optional)"
@@ -681,7 +856,11 @@ export default function App() {
                         className="w-full border-2 rounded-md p-3 font-semibold min-h-24"
                       />
                       <Button
-                        onClick={() => setBookingStep(2)}
+                        onClick={() => {
+                          const err = validateStep1();
+                          if (err) return alert(err);
+                          setBookingStep(2);
+                        }}
                         className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-6"
                       >
                         CONTINUE <ArrowRight className="w-5 h-5 ml-2" />
@@ -691,28 +870,47 @@ export default function App() {
 
                   {/* Step 2: Personal Details */}
                   {bookingStep === 2 && (
-                    <div className="space-y-4">
+                    <div className="space-y-4 text-left">
                       <h3 className="text-xl font-black text-gray-900 mb-4">YOUR DETAILS</h3>
-                      <Input
-                        placeholder="Full Name *"
-                        value={formData.name}
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        className="font-semibold border-2"
-                      />
-                      <Input
-                        placeholder="Email Address *"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
-                        className="font-semibold border-2"
-                      />
-                      <Input
-                        placeholder="Phone Number *"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                        className="font-semibold border-2"
-                      />
+                      <div className="space-y-1 group">
+                        <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                          Full Name <span className="text-red-600">*</span>
+                        </div>
+                        <Input
+                          placeholder="Full Name *"
+                          value={formData.name}
+                          autoComplete="name"
+                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                          className="font-semibold border-2"
+                        />
+                      </div>
+                      <div className="space-y-1 group">
+                        <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                          Email Address <span className="text-red-600">*</span>
+                        </div>
+                        <Input
+                          placeholder="Email Address *"
+                          type="email"
+                          value={formData.email}
+                          autoComplete="email"
+                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          className="font-semibold border-2"
+                        />
+                      </div>
+                      <div className="space-y-1 group">
+                        <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                          Phone Number <span className="text-red-600">*</span>
+                        </div>
+                        <Input
+                          placeholder="Phone Number *"
+                          type="tel"
+                          value={formData.phone}
+                          autoComplete="tel"
+                          inputMode="tel"
+                          onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                          className="font-semibold border-2"
+                        />
+                      </div>
                       <div className="flex gap-3">
                         <Button
                           onClick={() => setBookingStep(1)}
@@ -722,7 +920,11 @@ export default function App() {
                           BACK
                         </Button>
                         <Button
-                          onClick={() => setBookingStep(3)}
+                          onClick={() => {
+                            const err = validateStep2();
+                            if (err) return alert(err);
+                            setBookingStep(3);
+                          }}
                           className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-6"
                         >
                           CONTINUE <ArrowRight className="w-5 h-5 ml-2" />
@@ -733,7 +935,7 @@ export default function App() {
 
                   {/* Step 3: Confirmation */}
                   {bookingStep === 3 && (
-                    <div className="space-y-4">
+                    <div className="space-y-4 text-left">
                       <h3 className="text-xl font-black text-gray-900 mb-4">REVIEW & CHECKOUT</h3>
                       <div className="bg-yellow-50 border-2 border-yellow-500 rounded-lg p-6 space-y-3">
                         <div className="flex justify-between">
@@ -765,10 +967,11 @@ export default function App() {
                         </Button>
                         <Button
                           onClick={proceedToCheckout}
+                          disabled={isCheckingOut}
                           className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black text-lg py-6"
                         >
                           <CreditCard className="w-5 h-5 mr-2" />
-                          CHECKOUT
+                          {isCheckingOut ? 'REDIRECTING…' : 'CHECKOUT'}
                         </Button>
                       </div>
                     </div>
@@ -847,71 +1050,124 @@ export default function App() {
                   <CardTitle className="text-3xl font-black">BOOK YOUR LUXURY RIDE</CardTitle>
                   <CardDescription className="text-gray-900 font-bold text-lg">Get instant quote & confirmation</CardDescription>
                 </CardHeader>
-                <CardContent className="p-6 space-y-4">
+                <CardContent className="p-6 space-y-4 text-left">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <LocationAutocomplete
-                      placeholder="Pickup Location *"
-                      value={formData.pickup}
-                      onChange={(value) => setFormData({...formData, pickup: value})}
-                    />
-                    <LocationAutocomplete
-                      placeholder="Drop-off Location *"
-                      value={formData.dropoff}
-                      onChange={(value) => setFormData({...formData, dropoff: value})}
-                    />
-                    <Input
-                      type="date"
+                    <div className="space-y-1 group">
+                      <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                        Pickup Location <span className="text-red-600">*</span>
+                      </div>
+                      <LocationAutocomplete
+                        placeholder="Pickup Location *"
+                        value={formData.pickup}
+                        onChange={(value) => startTransition(() => setFormData({...formData, pickup: value}))}
+                        inputId="booking-pickup"
+                      />
+                    </div>
+                    <div className="space-y-1 group">
+                      <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                        Drop-off Location <span className="text-red-600">*</span>
+                      </div>
+                      <LocationAutocomplete
+                        placeholder="Drop-off Location *"
+                        value={formData.dropoff}
+                        onChange={(value) => startTransition(() => setFormData({...formData, dropoff: value}))}
+                        inputId="booking-dropoff"
+                      />
+                    </div>
+                    <div className="space-y-1 group">
+                      <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                        Pickup Date <span className="text-red-600">*</span>
+                      </div>
+                    <DatePicker
                       value={formData.date}
-                      onChange={(e) => setFormData({...formData, date: e.target.value})}
-                      className="font-semibold border-2"
+                      onChange={(date) => setFormData({ ...formData, date })}
+                      className="h-9"
+                      id="booking-date"
                     />
+                    </div>
+                    <div className="space-y-1 group">
+                      <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                        Pickup Time <span className="text-red-600">*</span>
+                      </div>
                     <Input
                       type="time"
                       value={formData.time}
                       onChange={(e) => setFormData({...formData, time: e.target.value})}
                       className="font-semibold border-2"
                     />
+                    </div>
                   </div>
-                  <select
-                    className="w-full border-2 rounded-md p-2.5 font-semibold"
-                    value={formData.passengers}
-                    onChange={(e) => setFormData({...formData, passengers: e.target.value})}
-                  >
-                    <option value="">Number of Passengers *</option>
-                    <option value="1-2">1-2 Passengers</option>
-                    <option value="3-4">3-4 Passengers</option>
-                    <option value="5-7">5-7 Passengers</option>
-                    <option value="8-11">8-11 Passengers</option>
-                  </select>
-                  <select
-                    className="w-full border-2 rounded-md p-2.5 font-semibold"
-                    value={formData.vehicle}
-                    onChange={(e) => setFormData({...formData, vehicle: e.target.value})}
-                  >
-                    <option value="">Select Vehicle Type *</option>
-                    <option value="sedan">Luxury Sedan (1-4 pax)</option>
-                    <option value="minivan">Mini Van (5-7 pax)</option>
-                    <option value="largevan">Large Van (8-11 pax)</option>
-                  </select>
-                  <Input
-                    placeholder="Your Name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="font-semibold border-2"
-                  />
-                  <Input
-                    placeholder="Phone Number"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="font-semibold border-2"
-                  />
+                  <div className="space-y-1 group">
+                    <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                      Passengers <span className="text-red-600">*</span>
+                    </div>
+                    <PassengersSelect
+                      value={formData.passengers}
+                      onChange={(passengers) => setFormData({ ...formData, passengers })}
+                    />
+                  </div>
+                  <div className="space-y-1 group">
+                    <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                      Vehicle Type <span className="text-red-600">*</span>
+                    </div>
+                    {shopifyVariants.length > 0 ? (
+                      <ShopifyVariantSelect
+                        value={formData.vehicle}
+                        onChange={(v) => setFormData({ ...formData, vehicle: v })}
+                        options={shopifyVariants}
+                        placeholder="Select vehicle / product"
+                      />
+                    ) : (
+                      <select
+                        className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                        value={formData.vehicle}
+                        onChange={(e) => setFormData({...formData, vehicle: e.target.value})}
+                      >
+                        <option value="">Select vehicle</option>
+                        <option value="sedan">Luxury Sedan (1-4 pax)</option>
+                        <option value="minivan">Mini Van (5-7 pax)</option>
+                        <option value="largevan">Large Van (8-11 pax)</option>
+                      </select>
+                    )}
+                    {shopifyVariantsError ? (
+                      <div className="text-[11px] font-semibold text-gray-500">
+                        Shopify products not loaded: {shopifyVariantsError}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="space-y-1 group">
+                    <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                      Your Name
+                    </div>
+                    <Input
+                      placeholder="Your Name"
+                      value={formData.name}
+                      autoComplete="name"
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      className="font-semibold border-2"
+                    />
+                  </div>
+                  <div className="space-y-1 group">
+                    <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                      Phone Number
+                    </div>
+                    <Input
+                      placeholder="Phone Number"
+                      type="tel"
+                      value={formData.phone}
+                      autoComplete="tel"
+                      inputMode="tel"
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      className="font-semibold border-2"
+                    />
+                  </div>
                   <Button
                     onClick={proceedToCheckout}
+                    disabled={isCheckingOut}
                     className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-7 shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     <ShoppingCart className="w-6 h-6 mr-3" />
-                    GET INSTANT QUOTE NOW
+                    {isCheckingOut ? 'REDIRECTING…' : 'CONFIRM BOOKING & PAY'}
                   </Button>
                   <div className="flex gap-3">
                     <a href="tel:+64277777242" className="flex-1">
@@ -1022,7 +1278,10 @@ export default function App() {
                 </div>
                 <CardContent className="p-6">
                   <p className="font-semibold text-gray-600 mb-4">{city.description}</p>
-                  <Button className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black transition-all duration-300 hover:scale-105">
+                  <Button
+                    onClick={() => focusBookingForm({ pickup: city.city, focus: 'dropoff' })}
+                    className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black transition-all duration-300 hover:scale-105"
+                  >
                     VIEW ROUTES
                   </Button>
                 </CardContent>
@@ -1122,7 +1381,10 @@ export default function App() {
                   </div>
                 </div>
                 <CardContent className="p-6">
-                  <Button className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black transition-all duration-300 hover:scale-105">
+                  <Button
+                    onClick={() => focusBookingForm({ focus: 'pickup' })}
+                    className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black transition-all duration-300 hover:scale-105"
+                  >
                     BOOK NOW <ChevronRight className="w-5 h-5 ml-2" />
                   </Button>
                 </CardContent>
@@ -1426,7 +1688,10 @@ export default function App() {
                       <p className="text-3xl font-black text-yellow-600">${route.price}</p>
                       <p className="text-sm font-bold text-gray-500">{route.time}</p>
                     </div>
-                    <Button className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black">
+                    <Button
+                      onClick={() => focusBookingForm({ pickup: route.from, dropoff: route.to, focus: 'date' })}
+                      className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black"
+                    >
                       BOOK
                     </Button>
                   </div>
@@ -1485,7 +1750,7 @@ export default function App() {
             </a>
             <Button
               size="lg"
-              onClick={() => setShowBookingModal(true)}
+              onClick={() => focusBookingForm({ openModal: true, focus: 'pickup' })}
               className="bg-white hover:bg-gray-100 text-black font-black text-xl px-12 py-8"
             >
               <ShoppingCart className="w-6 h-6 mr-3" />
