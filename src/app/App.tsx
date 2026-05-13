@@ -690,12 +690,12 @@ export default function App() {
                   <LocationAutocomplete
                     placeholder="Pickup Location"
                     value={formData.pickup}
-                    onChange={(value) => setFormData({...formData, pickup: value})}
+                    onChange={(value) => setFormData((prev) => ({ ...prev, pickup: value }))}
                   />
                   <LocationAutocomplete
                     placeholder="Drop-off Location"
                     value={formData.dropoff}
-                    onChange={(value) => setFormData({...formData, dropoff: value})}
+                    onChange={(value) => setFormData((prev) => ({ ...prev, dropoff: value }))}
                   />
                   <textarea
                     placeholder="Additional Requirements..."
@@ -773,7 +773,7 @@ export default function App() {
                         <LocationAutocomplete
                           placeholder="Pickup Location *"
                           value={formData.pickup}
-                          onChange={(value) => startTransition(() => setFormData({...formData, pickup: value}))}
+                          onChange={(value) => setFormData((prev) => ({ ...prev, pickup: value }))}
                           inputId="modal-pickup"
                         />
                         </div>
@@ -784,7 +784,7 @@ export default function App() {
                         <LocationAutocomplete
                           placeholder="Drop-off Location *"
                           value={formData.dropoff}
-                          onChange={(value) => startTransition(() => setFormData({...formData, dropoff: value}))}
+                          onChange={(value) => setFormData((prev) => ({ ...prev, dropoff: value }))}
                           inputId="modal-dropoff"
                         />
                         </div>
@@ -1059,7 +1059,7 @@ export default function App() {
                       <LocationAutocomplete
                         placeholder="Pickup Location *"
                         value={formData.pickup}
-                        onChange={(value) => startTransition(() => setFormData({...formData, pickup: value}))}
+                        onChange={(value) => setFormData((prev) => ({ ...prev, pickup: value }))}
                         inputId="booking-pickup"
                       />
                     </div>
@@ -1070,7 +1070,7 @@ export default function App() {
                       <LocationAutocomplete
                         placeholder="Drop-off Location *"
                         value={formData.dropoff}
-                        onChange={(value) => startTransition(() => setFormData({...formData, dropoff: value}))}
+                        onChange={(value) => setFormData((prev) => ({ ...prev, dropoff: value }))}
                         inputId="booking-dropoff"
                       />
                     </div>
@@ -1144,6 +1144,19 @@ export default function App() {
                       value={formData.name}
                       autoComplete="name"
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      className="font-semibold border-2"
+                    />
+                  </div>
+                  <div className="space-y-1 group">
+                    <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                      Email Address <span className="text-red-600">*</span>
+                    </div>
+                    <Input
+                      placeholder="Email Address *"
+                      type="email"
+                      value={formData.email}
+                      autoComplete="email"
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
                       className="font-semibold border-2"
                     />
                   </div>

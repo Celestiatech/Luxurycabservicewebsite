@@ -31,13 +31,13 @@ export async function POST(req: Request) {
     const apiVersion = process.env.SHOPIFY_API_VERSION?.trim() || '2024-10';
     const defaultMerchandiseId = process.env.SHOPIFY_DEFAULT_MERCHANDISE_ID?.trim();
 
-    if (!storeDomain || !storefrontAccessToken || !defaultMerchandiseId) {
+    if (!storeDomain || !storefrontAccessToken) {
       return NextResponse.json(
         {
           error:
-            'Shopify is not configured on the server. Set SHOPIFY_STORE_DOMAIN, SHOPIFY_STOREFRONT_ACCESS_TOKEN, and SHOPIFY_DEFAULT_MERCHANDISE_ID.',
+            'Shopify is not configured on the server. Set SHOPIFY_STORE_DOMAIN and SHOPIFY_STOREFRONT_ACCESS_TOKEN.',
         },
-        { status: 500 },
+        { status: 503 },
       );
     }
 
@@ -47,7 +47,16 @@ export async function POST(req: Request) {
       attributes?: { key: string; value: string }[];
     };
 
-    const merchandiseId = body.merchandiseId?.trim() || defaultMerchandiseId;
+    const merchandiseId = body.merchandiseId?.trim() || defaultMerchandiseId || '';
+    if (!merchandiseId) {
+      return NextResponse.json(
+        {
+          error:
+            'Missing Shopify merchandiseId. Select a vehicle/product (recommended) or set SHOPIFY_DEFAULT_MERCHANDISE_ID in .env.',
+        },
+        { status: 400 },
+      );
+    }
     const quantity = typeof body.quantity === 'number' && body.quantity > 0 ? body.quantity : 1;
     const attributes = Array.isArray(body.attributes) ? body.attributes : [];
 
@@ -107,4 +116,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-
