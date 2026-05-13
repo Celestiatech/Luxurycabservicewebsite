@@ -13,7 +13,7 @@ const OPTIONS = [
 export function PassengersSelect(props: { value: string; onChange: (value: string) => void }) {
   return (
     <Select value={props.value} onValueChange={props.onChange}>
-      <SelectTrigger className="w-full border-2 font-semibold bg-input-background justify-between text-left">
+      <SelectTrigger aria-label="Select passengers" className="w-full border-2 font-semibold bg-input-background justify-between text-left">
         <div className="flex flex-1 items-center gap-2 min-w-0 text-left">
           <Users className="h-4 w-4 text-yellow-600 shrink-0" />
           <SelectValue placeholder="Select passengers" />

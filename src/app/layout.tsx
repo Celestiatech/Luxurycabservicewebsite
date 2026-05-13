@@ -9,8 +9,13 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <head>
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="preconnect" href="https://cdn.shopify.com" />
+      </head>
+      <body>
+        <main>{children}</main>
+      </body>
     </html>
   );
 }
-

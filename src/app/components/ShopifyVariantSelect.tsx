@@ -21,7 +21,7 @@ export function ShopifyVariantSelect(props: {
 
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="w-full border-2 font-semibold bg-input-background justify-between text-left">
+      <SelectTrigger aria-label={placeholder} className="w-full border-2 font-semibold bg-input-background justify-between text-left">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className="p-1">

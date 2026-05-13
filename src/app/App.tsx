@@ -4,7 +4,7 @@ import { useState, useEffect, startTransition } from 'react';
 import { Phone, Mail, MapPin, Users, Check, Star, Shield, Award, Car, ChevronRight, MessageCircle, FileText, ArrowUp, X, CreditCard, ShoppingCart, CheckCircle2, ArrowRight, Calendar, Quote, ChevronLeft } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader } from './components/ui/card';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { LocationAutocomplete } from './components/LocationAutocomplete';
 import { SectionHeader } from './components/SectionHeader';
@@ -561,13 +561,13 @@ export default function App() {
             {/* BMW/Porsche Style Logo */}
             <div className="flex items-center gap-4">
               <img
-                src="/logo.png"
+                src="/logo-square.png"
                 alt="Luxury Cabs"
                 className="w-16 h-16 rounded-full shadow-2xl bg-white"
               />
               <div>
                 <h1 className="text-2xl font-black text-gray-900 tracking-tight">LUXURY CABS LTD</h1>
-                <p className="text-xs font-bold text-yellow-600 tracking-widest">PREMIUM TRANSPORTATION</p>
+                <p className="text-xs font-bold text-yellow-800 tracking-widest">PREMIUM TRANSPORTATION</p>
               </div>
             </div>
 
@@ -632,6 +632,7 @@ export default function App() {
         target="_blank"
         rel="noopener noreferrer"
         className="fixed left-6 bottom-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-all"
+        aria-label="Chat on WhatsApp"
       >
         <MessageCircle className="w-7 h-7" />
         <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
@@ -642,6 +643,7 @@ export default function App() {
       <button
         onClick={() => setShowInquiryForm(true)}
         className="fixed right-6 bottom-24 z-50 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black p-4 rounded-full shadow-2xl hover:scale-110 transition-all"
+        aria-label="Open inquiry form"
       >
         <FileText className="w-7 h-7" />
       </button>
@@ -651,6 +653,7 @@ export default function App() {
           <button
             onClick={scrollToTop}
             className="fixed right-6 bottom-6 z-50 bg-gray-900 hover:bg-black text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-all"
+            aria-label="Scroll to top"
           >
             <ArrowUp className="w-7 h-7" />
           </button>
@@ -676,8 +679,12 @@ export default function App() {
               <Card className="max-w-md w-full shadow-2xl">
                 <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-t-lg">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-2xl font-black">QUICK INQUIRY</CardTitle>
-                    <button onClick={() => setShowInquiryForm(false)} className="hover:bg-black/10 p-2 rounded-full transition">
+                    <h2 className="text-2xl font-black">QUICK INQUIRY</h2>
+                    <button
+                      onClick={() => setShowInquiryForm(false)}
+                      className="hover:bg-black/10 p-2 rounded-full transition"
+                      aria-label="Close inquiry form"
+                    >
                       <X className="w-6 h-6" />
                     </button>
                   </div>
@@ -731,8 +738,12 @@ export default function App() {
               <Card className="max-w-2xl w-full shadow-2xl">
                 <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-t-lg">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-2xl font-black">BOOK YOUR LUXURY RIDE</CardTitle>
-                    <button onClick={() => setShowBookingModal(false)} className="hover:bg-black/10 p-2 rounded-full transition">
+                    <h2 className="text-2xl font-black">BOOK YOUR LUXURY RIDE</h2>
+                    <button
+                      onClick={() => setShowBookingModal(false)}
+                      className="hover:bg-black/10 p-2 rounded-full transition"
+                      aria-label="Close booking form"
+                    >
                       <X className="w-6 h-6" />
                     </button>
                   </div>
@@ -800,13 +811,17 @@ export default function App() {
                         />
                         </div>
                         <div className="space-y-1 group">
-                          <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                          <label
+                            htmlFor="modal-time"
+                            className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700"
+                          >
                             Pickup Time <span className="text-red-600">*</span>
-                          </div>
+                          </label>
                           <Input
+                            id="modal-time"
                             type="time"
                             value={formData.time}
-                            onChange={(e) => setFormData({...formData, time: e.target.value})}
+                            onChange={(e) => setFormData((prev) => ({ ...prev, time: e.target.value }))}
                             className="font-semibold border-2"
                           />
                         </div>
@@ -953,7 +968,7 @@ export default function App() {
                         <div className="border-t-2 border-yellow-400 pt-3 mt-3">
                           <div className="flex justify-between">
                             <span className="font-bold text-lg">TOTAL:</span>
-                            <span className="font-black text-yellow-600 text-3xl">${selectedPackage?.price || 499}</span>
+            <span className="font-black text-yellow-700 text-3xl">${selectedPackage?.price || 499}</span>
                           </div>
                         </div>
                       </div>
@@ -987,9 +1002,12 @@ export default function App() {
       <section id="home" className="relative min-h-screen bg-black">
         <div className="absolute inset-0">
           <ImageWithFallback
-            src="https://images.unsplash.com/photo-1603122101829-e56305b0a5f7?w=1920"
+            src="https://images.unsplash.com/photo-1603122101829-e56305b0a5f7?w=1280&auto=format&fit=crop&q=70"
             alt="Luxury Car"
             className="w-full h-full object-cover opacity-40"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
         </div>
         <div className="container mx-auto px-4 relative z-10 min-h-screen flex items-center py-20">
@@ -1047,7 +1065,7 @@ export default function App() {
             >
               <Card className="bg-white/95 backdrop-blur shadow-2xl border-2 border-yellow-500">
                 <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-t-lg">
-                  <CardTitle className="text-3xl font-black">BOOK YOUR LUXURY RIDE</CardTitle>
+                  <h2 className="text-3xl font-black">BOOK YOUR LUXURY RIDE</h2>
                   <CardDescription className="text-gray-900 font-bold text-lg">Get instant quote & confirmation</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4 text-left">
@@ -1086,13 +1104,17 @@ export default function App() {
                     />
                     </div>
                     <div className="space-y-1 group">
-                      <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                      <label
+                        htmlFor="booking-time"
+                        className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700"
+                      >
                         Pickup Time <span className="text-red-600">*</span>
-                      </div>
+                      </label>
                     <Input
+                      id="booking-time"
                       type="time"
                       value={formData.time}
-                      onChange={(e) => setFormData({...formData, time: e.target.value})}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, time: e.target.value }))}
                       className="font-semibold border-2"
                     />
                     </div>
@@ -1184,7 +1206,7 @@ export default function App() {
                   </Button>
                   <div className="flex gap-3">
                     <a href="tel:+64277777242" className="flex-1">
-                      <Button variant="outline" className="w-full font-bold border-2 border-yellow-600 text-yellow-600 hover:bg-yellow-50 transition-all duration-300">
+                      <Button variant="outline" className="w-full font-bold border-2 border-yellow-700 text-yellow-700 hover:bg-yellow-50 transition-all duration-300">
                         <Phone className="w-5 h-5 mr-2" />
                         CALL US
                       </Button>
@@ -1554,7 +1576,7 @@ export default function App() {
                     />
                   </div>
                   <h3 className="text-xl font-black text-gray-900 mb-1">{driver.name}</h3>
-                  <p className="text-sm font-bold text-yellow-600 mb-3">{driver.specialty}</p>
+                      <p className="text-sm font-bold text-yellow-700 mb-3">{driver.specialty}</p>
                   <div className="flex items-center justify-center gap-1 mb-3">
                     <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                     <span className="font-black text-lg">{driver.rating}</span>
@@ -1649,7 +1671,7 @@ export default function App() {
                   />
                 </div>
                 <CardContent className="p-6">
-                  <div className="text-sm font-bold text-yellow-600 mb-2">{press.date}</div>
+                  <div className="text-sm font-bold text-yellow-700 mb-2">{press.date}</div>
                   <h3 className="text-xl font-black text-gray-900 mb-3">{press.title}</h3>
                   <p className="font-semibold text-gray-600 mb-4">{press.excerpt}</p>
                   <Button variant="outline" className="font-bold border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white">
@@ -1698,7 +1720,7 @@ export default function App() {
                   </div>
                   <div className="flex items-center justify-between pt-4 border-t-2 border-gray-100">
                     <div>
-                      <p className="text-3xl font-black text-yellow-600">${route.price}</p>
+                      <p className="text-3xl font-black text-yellow-700">${route.price}</p>
                       <p className="text-sm font-bold text-gray-500">{route.time}</p>
                     </div>
                     <Button
@@ -1744,9 +1766,11 @@ export default function App() {
       <section className="relative bg-black py-24">
         <div className="absolute inset-0 opacity-30">
           <ImageWithFallback
-            src="https://images.unsplash.com/photo-1558222209-134191edfe0d?w=1920"
+            src="https://images.unsplash.com/photo-1558222209-134191edfe0d?w=1280&auto=format&fit=crop&q=70"
             alt="Luxury Car"
             className="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
