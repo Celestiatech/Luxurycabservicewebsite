@@ -46,34 +46,27 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
   const googleMapsApiKey = (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '').trim();
   const debug = (process.env.NEXT_PUBLIC_DEBUG_MAPS || '').trim() === '1';
 
-  if (googleMapsApiKey && !mapsReadyRef.current) {
-    setOptions({ key: googleMapsApiKey, v: 'weekly', region: 'NZ' });
-    mapsReadyRef.current = Promise.resolve();
-  }
-
   const buildNzBounds = () =>
     new google.maps.LatLngBounds(
       new google.maps.LatLng(NEW_ZEALAND_BOUNDS.south, NEW_ZEALAND_BOUNDS.west),
       new google.maps.LatLng(NEW_ZEALAND_BOUNDS.north, NEW_ZEALAND_BOUNDS.east),
     );
 
-  const buildCsvSuggestions = (query: string, limit = 8): Suggestion[] =>
-    csvData
-      .filter((loc) => loc.name.toLowerCase().includes(query))
-      .map((loc) => ({
-        id: `csv-${loc.name}-${loc.region}`,
-        value: `${loc.name}, ${loc.region}`,
-        label: `${loc.name}, ${loc.region}`,
-        source: 'csv' as const,
-      }))
-      .filter((item, index, self) => self.findIndex((entry) => entry.value === item.value) === index)
-      .slice(0, limit);
-
   const selectSuggestion = (nextValue: string) => {
     onChange(nextValue);
     setSuggestionsOpen(false);
     setActiveIndex(-1);
   };
+
+  useEffect(() => {
+    if (!googleMapsApiKey) {
+      mapsReadyRef.current = null;
+      return;
+    }
+
+    setOptions({ key: googleMapsApiKey, v: 'weekly', region: 'NZ' });
+    mapsReadyRef.current = Promise.resolve();
+  }, [googleMapsApiKey]);
 
   useEffect(() => {
     if (!googleMapsApiKey || !mapsReadyRef.current) return;
@@ -133,7 +126,16 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
     const timer = window.setTimeout(() => {
       if (currentRequestId !== requestIdRef.current) return;
 
-      const csvSuggestions = buildCsvSuggestions(query, googleMapsApiKey ? 4 : 8);
+      const csvSuggestions = csvData
+        .filter((loc) => loc.name.toLowerCase().includes(query))
+        .map((loc) => ({
+          id: `csv-${loc.name}-${loc.region}`,
+          value: `${loc.name}, ${loc.region}`,
+          label: `${loc.name}, ${loc.region}`,
+          source: 'csv' as const,
+        }))
+        .filter((item, index, self) => self.findIndex((entry) => entry.value === item.value) === index)
+        .slice(0, googleMapsApiKey ? 4 : 8);
 
       if (!googleMapsApiKey || !autocompleteServiceRef.current) {
         setSuggestions(csvSuggestions);

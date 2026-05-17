@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -36,12 +36,17 @@ export const metadata: Metadata = {
     description: 'Professional cab service in Auckland. Book now for airport transfers, tours & more.',
     creator: '@affordablecabs',
   },
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=5',
-  themeColor: '#1f2937',
   formatDetection: {
     email: false,
     telephone: true,
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#1f2937',
 };
 
 const jsonLd = {
