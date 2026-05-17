@@ -1033,7 +1033,7 @@ export default function App() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.8 }}
               >
-                Airport Transfers | City Tours | Intercity | Wedding Cars
+                Airport Transfers | City Tours | Intercity | Sedan Cars
               </motion.p>
               <motion.div
                 className="flex flex-wrap gap-4"
@@ -1328,7 +1328,7 @@ export default function App() {
       </section>
 
       {/* Offers Section */}
-      <section id="tours" className="py-20 bg-gray-50">
+      {/* <section id="tours" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <SectionHeader
             title="EXCLUSIVE OFFERS"
@@ -1366,10 +1366,10 @@ export default function App() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* OUR PREMIUM SERVICES */}
-      <section id="services" className="py-20 bg-white">
+      {/* <section id="services" className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -1428,7 +1428,7 @@ export default function App() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* What Makes Us Unique */}
       <section className="py-20 bg-gray-50">
@@ -1829,7 +1829,7 @@ export default function App() {
                 <li><a href="#" className="hover:text-yellow-400 transition">Airport Transfers</a></li>
                 <li><a href="#" className="hover:text-yellow-400 transition">City Tours</a></li>
                 <li><a href="#" className="hover:text-yellow-400 transition">Intercity Travel</a></li>
-                <li><a href="#" className="hover:text-yellow-400 transition">Wedding Cars</a></li>
+                <li><a href="#" className="hover:text-yellow-400 transition">Sedan Cars</a></li>
               </ul>
             </div>
             <div id="contact">

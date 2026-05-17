@@ -1,0 +1,336 @@
+﻿name,type,region,area,category
+Queen Street,Street,Auckland,City Center,Street
+Quay Street,Street,Auckland,City Center,Street
+Mayoral Drive,Street,Auckland,City Center,Street
+Shortland Street,Street,Auckland,City Center,Street
+Fort Street,Street,Auckland,City Center,Street
+Commerce Street,Street,Auckland,City Center,Street
+Greys Avenue,Street,Auckland,City Center,Street
+Karangahape Road,Street,Auckland,City Center,Street
+Ponsonby Road,Street,Auckland,Ponsonby,Street
+Dominion Road,Street,Auckland,Mount Eden,Street
+Symonds Street,Street,Auckland,City Center,Street
+Parnell Road,Street,Auckland,Parnell,Street
+Newmarket Avenue,Street,Auckland,Newmarket,Street
+Khyber Pass Road,Street,Auckland,Newmarket,Street
+Broadway,Street,Auckland,Newmarket,Street
+Remuera Road,Street,Auckland,Remuera,Street
+Bastion Point Road,Street,Auckland,Orakei,Street
+Takapuna Beach Road,Street,Auckland,Takapuna,Street
+Lake Road,Street,Auckland,Takapuna,Street
+Devonport Beach,Street,Auckland,Devonport,Street
+Beach Road,Street,Auckland,Mission Bay,Street
+Clive Road,Street,Auckland,Mission Bay,Street
+Tamaki Drive,Street,Auckland,Mission Bay,Street
+Cornwall Park Drive,Street,Auckland,Cornwall Park,Street
+Mount Eden Road,Street,Auckland,Mount Eden,Street
+Manukau Road,Street,Auckland,Epsom,Street
+Epsom Avenue,Street,Auckland,Epsom,Street
+Valley Road,Street,Auckland,Mount Eden,Street
+Whitaker Place,Street,Auckland,Parnell,Street
+Gladstone Road,Street,Auckland,Parnell,Street
+Newmarket Shopping Centre,Shopping,Auckland,Newmarket,Shopping Center
+Westfield Shopping Centre,Shopping,Auckland,Westgate,Shopping Center
+The Warehouse,Retail,Auckland,City Center,Electronics & General
+JB Hi-Fi,Retail,Auckland,Newmarket,Electronics
+Noel Leeming,Retail,Auckland,City Center,Electronics
+Countdown Supermarket,Grocery,Auckland,City Center,Supermarket
+Countdown Supermarket,Grocery,Auckland,Newmarket,Supermarket
+New World Supermarket,Grocery,Auckland,Ponsonby,Supermarket
+Foodstuffs,Grocery,Auckland,Mount Eden,Supermarket
+Pak'nSave,Grocery,Grocery,Auckland,Westgate,Supermarket
+Sky Tower,Landmark,Auckland,City Center,Landmark
+Auckland Domain,Landmark,Auckland,Parnell,Park
+Cornwall Park,Landmark,Auckland,Mount Eden,Park
+Waitemata Harbour,Landmark,Auckland,Viaduct,Natural
+Queen Elizabeth Square,Landmark,Auckland,City Center,Park
+Myers Park,Landmark,Auckland,Parnell,Park
+Auckland War Memorial Museum,Museum,Auckland,City Center,Museum
+Auckland Central Library,Library,Auckland,City Center,Library
+Aotea Centre,Entertainment,Auckland,City Center,Entertainment Venue
+ASB Tennis Arena,Sports,Auckland,City Center,Sports
+Eden Park,Sports,Auckland,Mount Eden,Sports Stadium
+The Civic,Entertainment,Auckland,City Center,Cinema
+Hoyts Cinema,Entertainment,Auckland,Newmarket,Cinema
+Rainforest,Entertainment,Auckland,Ponsonby,Entertainment Venue
+Hilton Auckland,Hotel,Auckland,Viaduct,Hotel
+Grand Hyatt Auckland,Hotel,Auckland,Viaduct,Hotel
+Sofitel Auckland,Hotel,Auckland,Viaduct,Hotel
+SkyCity Grand Hotel,Hotel,Auckland,City Center,Hotel
+Raddisson Blu,Hotel,Auckland,Britomart,Hotel
+Novotel Auckland,Hotel,Auckland,Britomart,Hotel
+The Langham,Hotel,Auckland,City Center,Hotel
+Crowne Plaza,Hotel,Auckland,City Center,Hotel
+Pullman Auckland,Hotel,Auckland,Viaduct,Hotel
+Ponsonby Central,Shopping,Auckland,Ponsonby,Shopping Center
+Stanley Street,Street,Auckland,Ponsonby,Street
+Eastridge Shopping Centre,Shopping,Auckland,Botany,Shopping Center
+Westfield Downtown,Shopping,Auckland,City Center,Shopping Center
+Pacific Fair,Shopping,Auckland,Botany,Shopping Center
+Sylvia Park,Shopping,Auckland,Mount Wellington,Shopping Center
+Manukau Centre,Shopping,Auckland,Manukau,Shopping Center
+Albany Shopping Centre,Shopping,Auckland,Albany,Shopping Center
+Farmers,Retail,Auckland,City Center,Department Store
+Rebel Sport,Retail,Auckland,Newmarket,Sports Retail
+Kathmandu,Retail,Auckland,Newmarket,Outdoor Gear
+Mecca,Retail,Auckland,Newmarket,Beauty & Cosmetics
+Nike Store,Retail,Auckland,Newmarket,Sports Retail
+Adidas Store,Retail,Auckland,Newmarket,Sports Retail
+Cotton On,Retail,Auckland,Westfield,Fashion
+H&M,Retail,Auckland,Westfield,Fashion
+Zara,Retail,Auckland,Newmarket,Fashion
+Country Road,Retail,Auckland,Newmarket,Fashion
+First Collection,Retail,Auckland,Ponsonby,Fashion
+Zambesi,Retail,Auckland,City Center,Fashion
+Karen Walker,Retail,Auckland,City Center,Fashion
+Ally Capellino,Retail,Auckland,Ponsonby,Fashion
+Stussy,Retail,Auckland,Ponsonby,Streetwear
+Scotts,Retail,Auckland,City Center,Sporting Goods
+Briscoes,Retail,Auckland,City Center,Hardware
+Mitre 10,Retail,Auckland,Mount Wellington,Hardware
+Bunnings,Retail,Auckland,Manukau,Hardware
+The Food Court,Dining,Auckland,Westfield,Food Court
+Mad Puffers,Dining,Auckland,Ponsonby,Cafe
+Hector's Kitchen,Dining,Auckland,City Center,Restaurant
+Depot,Dining,Auckland,Britomart,Restaurant
+Clooney,Dining,Auckland,Britomart,Bar & Restaurant
+Ortolana,Dining,Auckland,Britomart,Restaurant
+Misha's Winery,Dining,Auckland,Ponsonby,Wine Bar
+Noble Rot,Dining,Auckland,Britomart,Wine Bar
+Giapo Gelato,Dining,Auckland,Britomart,Dessert
+Cafe Hanoi,Dining,Auckland,Britomart,Vietnamese
+Taiko,Dining,Auckland,Ponsonby,Japanese
+Lotus,Dining,Auckland,Ponsonby,Thai
+Ponsonby Central Food Court,Dining,Auckland,Ponsonby,Food Court
+Federal Deli,Dining,Auckland,Britomart,Deli
+Greys Ave Bistro,Dining,Auckland,City Center,French
+Auckland Transport Station,Transport,Auckland,City Center,Train Station
+Britomart Station,Transport,Auckland,Britomart,Train Station
+Devonport Ferry Terminal,Transport,Auckland,Devonport,Ferry Terminal
+Half Moon Bay Ferry Terminal,Transport,Auckland,Half Moon Bay,Ferry Terminal
+Downtown Bus Terminal,Transport,Auckland,City Center,Bus Terminal
+Mission Bay Beach,Beach,Auckland,Mission Bay,Beach
+Takapuna Beach,Beach,Auckland,Takapuna,Beach
+Piha Beach,Beach,Auckland,Piha,Beach
+Karekare Beach,Beach,Auckland,Karekare,Beach
+Muriwai Beach,Beach,Auckland,Muriwai,Beach
+Omaha Beach,Beach,Auckland,Omaha,Beach
+Kawakawa Bay,Beach,Auckland,Kawakawa Bay,Beach
+Maraetai Beach,Beach,Auckland,Maraetai,Beach
+Orewa Beach,Beach,Auckland,Orewa,Beach
+Long Bay Beach,Beach,Auckland,Long Bay,Beach
+Onetangi Beach,Beach,Auckland,Waiheke,Beach
+Four Seasons Hotel,Hotel,Auckland,Remuera,Hotel
+Copthorne Hotel,Hotel,Auckland,Waitakere,Hotel
+Waitemata Plaza,Shopping,Auckland,Mission Bay,Shopping Center
+Westfield Manukau,Shopping,Auckland,Manukau,Shopping Center
+Glenfield Shopping Village,Shopping,Auckland,Glenfield,Shopping Center
+Smales Farm,Shopping,Auckland,Smales Farm,Shopping Center
+Takapuna Square,Shopping,Auckland,Takapuna,Shopping Center
+Westfield One Tree Hill,Shopping,Auckland,One Tree Hill,Shopping Center
+North Shore Centre,Shopping,Auckland,North Shore,Shopping Center
+Howick And Pakuranga Shopping Centre,Shopping,Auckland,Howick,Shopping Center
+Otara Centre,Shopping,Auckland,Otara,Shopping Center
+Papatoetoe Shopping Centre,Shopping,Auckland,Papatoetoe,Shopping Center
+Kelston Shopping Centre,Shopping,Auckland,Kelston,Shopping Center
+Henderson Shopping Centre,Shopping,Auckland,Henderson,Shopping Center
+Te Atatu Shopping Centre,Shopping,Auckland,Te Atatu,Shopping Center
+Helensville Shopping Centre,Shopping,Auckland,Helensville,Shopping Center
+Kumeu Shopping Village,Shopping,Auckland,Kumeu,Shopping Center
+Waimauku Shopping Centre,Shopping,Auckland,Waimauku,Shopping Center
+Pukekohe Shopping Centre,Shopping,Auckland,Pukekohe,Shopping Center
+Drury Shopping Centre,Shopping,Auckland,Drury,Shopping Center
+Tuakau Shopping Centre,Shopping,Auckland,Tuakau,Shopping Center
+Waiuku Shopping Centre,Shopping,Auckland,Waiuku,Shopping Center
+Mangere Shopping Centre,Shopping,Auckland,Mangere,Shopping Center
+Otahuhu Shopping Centre,Shopping,Auckland,Otahuhu,Shopping Center
+Manurewa Shopping Centre,Shopping,Auckland,Manurewa,Shopping Center
+Papakura Shopping Centre,Shopping,Auckland,Papakura,Shopping Center
+Devonport Village,Shopping,Auckland,Devonport,Shopping Center
+Takapuna Village Centre,Shopping,Auckland,Takapuna,Shopping Center
+Milford Centre,Shopping,Auckland,Milford,Shopping Center
+Glenfield Mega Centre,Shopping,Auckland,Glenfield,Shopping Center
+Starbucks,Cafe,Auckland,City Center,Cafe
+Starbucks,Cafe,Auckland,Britomart,Cafe
+Starbucks,Cafe,Auckland,Newmarket,Cafe
+Flat White,Cafe,Auckland,Ponsonby,Cafe
+Ebisu,Cafe,Auckland,City Center,Cafe
+Kokako,Cafe,Auckland,City Center,Cafe
+Black Star Pastry,Cafe,Auckland,Ponsonby,Cafe
+Two Hands,Cafe,Auckland,Ponsonby,Cafe
+Paramount,Cafe,Auckland,Ponsonby,Cafe
+Giapo,Gelato,Auckland,Britomart,Dessert
+Gelaterie Amorino,Gelato,Auckland,Newmarket,Dessert
+Movenpick,Gelato,Auckland,City Center,Dessert
+Wellington Civic Centre,Landmark,Wellington,City Center,Civic
+Botanic Gardens,Landmark,Wellington,Kelburn,Park
+Te Papa Tongarewa,Museum,Wellington,Cable Street,Museum
+National Library,Library,Wellington,Molesworth Street,Library
+Cuba Street,Street,Wellington,Te Aro,Street
+Lambton Quay,Street,Wellington,Lambton,Street
+Willis Street,Street,Wellington,Te Aro,Street
+Manners Street,Street,Wellington,Te Aro,Street
+Courtenay Street,Street,Wellington,Te Aro,Street
+Wakefield Street,Street,Wellington,Te Aro,Street
+Cambridge Terrace,Street,Wellington,Te Aro,Street
+Thorndon Quay,Street,Wellington,Thorndon,Street
+Nairn Street,Street,Wellington,Thorndon,Street
+Hill Street,Street,Wellington,Thorndon,Street
+Salamanca Road,Street,Wellington,Thorndon,Street
+Fairlie Terrace,Street,Wellington,Kelburn,Street
+Murphy Street,Street,Wellington,Kelburn,Street
+Oriental Bay Beach,Beach,Wellington,Oriental Bay,Beach
+Lyall Bay Beach,Beach,Wellington,Lyall Bay,Beach
+Island Bay Beach,Beach,Wellington,Island Bay,Beach
+Owhiro Bay Beach,Beach,Wellington,Owhiro,Beach
+Mahina Bay Beach,Beach,Wellington,Mahina,Beach
+Victoria Street,Street,Wellington,Te Aro,Street
+Taranaki Street,Street,Wellington,Te Aro,Street
+Customhouse Quay,Street,Wellington,Lambton,Street
+Willeston Street,Street,Wellington,Lambton,Street
+Brandon Street,Street,Wellington,Lambton,Street
+Jackson Street,Street,Wellington,Lambton,Street
+Grey Street,Street,Wellington,Te Aro,Street
+Johnston Street,Street,Wellington,Te Aro,Street
+Jervois Quay,Street,Wellington,Te Aro,Street
+The Strand,Street,Wellington,Lambton,Street
+Civic Square,Landmark,Wellington,Te Aro,Square
+Frank Kitts Park,Park,Wellington,Jervois Quay,Park
+Old St Paul's Cathedral,Historic,Wellington,Thorndon,Historic
+Parliament Buildings,Historic,Wellington,Lambton,Historic
+Old Government House,Historic,Wellington,Lambton,Historic
+National War Memorial,Monument,Wellington,Buckle Street,Monument
+Queens Wharf,Wharf,Wellington,Jervois Quay,Wharf
+Princes Wharf,Wharf,Wellington,Jervois Quay,Wharf
+Michael Fowler Centre,Entertainment,Wellington,Te Aro,Entertainment
+Basin Reserve,Sports,Wellington,Basin Reserve,Cricket Ground
+Westpac Stadium,Sports,Wellington,Te Papa,Sports Stadium
+TSB Arena,Sports,Wellington,Jervois Quay,Sports Arena
+Orpheum Theatre,Entertainment,Wellington,Te Aro,Theatre
+Downstage Theatre,Entertainment,Wellington,Te Aro,Theatre
+Circa Theatre,Entertainment,Wellington,Te Aro,Theatre
+St James Theatre,Entertainment,Wellington,Te Aro,Theatre
+Capitol Cinema,Entertainment,Wellington,Te Aro,Cinema
+Embassy Theatre,Entertainment,Wellington,Te Aro,Theatre
+Roxy Cinema,Entertainment,Wellington,Te Aro,Cinema
+Southfury Mll,Shopping,Wellington,Te Aro,Shopping Center
+The Old Bank,Shopping,Wellington,Te Aro,Shopping Center
+Civic Square Pavilion,Shopping,Wellington,Te Aro,Shopping Center
+Churton Park Shopping Centre,Shopping,Wellington,Churton Park,Shopping Center
+Botanic Gardens Cafe,Cafe,Wellington,Kelburn,Cafe
+Mojo,Cafe,Wellington,Te Aro,Cafe
+Whitespace,Cafe,Wellington,Te Aro,Cafe
+Soulgrind,Cafe,Wellington,Te Aro,Cafe
+Rasa,Dining,Wellington,Te Aro,Restaurant
+Ortega,Dining,Wellington,Te Aro,Spanish
+Florentine,Dining,Wellington,Te Aro,Italian
+Shed 1,Dining,Wellington,Jervois Quay,Seafood
+Christchurch Cathedral Square,Landmark,Canterbury,City Center,Square
+Botanical Gardens,Landmark,Canterbury,Riccarton,Park
+Antigua Boatsheds,Landmark,Canterbury,Riccarton,Landmark
+Addington,Suburb,Canterbury,City Center,Suburb
+Riccarton,Suburb,Canterbury,Riccarton,Suburb
+Fendalton,Suburb,Canterbury,Fendalton,Suburb
+Merivale,Suburb,Canterbury,Merivale,Suburb
+Papanui,Suburb,Canterbury,Papanui,Suburb
+Main Street,Street,Canterbury,City Center,Street
+Oxford Terrace,Street,Canterbury,City Center,Street
+High Street,Street,Canterbury,City Center,Street
+Cashel Street,Street,Canterbury,City Center,Street
+Colombo Street,Street,Canterbury,City Center,Street
+Latimer Square,Landmark,Canterbury,City Center,Square
+Hagley Park,Park,Canterbury,Hagley,Park
+Riccarton House,Landmark,Canterbury,Riccarton,Historic
+The Terrace,Street,Canterbury,City Center,Street
+Armagh Street,Street,Canterbury,City Center,Street
+Gloucester Street,Street,Canterbury,City Center,Street
+Lichfield Street,Street,Canterbury,City Center,Street
+Barbadoes Street,Street,Canterbury,City Center,Street
+Madras Street,Street,Canterbury,City Center,Street
+Montreal Street,Street,Canterbury,City Center,Street
+Chester Street,Street,Canterbury,City Center,Street
+Eastfield Avenue,Street,Canterbury,Eastfield,Street
+Rangi Street,Street,Canterbury,Rangi,Street
+Heathcote Valley Road,Street,Canterbury,Heathcote,Street
+Brougham Street,Street,Canterbury,Addington,Street
+Colombo Street,Street,Canterbury,Columbo,Street
+Dunedin Octagon,Landmark,Otago,City Center,Square
+University of Otago,University,Otago,North Dunedin,University
+Speight's Brewery,Landmark,Otago,City Center,Brewery
+Railway Station,Transport,Otago,City Center,Train Station
+St Clair Beach,Beach,Otago,St Clair,Beach
+St Kilda Beach,Beach,Otago,St Kilda,Beach
+Pigeon Beach,Beach,Otago,Pigeon Beach,Beach
+Invercargill Queens Park,Park,Southland,City Center,Park
+Oreti Beach,Beach,Southland,Oreti,Beach
+Bluff,Town,Southland,South,Town
+Stirling Point,Landmark,Southland,Bluff,Landmark
+Southfury Lighthouse,Landmark,Southland,Bluff,Landmark
+Hamilton,City,Waikato,City Center,City
+Victoria Street,Street,Waikato,City Center,Street
+Ward Street,Street,Waikato,City Center,Street
+London Street,Street,Waikato,City Center,Street
+Garden Place,Park,Waikato,City Center,Park
+Rotorua,City,Bay of Plenty,City Center,City
+Rotorua Museum,Museum,Bay of Plenty,City Center,Museum
+Whakarewarewa,Park,Bay of Plenty,Whakarewarewa,Geothermal Park
+Kuirau Park,Park,Bay of Plenty,Kuirau,Park
+Tauranga,City,Bay of Plenty,City Center,City
+Mount Maunganui,Beach,Bay of Plenty,Mount Maunganui,Beach
+Waihi Beach,Beach,Bay of Plenty,Waihi,Beach
+Gisborne,City,Gisborne,City Center,City
+Kaiti Beach,Beach,Gisborne,Kaiti,Beach
+Napier,City,Hawke's Bay,City Center,City
+Hastings,City,Hawke's Bay,City Center,City
+Cape Kidnappers,Landmark,Hawke's Bay,Clive,Landmark
+Palmerston North,City,Manawatū-Wanganui,City Center,City
+The Square,Park,Manawatū-Wanganui,City Center,Park
+Whanganui,City,Manawatū-Wanganui,City Center,City
+New Plymouth,City,Taranaki,City Center,City
+Mount Taranaki,Mountain,Taranaki,New Plymouth,Mountain
+Paritutu,Rock Formation,Taranaki,New Plymouth,Landmark
+Nelson,City,Tasman,City Center,City
+Tasman Bay,Bay,Tasman,Nelson,Beach
+Motueka,Town,Tasman,Motueka,Town
+Takaka,Town,Tasman,Takaka,Town
+Blenheim,City,Marlborough,City Center,City
+Greymouth,Town,West Coast,City Center,Town
+Hokitika,Town,West Coast,Hokitika,Town
+Franz Josef,Town,West Coast,Franz Josef,Town
+Fox Glacier,Town,West Coast,Fox Glacier,Town
+Queenstown,City,Otago,South West,City
+Lake Wakatipu,Lake,Otago,South West,Natural
+Skyline Queenstown,Attraction,Otago,South West,Attraction
+The Remarkables,Mountain,Otago,South West,Mountain
+Coronet Peak,Ski Area,Otago,South West,Ski Area
+Wanaka,Town,Otago,South,Town
+Lake Wanaka,Lake,Otago,South,Natural
+Arrowtown,Town,Otago,South West,Town
+Glenorchy,Town,Otago,South West,Town
+Te Anau,Town,Southland,West,Town
+Lake Te Anau,Lake,Southland,West,Natural
+Milford Sound,Natural,Southland,West,Natural Wonder
+Fiordland National Park,National Park,Southland,West,National Park
+Stewart Island,Island,Southland,South,Island
+Oban,Town,Southland,South,Town
+Britomart,Suburb,Auckland,City Center,Suburb
+Viaduct,Suburb,Auckland,City Center,Suburb
+Ponsonby,Suburb,Auckland,Ponsonby,Suburb
+Freemans Bay,Suburb,Auckland,Ponsonby,Suburb
+Parnell,Suburb,Auckland,Parnell,Suburb
+Newmarket,Suburb,Auckland,Newmarket,Suburb
+Epsom,Suburb,Auckland,Epsom,Suburb
+Mount Eden,Suburb,Auckland,Mount Eden,Suburb
+Remuera,Suburb,Auckland,Remuera,Suburb
+Takapuna,Suburb,Auckland,Takapuna,Suburb
+Devonport,Suburb,Auckland,Devonport,Suburb
+Orakei,Suburb,Auckland,Orakei,Suburb
+Mission Bay,Suburb,Auckland,Mission Bay,Suburb
+Langbaurgh,Shopping,Auckland,Newmarket,Shopping Center
+Smith and Caughey's,Retail,Auckland,City Center,Department Store
+Spotlight,Retail,Auckland,City Center,Fabric & Craft
+The Warehouse Stationery,Retail,Auckland,City Center,Office Supplies
+Dads Army,Retail,Auckland,City Center,Surplus
+City Works Depot,Landmark,Auckland,City Center,Landmark
+Spark Arena,Entertainment,Auckland,City Center,Entertainment Venue
+Q Theatre,Entertainment,Auckland,City Center,Theatre
