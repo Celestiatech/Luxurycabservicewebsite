@@ -22,7 +22,7 @@ export function ServicesPage({ handleShopifyCheckout }: ServicesPageProps) {
     {
       icon: Heart,
       title: 'WEDDING SERVICES',
-      desc: 'Luxury wedding car hire with professional chauffeurs and decorations',
+      desc: 'Affordable wedding car hire with professional chauffeurs and decorations',
       color: 'from-pink-500 to-pink-600',
       features: ['Decorated Vehicles', 'Red Carpet Service', 'Champagne Included', 'Photo Time'],
       price: 799,
@@ -81,7 +81,7 @@ export function ServicesPage({ handleShopifyCheckout }: ServicesPageProps) {
           <motion.div className="text-center max-w-4xl mx-auto" {...fadeIn}>
             <h1 className="text-5xl md:text-6xl font-black mb-6 uppercase">OUR SERVICES</h1>
             <p className="text-xl font-bold text-gray-300">
-              Comprehensive luxury transportation solutions for every occasion
+              Comprehensive affordable transportation solutions for every occasion
             </p>
           </motion.div>
         </div>

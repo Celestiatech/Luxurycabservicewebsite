@@ -1,0 +1,40 @@
+{
+  "name": "Affordable Cabs Ltd - Premium Transportation in Auckland",
+  "short_name": "Affordable Cabs",
+  "description": "Premium affordable cab service in Auckland, New Zealand. Airport transfers, city tours, wedding services & intercity travel.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1f2937",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/logo-square.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-square.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-square.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["transportation", "business"],
+  "screenshots": [
+    {
+      "src": "/logo-square.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
+}

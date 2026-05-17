@@ -1,7 +1,7 @@
 
-  # Luxury Cab Service Website
+  # Affordable Cab Service Website
 
-  This is a code bundle for Luxury Cab Service Website. The original project is available at https://www.figma.com/design/qcY2R5LsgpMd3DOYZ7Kfjk/Luxury-Cab-Service-Website.
+  This is a code bundle for Affordable Cab Service Website. The original project is available at https://www.figma.com/design/qcY2R5LsgpMd3DOYZ7Kfjk/Affordable-Cab-Service-Website.
 
   ## Running the code
 

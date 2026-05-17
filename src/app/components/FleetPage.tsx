@@ -11,7 +11,7 @@ interface FleetPageProps {
 export function FleetPage({ handleShopifyCheckout }: FleetPageProps) {
   const vehicles = [
     {
-      name: 'LUXURY SEDAN',
+      name: 'AFFORDABLE SEDAN',
       passengers: '1-4 Passengers',
       luggage: '3-4 Suitcases',
       hourlyRate: 75,
@@ -26,7 +26,7 @@ export function FleetPage({ handleShopifyCheckout }: FleetPageProps) {
       hourlyRate: 95,
       cityTour: 699,
       image: 'https://images.unsplash.com/photo-1624976609551-0d7577bd4ce2?w=600',
-      features: ['Spacious Interior', 'Entertainment System', 'USB Charging', 'Climate Control', 'Free WiFi', 'Luxury Seating']
+      features: ['Spacious Interior', 'Entertainment System', 'USB Charging', 'Climate Control', 'Free WiFi', 'Affordable Seating']
     },
     {
       name: 'LARGE VAN (12 SEATER)',
@@ -52,7 +52,7 @@ export function FleetPage({ handleShopifyCheckout }: FleetPageProps) {
       <section className="relative bg-gradient-to-br from-gray-900 to-gray-800 text-white py-20">
         <div className="container mx-auto px-4">
           <motion.div className="text-center max-w-4xl mx-auto" {...fadeIn}>
-            <h1 className="text-5xl md:text-6xl font-black mb-6 uppercase">OUR LUXURY FLEET</h1>
+            <h1 className="text-5xl md:text-6xl font-black mb-6 uppercase">OUR AFFORDABLE FLEET</h1>
             <p className="text-xl font-bold text-gray-300">
               Premium vehicles maintained to the highest standards for your comfort
             </p>

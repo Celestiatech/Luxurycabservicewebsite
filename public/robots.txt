@@ -1,0 +1,28 @@
+# Robots.txt for Affordable Cabs Ltd
+User-agent: *
+Allow: /
+Allow: /api/shopify/products
+Allow: /api/shopify/checkout
+Allow: /api/geocode
+
+# Disallow private/admin areas if they exist
+Disallow: /admin
+Disallow: /private
+Disallow: /_next/
+Disallow: /*.json$
+
+# Sitemap location
+Sitemap: https://affordablecabsltd.nz/sitemap.xml
+Sitemap: https://affordablecabsltd.nz/sitemap-services.xml
+
+# Crawl delay to be respectful
+Crawl-delay: 1
+
+# Allow specific search engines to crawl faster
+User-agent: Googlebot
+Crawl-delay: 0.5
+Allow: /
+
+User-agent: Bingbot
+Crawl-delay: 1
+Allow: /

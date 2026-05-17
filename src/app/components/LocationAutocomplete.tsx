@@ -15,6 +15,13 @@ interface LocationAutocompleteProps {
   inputId?: string;
 }
 
+const NEW_ZEALAND_BOUNDS = {
+  north: -34.0,
+  south: -47.5,
+  west: 166.0,
+  east: 179.5,
+};
+
 export function LocationAutocomplete({ placeholder, value, onChange, className, inputId }: LocationAutocompleteProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const mapRef = useRef<HTMLDivElement | null>(null);
@@ -44,7 +51,12 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
       .then(async () => {
         await importLibrary('places');
         if (!inputRef.current) return;
-        autocomplete = new google.maps.places.Autocomplete(inputRef.current, { fields: ['formatted_address', 'name'] });
+        autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
+          fields: ['formatted_address', 'name'],
+          componentRestrictions: { country: 'nz' },
+          bounds: NEW_ZEALAND_BOUNDS,
+          strictBounds: true,
+        });
 
         placeListener = autocomplete.addListener('place_changed', () => {
           const place = autocomplete?.getPlace();
@@ -124,6 +136,10 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
+          restriction: {
+            latLngBounds: NEW_ZEALAND_BOUNDS,
+            strictBounds: true,
+          },
         });
 
         marker = new google.maps.Marker({ map });

@@ -221,7 +221,7 @@ export default function App() {
       city: 'Hamilton',
       routes: 45,
       image: 'https://images.unsplash.com/photo-1602847189686-6bb361a3066d?w=600',
-      description: 'Comfortable intercity luxury travel'
+      description: 'Comfortable intercity affordable travel'
     },
     {
       city: 'Rotorua',
@@ -245,7 +245,7 @@ export default function App() {
       city: 'Queenstown',
       routes: 41,
       image: 'https://images.unsplash.com/photo-1558222209-134191edfe0d?w=600',
-      description: 'Adventure capital luxury transport'
+      description: 'Adventure capital affordable transport'
     }
   ];
 
@@ -285,13 +285,13 @@ export default function App() {
     },
     {
       title: 'WEDDING SERVICES',
-      description: 'Luxury wedding transportation with decorated vehicles',
+      description: 'Affordable wedding transportation with decorated vehicles',
       image: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600',
       features: ['Decorated Cars', 'Red Carpet', 'Champagne']
     },
     {
       title: 'CITY TOURS',
-      description: 'Guided Auckland sightseeing in luxury comfort',
+      description: 'Guided Auckland sightseeing in affordable comfort',
       image: 'https://images.unsplash.com/photo-1595125989588-36d745a2a828?w=600',
       features: ['Professional Guide', 'All Attractions', 'Photo Stops']
     },
@@ -318,7 +318,7 @@ export default function App() {
   const uniqueFeatures = [
     {
       title: 'PREMIUM FLEET',
-      description: 'Latest model luxury vehicles maintained to perfection',
+      description: 'Latest model affordable vehicles maintained to perfection',
       image: 'https://images.unsplash.com/photo-1599912027667-755b68b4dd3b?w=600',
       stat: '15+ Vehicles'
     },
@@ -335,7 +335,7 @@ export default function App() {
       stat: 'Always Ready'
     },
     {
-      title: 'LUXURY AMENITIES',
+      title: 'AFFORDABLE AMENITIES',
       description: 'Free WiFi, charging ports, bottled water, climate control',
       image: 'https://images.unsplash.com/photo-1624976609551-0d7577bd4ce2?w=600',
       stat: 'Premium Comfort'
@@ -443,13 +443,13 @@ export default function App() {
 
   const pressReleases = [
     {
-      title: 'Luxury Cabs Ltd Wins "Best Transport Service 2026" Award',
+      title: 'Affordable Cabs Ltd Wins "Best Transport Service 2026" Award',
       date: 'April 2026',
       excerpt: 'Recognized for outstanding customer service and premium fleet management excellence.',
       image: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600'
     },
     {
-      title: 'Expansion to Wellington: New Fleet of Luxury Vans',
+      title: 'Expansion to Wellington: New Fleet of Affordable Vans',
       date: 'March 2026',
       excerpt: 'Major expansion with introduction of premium intercity services to capital city.',
       image: 'https://images.unsplash.com/photo-1552581234-26160f608093?w=600'
@@ -526,7 +526,7 @@ export default function App() {
 
   const faqs = [
     {
-      question: 'How do I book a luxury cab in Auckland?',
+      question: 'How do I book a affordable cab in Auckland?',
       answer: 'You can book online through our website, call +64 27 777 7242, or WhatsApp us. We provide instant confirmation and 24/7 booking support.'
     },
     {
@@ -535,7 +535,7 @@ export default function App() {
     },
     {
       question: 'What vehicles do you have for weddings?',
-      answer: 'We offer luxury sedans and decorated 12-seater vans perfect for weddings with professional chauffeurs.'
+      answer: 'We offer affordable sedans and decorated 12-seater vans perfect for weddings with professional chauffeurs.'
     },
     {
       question: 'Are your drivers licensed and insured?',
@@ -549,7 +549,7 @@ export default function App() {
       <div className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white py-2.5 text-center font-bold shadow-lg">
         <div className="flex items-center justify-center gap-3 text-sm md:text-base">
           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-          <span>LUXURY SPECIAL: Book Any Auckland Tour & Get 10% OFF | Call +64 27 777 7242</span>
+          <span>AFFORDABLE SPECIAL: Book Any Auckland Tour & Get 10% OFF | Call +64 27 777 7242</span>
           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
         </div>
       </div>
@@ -562,11 +562,11 @@ export default function App() {
             <div className="flex items-center gap-4">
               <img
                 src="/logo-square.png"
-                alt="Luxury Cabs"
-                className="w-16 h-16 rounded-full shadow-2xl bg-white"
+                alt="Affordable Cabs"
+                className="w-22 h-20 rounded-full shadow-2xl bg-white"
               />
               <div>
-                <h1 className="text-2xl font-black text-gray-900 tracking-tight">LUXURY CABS LTD</h1>
+                <h1 className="text-2xl font-black text-gray-900 tracking-tight">AFFORDABLE CABS LTD</h1>
                 <p className="text-xs font-bold text-yellow-800 tracking-widest">PREMIUM TRANSPORTATION</p>
               </div>
             </div>
@@ -738,7 +738,7 @@ export default function App() {
               <Card className="max-w-2xl w-full shadow-2xl">
                 <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-t-lg">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-black">BOOK YOUR LUXURY RIDE</h2>
+                    <h2 className="text-2xl font-black">BOOK YOUR AFFORDABLE RIDE</h2>
                     <button
                       onClick={() => setShowBookingModal(false)}
                       className="hover:bg-black/10 p-2 rounded-full transition"
@@ -852,7 +852,7 @@ export default function App() {
                               onChange={(e) => setFormData({...formData, vehicle: e.target.value})}
                             >
                               <option value="">Select vehicle</option>
-                              <option value="sedan">Luxury Sedan</option>
+                              <option value="sedan">Affordable Sedan</option>
                               <option value="minivan">Mini Van (7-Seater)</option>
                               <option value="largevan">Large Van (12-Seater)</option>
                             </select>
@@ -1003,7 +1003,7 @@ export default function App() {
         <div className="absolute inset-0">
           <ImageWithFallback
             src="https://images.unsplash.com/photo-1603122101829-e56305b0a5f7?w=1280&auto=format&fit=crop&q=70"
-            alt="Luxury Car"
+            alt="Affordable Car"
             className="w-full h-full object-cover opacity-40"
             loading="eager"
             fetchPriority="high"
@@ -1025,7 +1025,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
               >
-                AUCKLAND'S PREMIER LUXURY TRANSPORTATION
+                AUCKLAND'S PREMIER AFFORDABLE TRANSPORTATION
               </motion.h1>
               <motion.p
                 className="text-2xl font-bold text-yellow-400 mb-8"
@@ -1065,7 +1065,7 @@ export default function App() {
             >
               <Card className="bg-white/95 backdrop-blur shadow-2xl border-2 border-yellow-500">
                 <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-t-lg">
-                  <h2 className="text-3xl font-black">BOOK YOUR LUXURY RIDE</h2>
+                  <h2 className="text-3xl font-black">BOOK YOUR AFFORDABLE RIDE</h2>
                   <CardDescription className="text-gray-900 font-bold text-lg">Get instant quote & confirmation</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4 text-left">
@@ -1146,7 +1146,7 @@ export default function App() {
                         onChange={(e) => setFormData({...formData, vehicle: e.target.value})}
                       >
                         <option value="">Select vehicle</option>
-                        <option value="sedan">Luxury Sedan (1-4 pax)</option>
+                        <option value="sedan">Affordable Sedan (1-4 pax)</option>
                         <option value="minivan">Mini Van (5-7 pax)</option>
                         <option value="largevan">Large Van (8-11 pax)</option>
                       </select>
@@ -1232,7 +1232,7 @@ export default function App() {
             {[
               { number: '500+', label: 'HAPPY CUSTOMERS' },
               { number: '24/7', label: 'SERVICE AVAILABLE' },
-              { number: '15+', label: 'LUXURY VEHICLES' },
+              { number: '15+', label: 'AFFORDABLE VEHICLES' },
               { number: '10+', label: 'YEARS EXPERIENCE' }
             ].map((stat, index) => (
               <motion.div
@@ -1379,7 +1379,7 @@ export default function App() {
           >
             <SectionHeader
               title="OUR PREMIUM SERVICES"
-              subtitle="Comprehensive luxury transportation for every occasion"
+              subtitle="Comprehensive affordable transportation for every occasion"
               showNavigation
               onPrev={() => {}}
               onNext={() => {}}
@@ -1435,7 +1435,7 @@ export default function App() {
         <div className="container mx-auto px-4">
           <SectionHeader
             title="WHAT MAKES US UNIQUE"
-            subtitle="Luxury features that set us apart from the rest"
+            subtitle="Affordable features that set us apart from the rest"
             showSeeMore
             onSeeMore={() => {}}
           />
@@ -1611,7 +1611,7 @@ export default function App() {
               { step: '1', title: 'CHOOSE SERVICE', desc: 'Select from our premium services' },
               { step: '2', title: 'BOOK ONLINE', desc: 'Fill details or call us instantly' },
               { step: '3', title: 'GET CONFIRMED', desc: 'Receive driver details immediately' },
-              { step: '4', title: 'ENJOY RIDE', desc: 'Luxury transportation experience' }
+              { step: '4', title: 'ENJOY RIDE', desc: 'Affordable transportation experience' }
             ].map((item, index) => (
               <div key={index} className="text-center group">
                 <div className="relative mb-6">
@@ -1628,7 +1628,7 @@ export default function App() {
       </section>
 
       {/* Our Clients */}
-      <section className="py-20 bg-white">
+      {/* <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <SectionHeader
             title="OUR TRUSTED CLIENTS"
@@ -1649,10 +1649,10 @@ export default function App() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Press Release */}
-      <section className="py-20 bg-gray-50">
+      {/* <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <SectionHeader
             title="PRESS RELEASE & NEWS"
@@ -1682,7 +1682,7 @@ export default function App() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Popular Route Cabs */}
       <section className="py-20 bg-white">
@@ -1767,14 +1767,14 @@ export default function App() {
         <div className="absolute inset-0 opacity-30">
           <ImageWithFallback
             src="https://images.unsplash.com/photo-1558222209-134191edfe0d?w=1280&auto=format&fit=crop&q=70"
-            alt="Luxury Car"
+            alt="Affordable Car"
             className="w-full h-full object-cover"
             loading="lazy"
             decoding="async"
           />
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
-          <h2 className="text-5xl font-black mb-6 text-white">READY FOR LUXURY?</h2>
+          <h2 className="text-5xl font-black mb-6 text-white">READY FOR AFFORDABLE?</h2>
           <p className="text-2xl mb-10 text-yellow-400 font-bold max-w-3xl mx-auto">
             Book now with secure checkout and experience premium service
           </p>
@@ -1803,16 +1803,15 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="relative w-12 h-12">
-                  <div className="absolute inset-0 rounded-full border-4 border-yellow-500"></div>
-                  <div className="absolute inset-2 rounded-full bg-black flex items-center justify-center">
-                    <span className="text-yellow-500 font-black text-xl">L</span>
-                  </div>
-                </div>
-                <h3 className="font-black text-xl">LUXURY CABS LTD</h3>
+                <img
+                  src="/logo-square.png"
+                  alt="Affordable Cabs Ltd"
+                  className="w-27 h-23  shadow-lg rounded-full p-2 object-cover"
+                />
+                <h3 className="font-black text-xl">AFFORDABLE CABS LTD</h3>
               </div>
               <p className="text-gray-400 font-semibold mb-4">
-                Auckland's premier luxury taxi and tour service provider.
+                Auckland's premier affordable taxi and tour service provider.
               </p>
             </div>
             <div>
@@ -1852,7 +1851,7 @@ export default function App() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center">
-            <p className="text-gray-400 font-semibold">&copy; 2026 LUXURY CABS LTD. All Rights Reserved.</p>
+            <p className="text-gray-400 font-semibold">&copy; 2026 AFFORDABLE CABS LTD. All Rights Reserved.</p>
           </div>
         </div>
       </footer>

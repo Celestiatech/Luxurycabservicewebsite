@@ -4,6 +4,8 @@ type OpenMeteoGeocodingResponse = {
   results?: { name?: string; admin1?: string; country?: string }[];
 };
 
+const NEW_ZEALAND_COUNTRY = 'New Zealand';
+
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const q = (url.searchParams.get('q') || '').trim();
@@ -17,6 +19,7 @@ export async function GET(req: Request) {
     const upstream = new URL('https://geocoding-api.open-meteo.com/v1/search');
     upstream.searchParams.set('name', q);
     upstream.searchParams.set('count', '6');
+    upstream.searchParams.set('countryCode', 'NZ');
     upstream.searchParams.set('language', 'en');
     upstream.searchParams.set('format', 'json');
 
@@ -37,6 +40,7 @@ export async function GET(req: Request) {
     const text = await res.text();
     const data = (JSON.parse(text) as OpenMeteoGeocodingResponse) || {};
     const results = (Array.isArray(data.results) ? data.results : [])
+      .filter((r) => r.country === NEW_ZEALAND_COUNTRY)
       .map((r) => [r.name, r.admin1, r.country].filter(Boolean).join(', '))
       .filter((name) => name.trim().length > 0);
 

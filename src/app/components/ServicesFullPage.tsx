@@ -13,7 +13,7 @@ export function ServicesFullPage({ onBookNow }: ServicesFullPageProps) {
     {
       title: 'AIRPORT TRANSFERS',
       tagline: 'Premium 24/7 Auckland Airport Service',
-      description: 'Experience hassle-free airport transportation with our professional meet & greet service, flight tracking, and luxury vehicles.',
+      description: 'Experience hassle-free airport transportation with our professional meet & greet service, flight tracking, and affordable vehicles.',
       image: 'https://images.unsplash.com/photo-1616804947838-6646ae0e423d?w=800',
       price: 65,
       features: ['Flight Tracking', 'Meet & Greet', 'Luggage Assistance', 'Free Wait Time', 'All Terminals Coverage']
@@ -28,7 +28,7 @@ export function ServicesFullPage({ onBookNow }: ServicesFullPageProps) {
     },
     {
       title: 'CITY TOURS',
-      tagline: 'Explore Auckland in Luxury',
+      tagline: 'Explore Auckland in Affordable',
       description: 'Discover Auckland\'s best attractions with our guided tours, professional drivers, and customizable itineraries.',
       image: 'https://images.unsplash.com/photo-1595125989588-36d745a2a828?w=800',
       price: 499,
@@ -130,7 +130,7 @@ export function ServicesFullPage({ onBookNow }: ServicesFullPageProps) {
           <div className="max-w-3xl text-white">
             <h1 className="text-6xl font-black mb-6">OUR PREMIUM SERVICES</h1>
             <p className="text-2xl font-bold text-yellow-400 mb-8">
-              Comprehensive luxury transportation solutions for every need
+              Comprehensive affordable transportation solutions for every need
             </p>
           </div>
         </div>
@@ -261,7 +261,7 @@ export function ServicesFullPage({ onBookNow }: ServicesFullPageProps) {
               { step: '1', title: 'SELECT SERVICE', desc: 'Choose your required service type' },
               { step: '2', title: 'BOOK ONLINE', desc: 'Fill details or call us directly' },
               { step: '3', title: 'GET CONFIRMED', desc: 'Instant confirmation with driver info' },
-              { step: '4', title: 'ENJOY RIDE', desc: 'Premium luxury transportation' }
+              { step: '4', title: 'ENJOY RIDE', desc: 'Premium affordable transportation' }
             ].map((item, index) => (
               <div key={index} className="text-center">
                 <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">

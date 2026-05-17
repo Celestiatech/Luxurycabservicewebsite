@@ -1,10 +1,10 @@
-# 🚗 LUXURY CABS LTD - FEATURES GUIDE
+# 🚗 AFFORDABLE CABS LTD - FEATURES GUIDE
 
 ## 🎯 WHAT'S NEW IN THIS REDESIGN
 
 ### 1. **PREMIUM BMW/PORSCHE STYLE LOGO**
 Your new logo features:
-- Circular gold ring (like luxury car emblems)
+- Circular gold ring (like affordable car emblems)
 - Black center with "LC" branding
 - 3D shine effect
 - Professional automotive styling
@@ -152,21 +152,21 @@ Every section has a professional header:
 **Example**:
 ```
 OUR PREMIUM SERVICES                          ← →
-Comprehensive luxury transportation
+Comprehensive affordable transportation
 ```
 
 ---
 
 ### 9. **COLOR SCHEME**
 
-New luxury palette:
+New affordable palette:
 
 - **Black** (#000000) - Headers, backgrounds
 - **White** (#FFFFFF) - Content, text
 - **Gold** (#EAB308) - Buttons, accents, highlights
 
 **No more**: Pink, orange, purple, mixed colors
-**Result**: Clean, professional, luxury feel
+**Result**: Clean, professional, affordable feel
 
 ---
 
@@ -183,7 +183,7 @@ Every section now uses:
 - More engaging
 - Professional appearance
 - Better conversion rates
-- Luxury branding
+- Affordable branding
 
 ---
 
@@ -358,6 +358,6 @@ Before going live:
 
 ---
 
-**Enjoy your premium luxury website!** 🚗✨
+**Enjoy your premium affordable website!** 🚗✨
 
 **Questions?** Contact your development team.
