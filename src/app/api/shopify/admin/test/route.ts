@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getOfflineTokenForShop, getShopifyAppConfig } from '@/app/lib/shopify/oauth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -28,19 +29,27 @@ async function adminGraphql<T>(args: { storeDomain: string; accessToken: string;
 }
 
 export async function GET(req: Request) {
-  const storeDomain = process.env.SHOPIFY_STORE_DOMAIN?.trim() || '';
-  const accessToken = process.env.SHOPIFY_APP_AUTOMATION_TOKEN?.trim() || '';
-  const apiVersion = (process.env.SHOPIFY_ADMIN_API_VERSION?.trim() || process.env.SHOPIFY_API_VERSION?.trim() || '2025-01').trim();
+  const url = new URL(req.url);
+  const storeDomain = ((url.searchParams.get('shop') || process.env.SHOPIFY_STORE_DOMAIN || '').trim()) || '';
+  const { apiVersion } = getShopifyAppConfig();
+
+  const offlineOauthToken = getOfflineTokenForShop(storeDomain)?.accessToken || '';
+  const explicitAdminToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN?.trim() || '';
+  const automationToken = process.env.SHOPIFY_APP_AUTOMATION_TOKEN?.trim() || '';
+  const accessToken = offlineOauthToken || explicitAdminToken || automationToken;
   const defaultVariantId = process.env.SHOPIFY_DEFAULT_MERCHANDISE_ID?.trim() || '';
 
   if (!storeDomain || !accessToken) {
     return NextResponse.json(
-      { ok: false, error: 'Missing SHOPIFY_STORE_DOMAIN or SHOPIFY_APP_AUTOMATION_TOKEN.' },
+      {
+        ok: false,
+        error:
+          'Missing admin access token. Install via OAuth first (`/api/auth?shop=...` requires SHOPIFY_CLIENT_SECRET) or set SHOPIFY_ADMIN_ACCESS_TOKEN / SHOPIFY_APP_AUTOMATION_TOKEN.',
+      },
       { status: 400, headers: { 'Cache-Control': 'no-store, max-age=0' } },
     );
   }
 
-  const url = new URL(req.url);
   const doDraftTest = url.searchParams.get('draft') === '1';
   const variantId = (url.searchParams.get('variantId') || defaultVariantId).trim();
 
@@ -176,4 +185,3 @@ export async function GET(req: Request) {
     { status: 200, headers: { 'Cache-Control': 'no-store, max-age=0' } },
   );
 }
-

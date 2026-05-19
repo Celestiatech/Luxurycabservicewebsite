@@ -45,6 +45,11 @@ export default function App() {
   const [routeInfoLoading, setRouteInfoLoading] = useState(false);
   const [routeInfoError, setRouteInfoError] = useState<string | null>(null);
 
+  const isVanVariant = (label: string) => {
+    const t = label.toLowerCase();
+    return t.includes('van') || t.includes('seater');
+  };
+
   const selectedShopifyVariant = shopifyVariants.find((v) => v.id === formData.vehicle) || null;
 
   const parseDistanceKm = (distanceText: string): number | null => {
@@ -59,15 +64,33 @@ export default function App() {
   };
 
   const distanceKm = routeInfo?.distanceText ? parseDistanceKm(routeInfo.distanceText) : null;
-  const isVanSelection =
-    (selectedShopifyVariant?.label || '').toLowerCase().includes('van') ||
-    (selectedShopifyVariant?.label || '').toLowerCase().includes('12 seater') ||
-    (selectedShopifyVariant?.label || '').toLowerCase().includes('13 seater');
+  const isVanSelection = selectedShopifyVariant ? isVanVariant(selectedShopifyVariant.label || '') : false;
 
   const extraKmRate = isVanSelection ? 5 : 3.5;
   const extraKm =
     typeof distanceKm === 'number' && distanceKm > 30 ? Math.max(0, distanceKm - 30) : 0;
   const extraKmChargeEstimate = extraKm > 0 ? extraKm * extraKmRate : 0;
+
+  const passengerType: 'car' | 'van' | null =
+    formData.passengers === '1-4' ? 'car' : formData.passengers === '5-11' ? 'van' : null;
+
+  const filteredShopifyVariants =
+    passengerType === 'car'
+      ? shopifyVariants.filter((v) => !isVanVariant(v.label || ''))
+      : passengerType === 'van'
+        ? shopifyVariants.filter((v) => isVanVariant(v.label || ''))
+        : shopifyVariants;
+
+  useEffect(() => {
+    // If passenger selection changes and current vehicle doesn't match, clear it.
+    if (!formData.vehicle) return;
+    const stillValid = filteredShopifyVariants.some((v) => v.id === formData.vehicle);
+    if (!stillValid) setFormData((prev) => ({ ...prev, vehicle: '' }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.passengers, shopifyVariants]);
+
+  const basePrice = selectedShopifyVariant?.priceAmount ? Number(selectedShopifyVariant.priceAmount) : null;
+  const estimatedTotal = typeof basePrice === 'number' ? basePrice + (extraKm > 0 ? extraKmChargeEstimate : 0) : null;
 
   const validateStep1 = (): string | null => {
     if (!formData.pickup.trim()) return 'Please enter pickup location.';
@@ -1035,8 +1058,14 @@ export default function App() {
                             <ShopifyVariantSelect
                               value={formData.vehicle}
                               onChange={(v) => setFormData({ ...formData, vehicle: v })}
-                              options={shopifyVariants}
-                              placeholder="Select vehicle / product"
+                              options={filteredShopifyVariants}
+                              placeholder={
+                                passengerType === 'van'
+                                  ? 'Select van / product'
+                                  : passengerType === 'car'
+                                    ? 'Select car / product'
+                                    : 'Select vehicle / product'
+                              }
                             />
                           ) : shopifyVariantsLoading ? (
                             <select
@@ -1065,6 +1094,12 @@ export default function App() {
                               <span className="font-black">${extraKmRate}/km</span> ={' '}
                               <span className="font-black text-yellow-800">${extraKmChargeEstimate.toFixed(2)}</span>{' '}
                               <span className="text-gray-500">(estimate)</span>
+                            </div>
+                          ) : null}
+                          {estimatedTotal !== null && formData.vehicle ? (
+                            <div className="mt-1 text-xs font-semibold text-gray-800">
+                              Estimated total: <span className="font-black text-gray-900">${estimatedTotal.toFixed(2)}</span>{' '}
+                              <span className="text-gray-500">(shown only; checkout may differ)</span>
                             </div>
                           ) : null}
                           {shopifyVariantsError ? (
@@ -1370,8 +1405,14 @@ export default function App() {
                       <ShopifyVariantSelect
                         value={formData.vehicle}
                         onChange={(v) => setFormData({ ...formData, vehicle: v })}
-                        options={shopifyVariants}
-                        placeholder="Select vehicle / product"
+                        options={filteredShopifyVariants}
+                        placeholder={
+                          passengerType === 'van'
+                            ? 'Select van / product'
+                            : passengerType === 'car'
+                              ? 'Select car / product'
+                              : 'Select vehicle / product'
+                        }
                       />
                     ) : shopifyVariantsLoading ? (
                       <select
@@ -1400,6 +1441,12 @@ export default function App() {
                         <span className="font-black">${extraKmRate}/km</span> ={' '}
                         <span className="font-black text-yellow-800">${extraKmChargeEstimate.toFixed(2)}</span>{' '}
                         <span className="text-gray-500">(estimate)</span>
+                      </div>
+                    ) : null}
+                    {estimatedTotal !== null && formData.vehicle ? (
+                      <div className="mt-1 text-xs font-semibold text-gray-800">
+                        Estimated total: <span className="font-black text-gray-900">${estimatedTotal.toFixed(2)}</span>{' '}
+                        <span className="text-gray-500">(shown only; checkout may differ)</span>
                       </div>
                     ) : null}
                     {shopifyVariantsError ? (
