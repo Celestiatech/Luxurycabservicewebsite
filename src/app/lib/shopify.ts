@@ -1,4 +1,8 @@
 export type ShopifyCartAttribute = { key: string; value: string };
+export type ShopifyCheckoutLine = {
+  merchandiseId: string;
+  quantity: number;
+};
 
 function toAttributes(payload: Record<string, unknown>): ShopifyCartAttribute[] {
   return Object.entries(payload)
@@ -9,6 +13,7 @@ function toAttributes(payload: Record<string, unknown>): ShopifyCartAttribute[] 
 export async function createShopifyCheckoutUrl(args: {
   merchandiseId?: string | null;
   quantity?: number;
+  lines?: ShopifyCheckoutLine[];
   attributes?: Record<string, unknown>;
 }): Promise<string> {
   const res = await fetch('/api/shopify/checkout', {
@@ -17,6 +22,7 @@ export async function createShopifyCheckoutUrl(args: {
     body: JSON.stringify({
       merchandiseId: args.merchandiseId || null,
       quantity: args.quantity || 1,
+      lines: args.lines || undefined,
       attributes: toAttributes(args.attributes || {}),
     }),
   });

@@ -4,39 +4,73 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 type ShopifyMoneyV2 = { amount: string; currencyCode: string };
+type ShopifyProductNode = {
+  title?: string;
+  featuredImage?: { url?: string | null; altText?: string | null } | null;
+  variants?: {
+    nodes?: {
+      id: string;
+      title?: string;
+      image?: { url?: string | null; altText?: string | null } | null;
+      price?: ShopifyMoneyV2;
+    }[];
+  };
+};
 type ShopifyResponse = {
   data?: {
-    products?: {
-      nodes?: {
-        title?: string;
-        featuredImage?: { url?: string | null; altText?: string | null } | null;
-        variants?: { nodes?: { id: string; title?: string; price?: ShopifyMoneyV2 }[] };
-      }[];
-    };
+    taxi?: { products?: { nodes?: ShopifyProductNode[] } } | null;
+    van?: { products?: { nodes?: ShopifyProductNode[] } } | null;
   };
   errors?: { message: string }[];
 };
 
 const productsQuery = `
-  query Products($first: Int!) {
-    products(first: $first) {
-      nodes {
-        title
-        featuredImage {
-          url
-          altText
-        }
-        variants(first: 20) {
-          nodes {
-            id
-            title
-            image {
-              url
-              altText
+  query ProductsByVehicleCollection($first: Int!, $variantsFirst: Int!) {
+    taxi: collection(handle: "taxi") {
+      products(first: $first) {
+        nodes {
+          title
+          featuredImage {
+            url
+            altText
+          }
+          variants(first: $variantsFirst) {
+            nodes {
+              id
+              title
+              image {
+                url
+                altText
+              }
+              price {
+                amount
+                currencyCode
+              }
             }
-            price {
-              amount
-              currencyCode
+          }
+        }
+      }
+    }
+    van: collection(handle: "van") {
+      products(first: $first) {
+        nodes {
+          title
+          featuredImage {
+            url
+            altText
+          }
+          variants(first: $variantsFirst) {
+            nodes {
+              id
+              title
+              image {
+                url
+                altText
+              }
+              price {
+                amount
+                currencyCode
+              }
             }
           }
         }
@@ -74,7 +108,7 @@ export async function GET(req: Request) {
     const res = await fetch(`https://${storeDomain}/api/${apiVersion}/graphql.json`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ query: productsQuery, variables: { first: 30 } }),
+      body: JSON.stringify({ query: productsQuery, variables: { first: 30, variantsFirst: 20 } }),
       cache: 'no-store',
     });
 
@@ -88,19 +122,26 @@ export async function GET(req: Request) {
       return NextResponse.json({ variants: [], error: gqlErrors.join('; ') }, { status: 200 });
     }
 
-    const variants =
-      json.data?.products?.nodes
-        ?.flatMap((p) =>
+    const toVariants = (products: ShopifyProductNode[] | undefined, vehicleType: 'taxi' | 'van') =>
+      (products || [])
+        .flatMap((p) =>
           (p.variants?.nodes || []).map((v) => ({
             id: v.id,
-            label: p.title ? (v.title && v.title !== 'Default Title' ? `${p.title} — ${v.title}` : p.title) : v.title || v.id,
+            label: p.title ? (v.title && v.title !== 'Default Title' ? `${p.title} - ${v.title}` : p.title) : v.title || v.id,
+            vehicleType,
+            collectionHandle: vehicleType,
             priceAmount: v.price?.amount || null,
             currencyCode: v.price?.currencyCode || null,
-            imageUrl: (v as any)?.image?.url || p.featuredImage?.url || null,
-            imageAlt: (v as any)?.image?.altText || p.featuredImage?.altText || p.title || null,
+            imageUrl: v.image?.url || p.featuredImage?.url || null,
+            imageAlt: v.image?.altText || p.featuredImage?.altText || p.title || null,
           })),
         )
-        .filter((v) => typeof v.id === 'string' && v.id.startsWith('gid://')) || [];
+        .filter((v) => typeof v.id === 'string' && v.id.startsWith('gid://'));
+
+    const variants = [
+      ...toVariants(json.data?.taxi?.products?.nodes, 'taxi'),
+      ...toVariants(json.data?.van?.products?.nodes, 'van'),
+    ];
 
     return NextResponse.json(
       { variants },

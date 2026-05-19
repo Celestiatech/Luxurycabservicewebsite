@@ -5,6 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 export type ShopifyVariantOption = {
   id: string;
   label: string;
+  vehicleType?: 'taxi' | 'van' | null;
+  collectionHandle?: string | null;
   priceAmount: string | null;
   currencyCode: string | null;
   imageUrl?: string | null;

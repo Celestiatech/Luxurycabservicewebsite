@@ -12,6 +12,7 @@ type Booking = {
   date?: string;
   time?: string;
   passengers?: string;
+  vehicleType?: string;
   vehicle?: string;
   name?: string;
   phone?: string;
@@ -52,6 +53,7 @@ export default function ThankYouPage() {
                 <div>Drop-off: {booking.dropoff || '-'}</div>
                 <div>Date/Time: {booking.date || '-'} {booking.time || ''}</div>
                 <div>Passengers: {booking.passengers || '-'}</div>
+                <div>Vehicle Type: {booking.vehicleType || '-'}</div>
                 <div>Vehicle/Product: {booking.vehicle || '-'}</div>
                 <div>Name: {booking.name || '-'}</div>
                 <div>Phone: {booking.phone || '-'}</div>

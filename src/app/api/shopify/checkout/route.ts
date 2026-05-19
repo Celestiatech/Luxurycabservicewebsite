@@ -47,11 +47,32 @@ export async function POST(req: Request) {
     const body = (await req.json().catch(() => ({}))) as {
       merchandiseId?: string | null;
       quantity?: number;
+      lines?: { merchandiseId?: string | null; quantity?: number }[];
       attributes?: { key: string; value: string }[];
     };
 
+    const requestedLines = Array.isArray(body.lines)
+      ? body.lines
+          .map((line) => ({
+            merchandiseId: line.merchandiseId?.trim() || '',
+            quantity:
+              typeof line.quantity === 'number' && Number.isFinite(line.quantity) && line.quantity > 0
+                ? Math.min(99, Math.floor(line.quantity))
+                : 1,
+          }))
+          .filter((line) => line.merchandiseId.startsWith('gid://'))
+      : [];
+
     const merchandiseId = body.merchandiseId?.trim() || defaultMerchandiseId || '';
-    if (!merchandiseId) {
+    const quantity = typeof body.quantity === 'number' && body.quantity > 0 ? body.quantity : 1;
+    const cartLines =
+      requestedLines.length > 0
+        ? requestedLines
+        : merchandiseId
+          ? [{ merchandiseId, quantity }]
+          : [];
+
+    if (!cartLines.length) {
       return NextResponse.json(
         {
           error:
@@ -60,7 +81,6 @@ export async function POST(req: Request) {
         { status: 400, headers: { 'Cache-Control': 'no-store, max-age=0' } },
       );
     }
-    const quantity = typeof body.quantity === 'number' && body.quantity > 0 ? body.quantity : 1;
     const attributes = Array.isArray(body.attributes) ? body.attributes : [];
     // Put the same attributes on:
     // - Cart (shows in order "Additional details" in admin)
@@ -90,9 +110,7 @@ export async function POST(req: Request) {
         query: cartCreateMutation,
         variables: {
           input: {
-            lines: [
-              { merchandiseId, quantity, attributes: lineAttributes },
-            ],
+            lines: cartLines.map((line) => ({ ...line, attributes: lineAttributes })),
             attributes,
           },
         },

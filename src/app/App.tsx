@@ -11,7 +11,7 @@ import { SectionHeader } from './components/SectionHeader';
 import { motion, AnimatePresence } from 'motion/react';
 import { createShopifyCheckoutUrl } from './lib/shopify';
 import { DatePicker } from './components/DatePicker';
-import { ShopifyVariantSelect, type ShopifyVariantOption } from './components/ShopifyVariantSelect';
+import { type ShopifyVariantOption } from './components/ShopifyVariantSelect';
 import { PassengersSelect } from './components/PassengersSelect';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
 
@@ -22,6 +22,7 @@ export default function App() {
     date: '',
     time: '',
     passengers: '',
+    vehicleType: '',
     vehicle: '',
     name: '',
     email: '',
@@ -39,11 +40,14 @@ export default function App() {
   const [currentClient, setCurrentClient] = useState(0);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [shopifyVariants, setShopifyVariants] = useState<ShopifyVariantOption[]>([]);
+  const [vehicleQuantities, setVehicleQuantities] = useState<Record<string, number>>({});
   const [shopifyVariantsLoading, setShopifyVariantsLoading] = useState(true);
   const [shopifyVariantsError, setShopifyVariantsError] = useState<string | null>(null);
   const [routeInfo, setRouteInfo] = useState<{ distanceText: string; durationText: string } | null>(null);
   const [routeInfoLoading, setRouteInfoLoading] = useState(false);
   const [routeInfoError, setRouteInfoError] = useState<string | null>(null);
+
+  type VehicleType = 'taxi' | 'van';
 
   const isVanVariant = (label: string) => {
     const t = label.toLowerCase();
@@ -51,6 +55,7 @@ export default function App() {
   };
 
   const selectedShopifyVariant = shopifyVariants.find((v) => v.id === formData.vehicle) || null;
+  const selectedVehicleType = formData.vehicleType as VehicleType | '';
 
   const parseDistanceKm = (distanceText: string): number | null => {
     const t = distanceText.trim().toLowerCase();
@@ -64,32 +69,76 @@ export default function App() {
   };
 
   const distanceKm = routeInfo?.distanceText ? parseDistanceKm(routeInfo.distanceText) : null;
-  const isVanSelection = selectedShopifyVariant ? isVanVariant(selectedShopifyVariant.label || '') : false;
+  const isVanSelection =
+    selectedVehicleType === 'van' ||
+    selectedShopifyVariant?.vehicleType === 'van' ||
+    (selectedShopifyVariant ? isVanVariant(selectedShopifyVariant.label || '') : false);
 
   const extraKmRate = isVanSelection ? 5 : 3.5;
   const extraKm =
     typeof distanceKm === 'number' && distanceKm > 30 ? Math.max(0, distanceKm - 30) : 0;
   const extraKmChargeEstimate = extraKm > 0 ? extraKm * extraKmRate : 0;
 
-  const passengerType: 'car' | 'van' | null =
-    formData.passengers === '1-4' ? 'car' : formData.passengers === '5-11' ? 'van' : null;
-
   const filteredShopifyVariants =
-    passengerType === 'car'
-      ? shopifyVariants.filter((v) => !isVanVariant(v.label || ''))
-      : passengerType === 'van'
-        ? shopifyVariants.filter((v) => isVanVariant(v.label || ''))
+    selectedVehicleType === 'taxi'
+      ? shopifyVariants.filter((v) => v.vehicleType === 'taxi' || (!v.vehicleType && !isVanVariant(v.label || '')))
+      : selectedVehicleType === 'van'
+        ? shopifyVariants.filter((v) => v.vehicleType === 'van' || (!v.vehicleType && isVanVariant(v.label || '')))
         : shopifyVariants;
 
-  useEffect(() => {
-    // If passenger selection changes and current vehicle doesn't match, clear it.
-    if (!formData.vehicle) return;
-    const stillValid = filteredShopifyVariants.some((v) => v.id === formData.vehicle);
-    if (!stillValid) setFormData((prev) => ({ ...prev, vehicle: '' }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.passengers, shopifyVariants]);
+  const selectedVehicleItems = filteredShopifyVariants
+    .map((variant) => ({ variant, quantity: vehicleQuantities[variant.id] || 0 }))
+    .filter((item) => item.quantity > 0);
+  const selectedVehicleLabel = selectedVehicleItems
+    .map(({ variant, quantity }) => `${variant.label} x ${quantity}`)
+    .join(', ');
+  const selectedVehicleTotal = selectedVehicleItems.reduce((total, { variant, quantity }) => {
+    const amount = variant.priceAmount ? Number(variant.priceAmount) : 0;
+    return total + (Number.isFinite(amount) ? amount * quantity : 0);
+  }, 0);
 
-  const basePrice = selectedShopifyVariant?.priceAmount ? Number(selectedShopifyVariant.priceAmount) : null;
+  const setVehicleQuantity = (variantId: string, quantity: number) => {
+    const safeQuantity = Number.isFinite(quantity) ? Math.max(0, Math.min(99, Math.floor(quantity))) : 0;
+    setVehicleQuantities((prev) => {
+      const next = { ...prev };
+      if (safeQuantity > 0) next[variantId] = safeQuantity;
+      else delete next[variantId];
+
+      setFormData((current) => ({
+        ...current,
+        vehicle: Object.entries(next)
+          .filter(([, qty]) => qty > 0)
+          .map(([id]) => id)
+          .join(','),
+      }));
+
+      return next;
+    });
+  };
+
+  const handleVehicleTypeChange = (vehicleType: string) => {
+    setVehicleQuantities({});
+    setFormData((prev) => ({ ...prev, vehicleType, vehicle: '' }));
+  };
+
+  useEffect(() => {
+    // If vehicle type changes and current vehicle doesn't match, clear it.
+    const validIds = new Set(filteredShopifyVariants.map((v) => v.id));
+    const nextQuantities = Object.fromEntries(
+      Object.entries(vehicleQuantities).filter(([id, qty]) => validIds.has(id) && qty > 0),
+    );
+    if (Object.keys(nextQuantities).length === Object.keys(vehicleQuantities).length) return;
+    setVehicleQuantities(nextQuantities);
+    setFormData((prev) => ({ ...prev, vehicle: Object.keys(nextQuantities).join(',') }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.vehicleType, shopifyVariants]);
+
+  const basePrice =
+    selectedVehicleItems.length > 0
+      ? selectedVehicleTotal
+      : selectedShopifyVariant?.priceAmount
+        ? Number(selectedShopifyVariant.priceAmount)
+        : null;
   const estimatedTotal = typeof basePrice === 'number' ? basePrice + (extraKm > 0 ? extraKmChargeEstimate : 0) : null;
 
   const validateStep1 = (): string | null => {
@@ -98,6 +147,7 @@ export default function App() {
     if (!formData.date.trim()) return 'Please select pickup date.';
     if (!formData.time.trim()) return 'Please select pickup time.';
     if (!formData.passengers.trim()) return 'Please select passengers.';
+    if (!formData.vehicleType.trim()) return 'Please select vehicle type.';
     if (!formData.vehicle.trim()) return 'Please select vehicle/product.';
     return null;
   };
@@ -283,14 +333,24 @@ export default function App() {
       alert(s2);
       return;
     }
-    const chosenVariant = selectedShopifyVariant;
+    const chosenVariant = selectedVehicleItems[0]?.variant || selectedShopifyVariant;
+    const checkoutLines = selectedVehicleItems.map(({ variant, quantity }) => ({
+      merchandiseId: variant.id,
+      quantity,
+    }));
     const selectedPackageMerchandiseId =
       (typeof selectedPackage?.variantId === 'string' && selectedPackage.variantId.trim()) ||
       (typeof selectedPackage?.shopifyVariantId === 'string' && selectedPackage.shopifyVariantId.trim()) ||
       null;
 
     // Prefer a Shopify variant selected from dropdown so orders always match the exact variant/price in Shopify.
-    const effectivePackage = chosenVariant
+    const effectivePackage = checkoutLines.length > 0
+      ? {
+          name: selectedVehicleLabel || 'Booking',
+          price: selectedVehicleTotal || undefined,
+          variantId: checkoutLines[0].merchandiseId,
+        }
+      : chosenVariant
       ? {
           name: chosenVariant.label,
           price: chosenVariant.priceAmount ? Number(chosenVariant.priceAmount) : undefined,
@@ -320,7 +380,8 @@ export default function App() {
             date: formData.date,
             time: formData.time,
             passengers: formData.passengers,
-            vehicle: formData.vehicle,
+            vehicleType: formData.vehicleType,
+            vehicle: selectedVehicleLabel || chosenVariant?.label || formData.vehicle,
             name: formData.name,
             email: formData.email,
             phone: formData.phone,
@@ -332,8 +393,9 @@ export default function App() {
       }
 
       const checkoutUrl = await createShopifyCheckoutUrl({
-        merchandiseId: effectivePackage?.variantId || null,
+        merchandiseId: checkoutLines.length > 0 ? null : effectivePackage?.variantId || null,
         quantity: 1,
+        lines: checkoutLines.length > 0 ? checkoutLines : undefined,
         attributes: {
           booking_type: effectivePackage?.name || 'Booking',
           booking_price_display: effectivePackage?.price,
@@ -342,7 +404,8 @@ export default function App() {
           date: formData.date,
           time: formData.time,
           passengers: formData.passengers,
-          vehicle: chosenVariant?.label || formData.vehicle,
+          vehicle_type: formData.vehicleType,
+          vehicle: selectedVehicleLabel || chosenVariant?.label || formData.vehicle,
           distance_km: typeof distanceKm === 'number' ? distanceKm.toFixed(1) : '',
           extra_km_after_30: extraKm > 0 ? extraKm.toFixed(1) : '',
           extra_km_rate: extraKm > 0 ? String(extraKmRate) : '',
@@ -745,6 +808,108 @@ export default function App() {
     }
   ];
 
+  const renderVehicleSelection = () => {
+    if (shopifyVariants.length > 0) {
+      if (!selectedVehicleType || filteredShopifyVariants.length === 0) {
+        return (
+          <select
+            className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none"
+            value=""
+            disabled
+          >
+            <option value="">
+              {selectedVehicleType ? 'No vehicles found' : 'Select vehicle type first'}
+            </option>
+          </select>
+        );
+      }
+
+      return (
+        <div className="rounded-md border-2 bg-input-background p-2 space-y-2">
+          {filteredShopifyVariants.map((variant) => {
+            const quantity = vehicleQuantities[variant.id] || 0;
+            const selected = quantity > 0;
+
+            return (
+              <div
+                key={variant.id}
+                className="flex items-center gap-3 rounded-md border border-yellow-100 bg-white p-2"
+              >
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={(e) => setVehicleQuantity(variant.id, e.target.checked ? Math.max(1, quantity) : 0)}
+                  className="h-4 w-4 accent-yellow-600"
+                  aria-label={`Select ${variant.label}`}
+                />
+                {variant.imageUrl ? (
+                  <img
+                    src={variant.imageUrl}
+                    alt={variant.imageAlt || variant.label}
+                    className="h-10 w-10 rounded-md object-cover border border-yellow-200 bg-white"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="h-10 w-10 rounded-md border border-yellow-200 bg-yellow-50" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-black text-gray-900">{variant.label}</div>
+                  {variant.priceAmount ? (
+                    <div className="text-xs font-semibold text-gray-600">
+                      {variant.priceAmount} {variant.currencyCode || ''}
+                    </div>
+                  ) : null}
+                </div>
+                <Input
+                  type="number"
+                  min="0"
+                  max="99"
+                  step="1"
+                  value={quantity}
+                  onChange={(e) => setVehicleQuantity(variant.id, Number(e.target.value))}
+                  className="h-9 w-20 border-2 text-center font-black"
+                  aria-label={`Quantity for ${variant.label}`}
+                />
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    if (shopifyVariantsLoading) {
+      return (
+        <select
+          className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none"
+          value=""
+          disabled
+        >
+          <option value="">Loading vehicles...</option>
+        </select>
+      );
+    }
+
+    return (
+      <select
+        className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+        value={formData.vehicle}
+        onChange={(e) => setFormData({ ...formData, vehicle: e.target.value })}
+        disabled={!selectedVehicleType}
+      >
+        <option value="">{selectedVehicleType ? 'Select vehicle' : 'Select vehicle type first'}</option>
+        {selectedVehicleType === 'taxi' ? (
+          <option value="sedan">Affordable Taxi (1-4 pax)</option>
+        ) : null}
+        {selectedVehicleType === 'van' ? (
+          <>
+            <option value="minivan">Mini Van (5-11 pax)</option>
+            <option value="largevan">Large Van (8-11 pax)</option>
+          </>
+        ) : null}
+      </select>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Top Bar */}
@@ -1054,39 +1219,21 @@ export default function App() {
                           <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                             Vehicle Type <span className="text-red-600">*</span>
                           </div>
-                          {shopifyVariants.length > 0 ? (
-                            <ShopifyVariantSelect
-                              value={formData.vehicle}
-                              onChange={(v) => setFormData({ ...formData, vehicle: v })}
-                              options={filteredShopifyVariants}
-                              placeholder={
-                                passengerType === 'van'
-                                  ? 'Select van / product'
-                                  : passengerType === 'car'
-                                    ? 'Select car / product'
-                                    : 'Select vehicle / product'
-                              }
-                            />
-                          ) : shopifyVariantsLoading ? (
-                            <select
-                              className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none"
-                              value=""
-                              disabled
-                            >
-                              <option value="">Loading vehicles…</option>
-                            </select>
-                          ) : (
-                            <select
-                              className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                              value={formData.vehicle}
-                              onChange={(e) => setFormData({...formData, vehicle: e.target.value})}
-                            >
-                              <option value="">Select vehicle</option>
-                              <option value="sedan">Affordable Sedan (1-4 pax)</option>
-                              <option value="minivan">Mini Van (5-11 pax)</option>
-                              <option value="largevan">Large Van (8-11 pax)</option>
-                            </select>
-                          )}
+                          <select
+                            className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                            value={formData.vehicleType}
+                            onChange={(e) => handleVehicleTypeChange(e.target.value)}
+                          >
+                            <option value="">Select vehicle type</option>
+                            <option value="taxi">Taxi</option>
+                            <option value="van">Van</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1 group">
+                          <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                            Select Vehicle <span className="text-red-600">*</span>
+                          </div>
+                          {renderVehicleSelection()}
                           {extraKm > 0 && formData.vehicle ? (
                             <div className="mt-2 text-xs font-semibold text-gray-700">
                               Extra after 30 km:{' '}
@@ -1401,39 +1548,21 @@ export default function App() {
                     <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                       Vehicle Type <span className="text-red-600">*</span>
                     </div>
-                    {shopifyVariants.length > 0 ? (
-                      <ShopifyVariantSelect
-                        value={formData.vehicle}
-                        onChange={(v) => setFormData({ ...formData, vehicle: v })}
-                        options={filteredShopifyVariants}
-                        placeholder={
-                          passengerType === 'van'
-                            ? 'Select van / product'
-                            : passengerType === 'car'
-                              ? 'Select car / product'
-                              : 'Select vehicle / product'
-                        }
-                      />
-                    ) : shopifyVariantsLoading ? (
-                      <select
-                        className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none"
-                        value=""
-                        disabled
-                      >
-                        <option value="">Loading vehicles…</option>
-                      </select>
-                    ) : (
-                      <select
-                        className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                        value={formData.vehicle}
-                        onChange={(e) => setFormData({...formData, vehicle: e.target.value})}
-                      >
-                        <option value="">Select vehicle</option>
-                        <option value="sedan">Affordable Sedan (1-4 pax)</option>
-                        <option value="minivan">Mini Van (5-7 pax)</option>
-                        <option value="largevan">Large Van (8-11 pax)</option>
-                      </select>
-                    )}
+                    <select
+                      className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                      value={formData.vehicleType}
+                      onChange={(e) => handleVehicleTypeChange(e.target.value)}
+                    >
+                      <option value="">Select vehicle type</option>
+                      <option value="taxi">Taxi</option>
+                      <option value="van">Van</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1 group">
+                    <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                      Select Vehicle <span className="text-red-600">*</span>
+                    </div>
+                    {renderVehicleSelection()}
                     {extraKm > 0 && formData.vehicle ? (
                       <div className="mt-2 text-xs font-semibold text-gray-700">
                         Extra after 30 km:{' '}
@@ -1580,7 +1709,7 @@ export default function App() {
       </section>
 
       {/* Fixed Fare Pricing */}
-      <section className="py-20 bg-white">
+      {/* <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <SectionHeader
             title="FIXED FARE PRICING"
@@ -1696,7 +1825,7 @@ export default function App() {
             </ul>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Services in Major Cities */}
       <section id="cities" className="py-20 bg-white">
