@@ -1,0 +1,252 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Taxi Booking Website – Task Document</title>
+    <style>
+      @page { size: A4; margin: 18mm 16mm; }
+      :root{
+        --ink:#0b1220;
+        --muted:#516079;
+        --line:#e5e7eb;
+        --card:#ffffff;
+        --bg:#f6f8fc;
+        --brand1:#3b82f6;
+        --brand2:#7c3aed;
+        --good:#16a34a;
+        --warn:#f59e0b;
+      }
+      *{ box-sizing:border-box; }
+      html,body{ padding:0; margin:0; }
+      body{
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+        color:var(--ink);
+        background:var(--bg);
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .page{
+        background: linear-gradient(180deg, rgba(59,130,246,0.10), rgba(124,58,237,0.06) 40%, rgba(246,248,252,1) 80%);
+        padding: 0;
+      }
+      .header{
+        padding: 18px 18px 14px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(59,130,246,0.14), rgba(124,58,237,0.12));
+      }
+      .brand{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap: 12px;
+      }
+      .badge{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.75);
+        border: 1px solid rgba(255,255,255,0.65);
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .title{
+        margin: 8px 0 0;
+        font-size: 22px;
+        line-height: 1.15;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .subtitle{
+        margin: 6px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .content{
+        margin-top: 14px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 18px;
+      }
+      .h1{ margin: 0 0 10px; }
+      .h2{ margin: 18px 0 10px; font-size: 16px; }
+      .h3{ margin: 14px 0 8px; font-size: 14px; color: #0f172a; }
+      .h4{ margin: 12px 0 8px; font-size: 13px; color: #111827; }
+      p{ margin: 8px 0; color: #0f172a; font-size: 12.5px; line-height: 1.55; }
+      .ul{ margin: 8px 0 10px 18px; padding: 0; }
+      li{ margin: 6px 0; color: #0f172a; font-size: 12.5px; line-height: 1.45; }
+      strong{ font-weight: 800; }
+      .sep{
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(59,130,246,0.0), rgba(59,130,246,0.5), rgba(124,58,237,0.45), rgba(124,58,237,0.0));
+        margin: 14px 0;
+      }
+      .table-wrap{
+        margin: 10px 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      table{ width:100%; border-collapse: collapse; }
+      th{
+        text-align: left;
+        padding: 10px 12px;
+        font-size: 12px;
+        color: #0b1220;
+        background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(124,58,237,0.10));
+        border-bottom: 1px solid var(--line);
+      }
+      td{
+        padding: 9px 12px;
+        font-size: 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      tbody tr:nth-child(even) td{ background: rgba(246,248,252,0.75); }
+      tbody tr:last-child td{ border-bottom:none; }
+      .callout{
+        margin: 12px 0;
+        padding: 12px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(22,163,74,0.25);
+        background: rgba(22,163,74,0.08);
+      }
+      .callout h3{ margin:0 0 6px; font-size: 13px; }
+      .callout p{ margin: 0; color: #0b1220; }
+      .footer{
+        margin-top: 12px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .pill{
+        display:inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(59,130,246,0.10);
+        border: 1px solid rgba(59,130,246,0.18);
+        color: #1d4ed8;
+        font-weight: 700;
+      }
+      /* Keep headings with their following content */
+      h1,h2,h3,h4{ break-after: avoid; }
+      .table-wrap{ break-inside: avoid; }
+      ul{ break-inside: avoid; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="header">
+        <div class="brand">
+          <div class="badge">
+            <span class="pill">Task</span>
+            <span>19 May 2026</span>
+          </div>
+          <div class="badge">Luxury Cab Service – Internal</div>
+        </div>
+        <div class="title">Taxi Booking Website – Task Document</div>
+        <div class="subtitle">Ride categories, pricing tables, passenger options, and offer notes</div>
+      </div>
+      <div class="content">
+        <div class="callout">
+          <h3>Instant Offer</h3>
+          <p><strong>Instant 10% OFF on Prepay</strong> (plus returning-user discount where applicable)</p>
+        </div>
+        <h1 class="h1">Taxi Booking Website – Task Document</h1>
+<h2 class="h2">Ride Categories to Add</h2>
+<h3 class="h3">1. CBD → CBD</h3>
+<p>Add fixed pricing options:</p>
+<ul class="ul">
+<li>ECO – $35</li>
+<li>Sedan – $40</li>
+<li>Van – $60</li>
+</ul>
+<hr class="sep" />
+<h3 class="h3">2. Airport Environment</h3>
+<p>Add pricing:</p>
+<ul class="ul">
+<li>ECO – $40</li>
+<li>Sedan – $55</li>
+<li>Van – $65</li>
+</ul>
+<hr class="sep" />
+<h3 class="h3">3. CBD ↔ Airport</h3>
+<p>(Both directions)</p>
+<ul class="ul">
+<li>CBD → Airport</li>
+<li>Airport → CBD</li>
+</ul>
+<p>Pricing:</p>
+<ul class="ul">
+<li>ECO – $89</li>
+<li>Sedan – $99</li>
+<li>Van – $130</li>
+</ul>
+<p>Notes below pricing:</p>
+<ul class="ul">
+<li>Inclusive GST</li>
+<li>No Hidden Charges</li>
+</ul>
+<hr class="sep" />
+<h3 class="h3">4. Suburb ↔ Suburb (Intercity)</h3>
+<h2 class="h2">VAN Pricing</h2>
+<div class="table-wrap"><table><thead><tr><th>Distance</th><th>Price</th></tr></thead><tbody><tr><td>1–10 km</td><td>$75 Fixed</td></tr><tr><td>10–15 km</td><td>$85 Fixed</td></tr><tr><td>15–20 km</td><td>$100 Fixed</td></tr><tr><td>20–25 km</td><td>$120 Fixed</td></tr><tr><td>25–30 km</td><td>$130 Fixed</td></tr></tbody></table></div>
+<p>Additional:</p>
+<ul class="ul">
+<li>After 30 km → $5/km extra</li>
+<li>Above 100 km → 15% OFF</li>
+<li>Prepay users → 10% OFF</li>
+</ul>
+<hr class="sep" />
+<h2 class="h2">CAR Pricing</h2>
+<div class="table-wrap"><table><thead><tr><th>Distance</th><th>Price</th></tr></thead><tbody><tr><td>1–10 km</td><td>$50</td></tr><tr><td>10–15 km</td><td>$65</td></tr><tr><td>15–20 km</td><td>$85</td></tr><tr><td>20–25 km</td><td>$110</td></tr><tr><td>25–30 km</td><td>$120</td></tr></tbody></table></div>
+<p>Additional:</p>
+<ul class="ul">
+<li>After 30 km → $3.50/km extra</li>
+</ul>
+<hr class="sep" />
+<h1 class="h1">Passenger Selection Changes</h1>
+<p>Keep only 2 options:</p>
+<ul class="ul">
+<li>1–4 Passengers</li>
+<li>5–11 Passengers</li>
+</ul>
+<hr class="sep" />
+<h1 class="h1">Discount &amp; Offer Section</h1>
+<p>Add highlighted text/banner:</p>
+<h3 class="h3">“Instant 10% OFF on Prepay”</h3>
+<p>Also:</p>
+<ul class="ul">
+<li>Returning users should receive additional 5–10% discount</li>
+</ul>
+<hr class="sep" />
+<h1 class="h1">Booking Form Notes</h1>
+<p>Add below form:</p>
+<ul class="ul">
+<li>Inclusive GST</li>
+<li>No Hidden Charges</li>
+</ul>
+<hr class="sep" />
+<h1 class="h1">Additional Notes</h1>
+<p>Add:</p>
+<ul class="ul">
+<li>Multiple ride benefits section</li>
+<li>Mention fixed fare for short distance rides</li>
+<li>Mention additional km charges after limit</li>
+<li>Less than 7 km fixed fare mention if needed in UI/content</li>
+</ul>
+        <div class="footer">
+          <div>Generated from <strong>task/task.txt</strong></div>
+          <div>PDF render via <strong>Google Chrome</strong></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

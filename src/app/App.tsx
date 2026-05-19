@@ -38,6 +38,7 @@ export default function App() {
   const [currentClient, setCurrentClient] = useState(0);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [shopifyVariants, setShopifyVariants] = useState<ShopifyVariantOption[]>([]);
+  const [shopifyVariantsLoading, setShopifyVariantsLoading] = useState(true);
   const [shopifyVariantsError, setShopifyVariantsError] = useState<string | null>(null);
 
   const validateStep1 = (): string | null => {
@@ -73,16 +74,35 @@ export default function App() {
 
   useEffect(() => {
     // Optional: if Shopify is configured, show products/variants in selects.
+    try {
+      const cached = localStorage.getItem('shopify_variants_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached) as unknown;
+        if (Array.isArray(parsed)) setShopifyVariants(parsed as ShopifyVariantOption[]);
+      }
+    } catch {
+      // ignore
+    }
+
+    setShopifyVariantsLoading(true);
     fetch('/api/shopify/products')
       .then((r) => r.json())
       .then((json: any) => {
         const variants = Array.isArray(json?.variants) ? (json.variants as ShopifyVariantOption[]) : [];
         setShopifyVariants(variants);
         setShopifyVariantsError(typeof json?.error === 'string' && json.error ? json.error : null);
+        try {
+          localStorage.setItem('shopify_variants_cache', JSON.stringify(variants));
+        } catch {
+          // ignore
+        }
       })
       .catch(() => {
         setShopifyVariants([]);
         setShopifyVariantsError(null);
+      })
+      .finally(() => {
+        setShopifyVariantsLoading(false);
       });
   }, []);
 
@@ -143,18 +163,28 @@ export default function App() {
     const chosenVariant =
       shopifyVariants.find((v) => v.id === formData.vehicle) ||
       null;
-    const effectivePackage =
-      selectedPackage ||
-      (chosenVariant
+    const selectedPackageMerchandiseId =
+      (typeof selectedPackage?.variantId === 'string' && selectedPackage.variantId.trim()) ||
+      (typeof selectedPackage?.shopifyVariantId === 'string' && selectedPackage.shopifyVariantId.trim()) ||
+      null;
+
+    // Prefer a Shopify variant selected from dropdown so orders always match the exact variant/price in Shopify.
+    const effectivePackage = chosenVariant
+      ? {
+          name: chosenVariant.label,
+          price: chosenVariant.priceAmount ? Number(chosenVariant.priceAmount) : undefined,
+          variantId: chosenVariant.id,
+        }
+      : selectedPackageMerchandiseId
         ? {
-            name: chosenVariant.label,
-            price: chosenVariant.priceAmount ? Number(chosenVariant.priceAmount) : undefined,
-            variantId: chosenVariant.id,
+            name: selectedPackage?.name || selectedPackage?.title || 'Booking',
+            price: typeof selectedPackage?.price === 'number' ? selectedPackage.price : undefined,
+            variantId: selectedPackageMerchandiseId,
           }
-        : null);
+        : null;
 
     if (!effectivePackage) {
-      alert('Please choose a package (Book Now) or select a vehicle/product.');
+      alert('Please select a vehicle/product (Shopify) so your order matches the correct variant and price.');
       return;
     }
 
@@ -181,10 +211,10 @@ export default function App() {
       }
 
       const checkoutUrl = await createShopifyCheckoutUrl({
-        merchandiseId: effectivePackage?.variantId || effectivePackage?.shopifyVariantId || null,
+        merchandiseId: effectivePackage?.variantId || null,
         quantity: 1,
         attributes: {
-          booking_type: effectivePackage?.name || effectivePackage?.title || 'Booking',
+          booking_type: effectivePackage?.name || 'Booking',
           booking_price_display: effectivePackage?.price,
           pickup: formData.pickup,
           dropoff: formData.dropoff,
@@ -251,29 +281,76 @@ export default function App() {
 
   const offers = [
     {
-      title: '10% OFF ALL TOURS',
-      description: 'Book any Auckland city tour package online',
-      validUntil: 'May 31, 2026',
-      code: 'TOUR10',
-      image: 'https://images.unsplash.com/photo-1558222209-134191edfe0d?w=600',
+      title: 'INSTANT 10% OFF ON PREPAY',
+      description: 'Pay online in advance and get instant discount on your ride',
+      validUntil: 'Limited Time',
+      code: 'PREPAY10',
+      image: 'https://images.unsplash.com/photo-1574849693510-00ab036e8978?w=600',
       discount: '10%'
     },
     {
-      title: 'AIRPORT TRANSFER SPECIAL',
-      description: 'Fixed rate $65 to Auckland city center',
-      validUntil: 'Limited Time',
-      code: 'AIRPORT65',
-      image: 'https://images.unsplash.com/photo-1574849693510-00ab036e8978?w=600',
-      discount: 'FIXED'
+      title: 'RETURNING USER BONUS',
+      description: 'Returning users receive an additional 5–10% discount',
+      validUntil: 'Ongoing',
+      code: 'WELCOME_BACK',
+      image: 'https://images.unsplash.com/photo-1603122101829-e56305b0a5f7?w=600',
+      discount: '5–10%'
     },
     {
-      title: 'WEDDING PACKAGE DEAL',
-      description: 'Free vehicle decorations worth $200',
-      validUntil: 'June 30, 2026',
-      code: 'WEDDING200',
-      image: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600',
-      discount: '$200'
+      title: 'FIXED FARE SHORT RIDES',
+      description: 'Fixed fare pricing available for short-distance rides (conditions apply)',
+      validUntil: 'Ongoing',
+      code: 'FIXED_FARE',
+      image: 'https://images.unsplash.com/photo-1616804947838-6646ae0e423d?w=600',
+      discount: 'FIXED'
     }
+  ];
+
+  const fixedFareCategories = [
+    {
+      title: 'CBD → CBD (Fixed Fare)',
+      subtitle: 'Short distance rides within CBD',
+      items: [
+        { label: 'ECO', value: '$35' },
+        { label: 'Sedan', value: '$40' },
+        { label: 'Van', value: '$60' },
+      ],
+    },
+    {
+      title: 'Airport Environment (Fixed Fare)',
+      subtitle: 'Airport precinct / nearby area',
+      items: [
+        { label: 'ECO', value: '$40' },
+        { label: 'Sedan', value: '$55' },
+        { label: 'Van', value: '$65' },
+      ],
+    },
+    {
+      title: 'CBD ↔ Airport (Both Directions)',
+      subtitle: 'CBD → Airport and Airport → CBD',
+      items: [
+        { label: 'ECO', value: '$89' },
+        { label: 'Sedan', value: '$99' },
+        { label: 'Van', value: '$130' },
+      ],
+      notes: ['Inclusive GST', 'No Hidden Charges'],
+    },
+  ];
+
+  const suburbIntercityVan = [
+    { distance: '1–10 km', price: '$75 Fixed' },
+    { distance: '10–15 km', price: '$85 Fixed' },
+    { distance: '15–20 km', price: '$100 Fixed' },
+    { distance: '20–25 km', price: '$120 Fixed' },
+    { distance: '25–30 km', price: '$130 Fixed' },
+  ];
+
+  const suburbIntercityCar = [
+    { distance: '1–10 km', price: '$50' },
+    { distance: '10–15 km', price: '$65' },
+    { distance: '15–20 km', price: '$85' },
+    { distance: '20–25 km', price: '$110' },
+    { distance: '25–30 km', price: '$120' },
   ];
 
   const services = [
@@ -464,36 +541,36 @@ export default function App() {
 
   const popularRoutes = [
     {
-      from: 'Auckland Airport',
-      to: 'City Center',
-      price: 65,
-      time: '35 min',
+      from: 'CBD',
+      to: 'CBD',
+      price: 35,
+      time: 'Fixed Fare',
       demand: 'High',
       image: 'https://images.unsplash.com/photo-1574849693510-00ab036e8978?w=400'
     },
     {
-      from: 'Auckland',
-      to: 'Hamilton',
-      price: 180,
-      time: '1h 45min',
+      from: 'CBD',
+      to: 'Airport',
+      price: 89,
+      time: 'Fixed Fare',
       demand: 'Medium',
-      image: 'https://images.unsplash.com/photo-1576566465339-2b99f6b33277?w=400'
+      image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400'
     },
     {
-      from: 'Auckland',
-      to: 'Rotorua',
-      price: 350,
-      time: '3h 15min',
-      demand: 'High',
-      image: 'https://images.unsplash.com/photo-1616804947838-6646ae0e423d?w=400'
-    },
-    {
-      from: 'Auckland Airport',
-      to: 'North Shore',
-      price: 75,
-      time: '45 min',
+      from: 'Airport',
+      to: 'CBD',
+      price: 89,
+      time: 'Fixed Fare',
       demand: 'High',
       image: 'https://images.unsplash.com/photo-1603122101829-e56305b0a5f7?w=400'
+    },
+    {
+      from: 'Suburb',
+      to: 'Suburb',
+      price: 50,
+      time: 'From (1–10 km)',
+      demand: 'High',
+      image: 'https://images.unsplash.com/photo-1576566465339-2b99f6b33277?w=400'
     }
   ];
 
@@ -549,7 +626,7 @@ export default function App() {
       <div className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white py-2.5 text-center font-bold shadow-lg">
         <div className="flex items-center justify-center gap-3 text-sm md:text-base">
           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-          <span>AFFORDABLE SPECIAL: Book Any Auckland Tour & Get 10% OFF | Call +64 27 777 7242</span>
+          <span>INSTANT OFFER: 10% OFF on Prepay | Inclusive GST | No Hidden Charges</span>
           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
         </div>
       </div>
@@ -845,6 +922,14 @@ export default function App() {
                               options={shopifyVariants}
                               placeholder="Select vehicle / product"
                             />
+                          ) : shopifyVariantsLoading ? (
+                            <select
+                              className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none"
+                              value=""
+                              disabled
+                            >
+                              <option value="">Loading vehicles…</option>
+                            </select>
                           ) : (
                             <select
                               className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
@@ -852,9 +937,9 @@ export default function App() {
                               onChange={(e) => setFormData({...formData, vehicle: e.target.value})}
                             >
                               <option value="">Select vehicle</option>
-                              <option value="sedan">Affordable Sedan</option>
-                              <option value="minivan">Mini Van (7-Seater)</option>
-                              <option value="largevan">Large Van (12-Seater)</option>
+                              <option value="sedan">Affordable Sedan (1-4 pax)</option>
+                              <option value="minivan">Mini Van (5-11 pax)</option>
+                              <option value="largevan">Large Van (8-11 pax)</option>
                             </select>
                           )}
                           {shopifyVariantsError ? (
@@ -970,6 +1055,16 @@ export default function App() {
                             <span className="font-bold text-lg">TOTAL:</span>
             <span className="font-black text-yellow-700 text-3xl">${selectedPackage?.price || 499}</span>
                           </div>
+                        </div>
+                      </div>
+                      <div className="rounded-lg bg-gray-50 border border-gray-200 p-3 text-xs font-semibold text-gray-700">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-block w-2 h-2 rounded-full bg-green-600"></span>
+                          Inclusive GST
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="inline-block w-2 h-2 rounded-full bg-green-600"></span>
+                          No Hidden Charges
                         </div>
                       </div>
                       <div className="flex gap-3">
@@ -1139,6 +1234,14 @@ export default function App() {
                         options={shopifyVariants}
                         placeholder="Select vehicle / product"
                       />
+                    ) : shopifyVariantsLoading ? (
+                      <select
+                        className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none"
+                        value=""
+                        disabled
+                      >
+                        <option value="">Loading vehicles…</option>
+                      </select>
                     ) : (
                       <select
                         className="w-full border-2 rounded-md p-2.5 font-semibold bg-input-background outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
@@ -1218,6 +1321,16 @@ export default function App() {
                       </Button>
                     </a>
                   </div>
+                  <div className="rounded-lg bg-gray-50 border border-gray-200 p-3 text-xs font-semibold text-gray-700">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block w-2 h-2 rounded-full bg-green-600"></span>
+                      Inclusive GST
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-green-600"></span>
+                      No Hidden Charges
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -1257,16 +1370,135 @@ export default function App() {
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex-1">
-              <h3 className="text-3xl font-black text-black mb-2">SPECIAL OFFER: 10% OFF ALL TOURS</h3>
-              <p className="text-lg font-bold text-gray-900">Book online now and save! Use code: TOUR10</p>
+              <h3 className="text-3xl font-black text-black mb-2">INSTANT 10% OFF ON PREPAY</h3>
+              <p className="text-lg font-bold text-gray-900">Pay in advance to save instantly. Returning users get extra 5–10% off.</p>
             </div>
             <Button
               onClick={() => setShowBookingModal(true)}
               size="lg"
               className="bg-black hover:bg-gray-900 text-white font-black px-12 py-6"
             >
-              CLAIM OFFER
+              PREPAY & SAVE
             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Fixed Fare Pricing */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <SectionHeader
+            title="FIXED FARE PRICING"
+            subtitle="Transparent fixed fares for popular ride categories"
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+            {fixedFareCategories.map((cat, idx) => (
+              <Card key={idx} className="border-l-4 border-yellow-500 hover:shadow-2xl transition-all">
+                <CardContent className="p-6">
+                  <div className="text-xl font-black text-gray-900 mb-1">{cat.title}</div>
+                  <div className="text-sm font-bold text-gray-600 mb-5">{cat.subtitle}</div>
+
+                  <div className="space-y-3">
+                    {cat.items.map((it) => (
+                      <div key={it.label} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200">
+                        <div className="font-black text-gray-800">{it.label}</div>
+                        <div className="font-black text-yellow-700 text-lg">{it.value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {cat.notes?.length ? (
+                    <div className="mt-5 rounded-lg bg-green-50 border border-green-200 p-3">
+                      {cat.notes.map((n) => (
+                        <div key={n} className="flex items-center gap-2 text-sm font-bold text-green-800">
+                          <CheckCircle2 className="w-4 h-4" />
+                          {n}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-10">
+            <Card className="hover:shadow-2xl transition-all border-l-4 border-yellow-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="text-xl font-black text-gray-900">Suburb ↔ Suburb (Intercity) – VAN</div>
+                    <div className="text-sm font-bold text-gray-600">Fixed pricing by distance</div>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="p-3 font-black text-gray-800">Distance</th>
+                        <th className="p-3 font-black text-gray-800">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {suburbIntercityVan.map((r) => (
+                        <tr key={r.distance} className="border-b border-gray-200">
+                          <td className="p-3 font-semibold text-gray-700">{r.distance}</td>
+                          <td className="p-3 font-black text-yellow-700">{r.price}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-4 space-y-2 text-sm font-semibold text-gray-700">
+                  <div className="flex items-start gap-2"><Check className="w-4 h-4 text-green-600 mt-0.5" />After 30 km → <span className="font-black">$5/km</span> extra</div>
+                  <div className="flex items-start gap-2"><Check className="w-4 h-4 text-green-600 mt-0.5" />Above 100 km → <span className="font-black">15% OFF</span></div>
+                  <div className="flex items-start gap-2"><Check className="w-4 h-4 text-green-600 mt-0.5" />Prepay users → <span className="font-black">10% OFF</span></div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-2xl transition-all border-l-4 border-yellow-500">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="text-xl font-black text-gray-900">Suburb ↔ Suburb (Intercity) – CAR</div>
+                    <div className="text-sm font-bold text-gray-600">Fixed pricing by distance</div>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="p-3 font-black text-gray-800">Distance</th>
+                        <th className="p-3 font-black text-gray-800">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {suburbIntercityCar.map((r) => (
+                        <tr key={r.distance} className="border-b border-gray-200">
+                          <td className="p-3 font-semibold text-gray-700">{r.distance}</td>
+                          <td className="p-3 font-black text-yellow-700">{r.price}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-4 space-y-2 text-sm font-semibold text-gray-700">
+                  <div className="flex items-start gap-2"><Check className="w-4 h-4 text-green-600 mt-0.5" />After 30 km → <span className="font-black">$3.50/km</span> extra</div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="mt-8 rounded-2xl border-2 border-yellow-200 bg-yellow-50 p-5">
+            <div className="font-black text-gray-900 mb-2">Multiple Ride Benefits</div>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm font-semibold text-gray-800">
+              <li className="flex items-start gap-2"><Check className="w-4 h-4 text-green-700 mt-0.5" />Fixed fare available for short distance rides (including under 7 km, where applicable)</li>
+              <li className="flex items-start gap-2"><Check className="w-4 h-4 text-green-700 mt-0.5" />Additional per-km charges apply only after the fixed distance limit</li>
+              <li className="flex items-start gap-2"><Check className="w-4 h-4 text-green-700 mt-0.5" />Transparent pricing: Inclusive GST, no hidden charges</li>
+              <li className="flex items-start gap-2"><Check className="w-4 h-4 text-green-700 mt-0.5" />Instant discount for prepay + extra savings for returning users</li>
+            </ul>
           </div>
         </div>
       </section>

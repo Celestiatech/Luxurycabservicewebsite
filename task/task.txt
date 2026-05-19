@@ -1,0 +1,118 @@
+# Taxi Booking Website – Task Document
+
+## Ride Categories to Add
+
+### 1. CBD → CBD
+
+Add fixed pricing options:
+
+* ECO – $35
+* Sedan – $40
+* Van – $60
+
+---
+
+### 2. Airport Environment
+
+Add pricing:
+
+* ECO – $40
+* Sedan – $55
+* Van – $65
+
+---
+
+### 3. CBD ↔ Airport
+
+(Both directions)
+
+* CBD → Airport
+* Airport → CBD
+
+Pricing:
+
+* ECO – $89
+* Sedan – $99
+* Van – $130
+
+Notes below pricing:
+
+* Inclusive GST
+* No Hidden Charges
+
+---
+
+### 4. Suburb ↔ Suburb (Intercity)
+
+## VAN Pricing
+
+| Distance | Price      |
+| -------- | ---------- |
+| 1–10 km  | $75 Fixed  |
+| 10–15 km | $85 Fixed  |
+| 15–20 km | $100 Fixed |
+| 20–25 km | $120 Fixed |
+| 25–30 km | $130 Fixed |
+
+Additional:
+
+* After 30 km → $5/km extra
+* Above 100 km → 15% OFF
+* Prepay users → 10% OFF
+
+---
+
+## CAR Pricing
+
+| Distance | Price |
+| -------- | ----- |
+| 1–10 km  | $50   |
+| 10–15 km | $65   |
+| 15–20 km | $85   |
+| 20–25 km | $110  |
+| 25–30 km | $120  |
+
+Additional:
+
+* After 30 km → $3.50/km extra
+
+---
+
+# Passenger Selection Changes
+
+Keep only 2 options:
+
+* 1–4 Passengers
+* 5–11 Passengers
+
+---
+
+# Discount & Offer Section
+
+Add highlighted text/banner:
+
+### “Instant 10% OFF on Prepay”
+
+Also:
+
+* Returning users should receive additional 5–10% discount
+
+---
+
+# Booking Form Notes
+
+Add below form:
+
+* Inclusive GST
+* No Hidden Charges
+
+---
+
+# Additional Notes
+
+Add:
+
+* Multiple ride benefits section
+* Mention fixed fare for short distance rides
+* Mention additional km charges after limit
+* Less than 7 km fixed fare mention if needed in UI/content

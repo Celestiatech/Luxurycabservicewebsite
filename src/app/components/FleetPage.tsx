@@ -21,7 +21,7 @@ export function FleetPage({ handleShopifyCheckout }: FleetPageProps) {
     },
     {
       name: 'MINI VAN',
-      passengers: '5-7 Passengers',
+      passengers: '5-11 Passengers',
       luggage: '5-7 Suitcases',
       hourlyRate: 95,
       cityTour: 699,
@@ -30,7 +30,7 @@ export function FleetPage({ handleShopifyCheckout }: FleetPageProps) {
     },
     {
       name: 'LARGE VAN (12 SEATER)',
-      passengers: 'Up to 11 Passengers',
+      passengers: '5-11 Passengers',
       luggage: '10-12 Suitcases',
       hourlyRate: 125,
       cityTour: 990,

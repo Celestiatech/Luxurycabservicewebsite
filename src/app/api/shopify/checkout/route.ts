@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 type CartCreateResponse = {
   data?: {
     cartCreate?: {
@@ -37,7 +40,7 @@ export async function POST(req: Request) {
           error:
             'Shopify is not configured on the server. Set SHOPIFY_STORE_DOMAIN and SHOPIFY_STOREFRONT_ACCESS_TOKEN.',
         },
-        { status: 503 },
+        { status: 503, headers: { 'Cache-Control': 'no-store, max-age=0' } },
       );
     }
 
@@ -54,7 +57,7 @@ export async function POST(req: Request) {
           error:
             'Missing Shopify merchandiseId. Select a vehicle/product (recommended) or set SHOPIFY_DEFAULT_MERCHANDISE_ID in .env.',
         },
-        { status: 400 },
+        { status: 400, headers: { 'Cache-Control': 'no-store, max-age=0' } },
       );
     }
     const quantity = typeof body.quantity === 'number' && body.quantity > 0 ? body.quantity : 1;
@@ -91,28 +94,46 @@ export async function POST(req: Request) {
     });
 
     if (!res.ok) {
-      return NextResponse.json({ error: `Shopify API error (${res.status})` }, { status: 502 });
+      return NextResponse.json(
+        { error: `Shopify API error (${res.status})` },
+        { status: 502, headers: { 'Cache-Control': 'no-store, max-age=0' } },
+      );
     }
 
     const json = (await res.json()) as CartCreateResponse;
     const gqlErrors = json.errors?.map((e) => e.message).filter(Boolean) || [];
     if (gqlErrors.length) {
-      return NextResponse.json({ error: gqlErrors.join('; ') }, { status: 502 });
+      return NextResponse.json(
+        { error: gqlErrors.join('; ') },
+        { status: 502, headers: { 'Cache-Control': 'no-store, max-age=0' } },
+      );
     }
 
     const userErrors = json.data?.cartCreate?.userErrors || [];
     if (userErrors.length) {
-      return NextResponse.json({ error: userErrors.map((e) => e.message).join('; ') }, { status: 400 });
+      return NextResponse.json(
+        { error: userErrors.map((e) => e.message).join('; ') },
+        { status: 400, headers: { 'Cache-Control': 'no-store, max-age=0' } },
+      );
     }
 
     const checkoutUrl = json.data?.cartCreate?.cart?.checkoutUrl;
     if (!checkoutUrl) {
-      return NextResponse.json({ error: 'Shopify did not return a checkout URL.' }, { status: 502 });
+      return NextResponse.json(
+        { error: 'Shopify did not return a checkout URL.' },
+        { status: 502, headers: { 'Cache-Control': 'no-store, max-age=0' } },
+      );
     }
 
-    return NextResponse.json({ checkoutUrl });
+    return NextResponse.json(
+      { checkoutUrl },
+      { headers: { 'Cache-Control': 'no-store, max-age=0' } },
+    );
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Unexpected error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: message },
+      { status: 500, headers: { 'Cache-Control': 'no-store, max-age=0' } },
+    );
   }
 }

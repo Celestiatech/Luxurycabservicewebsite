@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 type ShopifyMoneyV2 = { amount: string; currencyCode: string };
 type ShopifyResponse = {
   data?: {
@@ -99,9 +102,15 @@ export async function GET(req: Request) {
         )
         .filter((v) => typeof v.id === 'string' && v.id.startsWith('gid://')) || [];
 
-    return NextResponse.json({ variants }, { status: 200 });
+    return NextResponse.json(
+      { variants },
+      { status: 200, headers: { 'Cache-Control': 'no-store, max-age=0' } },
+    );
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Unexpected error';
-    return NextResponse.json({ variants: [], error: message }, { status: 200 });
+    return NextResponse.json(
+      { variants: [], error: message },
+      { status: 200, headers: { 'Cache-Control': 'no-store, max-age=0' } },
+    );
   }
 }

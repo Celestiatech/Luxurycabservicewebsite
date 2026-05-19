@@ -4,10 +4,8 @@ import { Users } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const OPTIONS = [
-  { value: '1-2', label: '1–2 Passengers' },
-  { value: '3-4', label: '3–4 Passengers' },
-  { value: '5-7', label: '5–7 Passengers' },
-  { value: '8-11', label: '8–11 Passengers' },
+  { value: '1-4', label: '1–4 Passengers' },
+  { value: '5-11', label: '5–11 Passengers' },
 ];
 
 export function PassengersSelect(props: { value: string; onChange: (value: string) => void }) {
