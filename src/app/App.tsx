@@ -315,6 +315,11 @@ export default function App() {
     }, 450);
   };
 
+  const openQuotePopup = () => {
+    setShowBookingModal(false);
+    setShowInquiryForm(true);
+  };
+
   const handleShopifyCheckout = (packageData: any) => {
     setSelectedPackage(packageData);
     setShowBookingModal(true);
@@ -910,6 +915,44 @@ export default function App() {
     );
   };
 
+  const hasRouteLocations = formData.pickup.trim() && formData.dropoff.trim();
+
+  const renderRouteDistance = (className = '') => {
+    if (!hasRouteLocations) return null;
+
+    if (routeInfoLoading) {
+      return (
+        <div className={`rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs font-bold text-yellow-900 ${className}`}>
+          Calculating distance between pickup and drop-off...
+        </div>
+      );
+    }
+
+    if (routeInfo) {
+      return (
+        <div className={`rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm font-semibold text-gray-800 ${className}`}>
+          Distance between locations:{' '}
+          <span className="font-black text-green-800">{routeInfo.distanceText}</span>
+          {routeInfo.durationText ? (
+            <span className="text-gray-700">
+              {' '}| Estimated drive time: <span className="font-black">{routeInfo.durationText}</span>
+            </span>
+          ) : null}
+        </div>
+      );
+    }
+
+    if (routeInfoError) {
+      return (
+        <div className={`rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-600 ${className}`}>
+          {routeInfoError}
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Top Bar */}
@@ -1008,7 +1051,7 @@ export default function App() {
       </a>
 
       <button
-        onClick={() => setShowInquiryForm(true)}
+        onClick={openQuotePopup}
         className="fixed right-6 bottom-24 z-50 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black p-4 rounded-full shadow-2xl hover:scale-110 transition-all"
         aria-label="Open inquiry form"
       >
@@ -1166,20 +1209,7 @@ export default function App() {
                           inputId="modal-dropoff"
                         />
                         </div>
-                        {routeInfoLoading ? (
-                          <div className="text-xs font-semibold text-gray-600">Calculating distance…</div>
-                        ) : routeInfo ? (
-                          <div className="text-xs font-semibold text-gray-700">
-                            Distance: <span className="font-black">{routeInfo.distanceText}</span>
-                            {routeInfo.durationText ? (
-                              <>
-                                {' '}• Time: <span className="font-black">{routeInfo.durationText}</span>
-                              </>
-                            ) : null}
-                          </div>
-                        ) : routeInfoError ? (
-                          <div className="text-xs font-semibold text-gray-500">{routeInfoError}</div>
-                        ) : null}
+                        {renderRouteDistance('md:col-span-2')}
                         <div className="space-y-1 group">
                           <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                             Pickup Date <span className="text-red-600">*</span>
@@ -1364,16 +1394,14 @@ export default function App() {
                           </div>
                         </div>
                       </div>
-                      <div className="rounded-lg bg-gray-50 border border-gray-200 p-3 text-xs font-semibold text-gray-700">
-                        <div className="flex items-center gap-2">
-                          <span className="inline-block w-2 h-2 rounded-full bg-green-600"></span>
-                          Inclusive GST
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="inline-block w-2 h-2 rounded-full bg-green-600"></span>
-                          No Hidden Charges
-                        </div>
-                      </div>
+                      <Button
+                        type="button"
+                        onClick={openQuotePopup}
+                        className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-6"
+                      >
+                        <FileText className="w-5 h-5 mr-2" />
+                        GET QUOTE
+                      </Button>
                       <div className="flex gap-3">
                         <Button
                           onClick={() => setBookingStep(2)}
@@ -1494,20 +1522,7 @@ export default function App() {
                         inputId="booking-dropoff"
                       />
                     </div>
-                    {routeInfoLoading ? (
-                      <div className="md:col-span-2 text-xs font-semibold text-gray-600">Calculating distance…</div>
-                    ) : routeInfo ? (
-                      <div className="md:col-span-2 text-xs font-semibold text-gray-700">
-                        Distance: <span className="font-black">{routeInfo.distanceText}</span>
-                        {routeInfo.durationText ? (
-                          <>
-                            {' '}• Time: <span className="font-black">{routeInfo.durationText}</span>
-                          </>
-                        ) : null}
-                      </div>
-                    ) : routeInfoError ? (
-                      <div className="md:col-span-2 text-xs font-semibold text-gray-500">{routeInfoError}</div>
-                    ) : null}
+                    {renderRouteDistance('md:col-span-2')}
                     <div className="space-y-1 group">
                       <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                         Pickup Date <span className="text-red-600">*</span>
@@ -1645,16 +1660,14 @@ export default function App() {
                       </Button>
                     </a>
                   </div>
-                  <div className="rounded-lg bg-gray-50 border border-gray-200 p-3 text-xs font-semibold text-gray-700">
-                    <div className="flex items-center gap-2">
-                      <span className="inline-block w-2 h-2 rounded-full bg-green-600"></span>
-                      Inclusive GST
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="inline-block w-2 h-2 rounded-full bg-green-600"></span>
-                      No Hidden Charges
-                    </div>
-                  </div>
+                  <Button
+                    type="button"
+                    onClick={openQuotePopup}
+                    className="w-full bg-gray-900 hover:bg-black text-white font-black text-lg py-6"
+                  >
+                    <FileText className="w-5 h-5 mr-2" />
+                    GET QUOTE
+                  </Button>
                 </CardContent>
               </Card>
             </motion.div>
@@ -2367,7 +2380,7 @@ export default function App() {
                 <h3 className="font-black text-xl">AFFORDABLE CABS LTD</h3>
               </div>
               <p className="text-gray-400 font-semibold mb-4">
-                Auckland's premier affordable taxi and tour service provider.
+                Auckland's affordable taxi and tour service provider.
               </p>
             </div>
             <div>
