@@ -335,9 +335,23 @@ function buildHtml({ bodyHtml, title, subtitle }) {
 
 function main() {
   const repoRoot = process.cwd();
-  const inputPath = path.join(repoRoot, "task", "task.txt");
-  const outHtmlPath = path.join(repoRoot, "task", "task-colored.html");
-  const outPdfPath = path.join(repoRoot, "task", "task-colored.pdf");
+  const inputArg = process.argv[2];
+  const outBaseArg = process.argv[3];
+
+  const inputPath = inputArg
+    ? path.isAbsolute(inputArg)
+      ? inputArg
+      : path.join(repoRoot, inputArg)
+    : path.join(repoRoot, "task", "task.txt");
+
+  const outBase = outBaseArg
+    ? path.isAbsolute(outBaseArg)
+      ? outBaseArg
+      : path.join(repoRoot, outBaseArg)
+    : path.join(repoRoot, "task", "task-colored");
+
+  const outHtmlPath = `${outBase}.html`;
+  const outPdfPath = `${outBase}.pdf`;
 
   if (!fs.existsSync(inputPath)) {
     console.error(`Input not found: ${inputPath}`);
@@ -349,8 +363,8 @@ function main() {
   const bodyHtml = markdownToHtml(md);
   const html = buildHtml({
     bodyHtml,
-    title: "Taxi Booking Website – Task Document",
-    subtitle: "Ride categories, pricing tables, passenger options, and offer notes",
+    title: path.basename(inputPath),
+    subtitle: "Generated document",
   });
 
   fs.writeFileSync(outHtmlPath, html, "utf8");
@@ -378,4 +392,3 @@ function main() {
 }
 
 main();
-

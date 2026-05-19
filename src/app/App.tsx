@@ -13,6 +13,7 @@ import { createShopifyCheckoutUrl } from './lib/shopify';
 import { DatePicker } from './components/DatePicker';
 import { ShopifyVariantSelect, type ShopifyVariantOption } from './components/ShopifyVariantSelect';
 import { PassengersSelect } from './components/PassengersSelect';
+import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
 
 export default function App() {
   const [formData, setFormData] = useState({
@@ -40,6 +41,33 @@ export default function App() {
   const [shopifyVariants, setShopifyVariants] = useState<ShopifyVariantOption[]>([]);
   const [shopifyVariantsLoading, setShopifyVariantsLoading] = useState(true);
   const [shopifyVariantsError, setShopifyVariantsError] = useState<string | null>(null);
+  const [routeInfo, setRouteInfo] = useState<{ distanceText: string; durationText: string } | null>(null);
+  const [routeInfoLoading, setRouteInfoLoading] = useState(false);
+  const [routeInfoError, setRouteInfoError] = useState<string | null>(null);
+
+  const selectedShopifyVariant = shopifyVariants.find((v) => v.id === formData.vehicle) || null;
+
+  const parseDistanceKm = (distanceText: string): number | null => {
+    const t = distanceText.trim().toLowerCase();
+    const m = t.match(/([\d.,]+)\s*(km|m)\b/);
+    if (!m) return null;
+    const value = Number(m[1].replaceAll(',', ''));
+    if (!Number.isFinite(value)) return null;
+    const unit = m[2];
+    if (unit === 'm') return value / 1000;
+    return value;
+  };
+
+  const distanceKm = routeInfo?.distanceText ? parseDistanceKm(routeInfo.distanceText) : null;
+  const isVanSelection =
+    (selectedShopifyVariant?.label || '').toLowerCase().includes('van') ||
+    (selectedShopifyVariant?.label || '').toLowerCase().includes('12 seater') ||
+    (selectedShopifyVariant?.label || '').toLowerCase().includes('13 seater');
+
+  const extraKmRate = isVanSelection ? 5 : 3.5;
+  const extraKm =
+    typeof distanceKm === 'number' && distanceKm > 30 ? Math.max(0, distanceKm - 30) : 0;
+  const extraKmChargeEstimate = extraKm > 0 ? extraKm * extraKmRate : 0;
 
   const validateStep1 = (): string | null => {
     if (!formData.pickup.trim()) return 'Please enter pickup location.';
@@ -106,6 +134,78 @@ export default function App() {
       });
   }, []);
 
+  useEffect(() => {
+    const pickup = formData.pickup.trim();
+    const dropoff = formData.dropoff.trim();
+    if (!pickup || !dropoff) {
+      setRouteInfo(null);
+      setRouteInfoLoading(false);
+      setRouteInfoError(null);
+      return;
+    }
+
+    const googleMapsApiKey = (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '').trim();
+    if (!googleMapsApiKey) {
+      setRouteInfo(null);
+      setRouteInfoLoading(false);
+      setRouteInfoError('Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to show distance.');
+      return;
+    }
+
+    let cancelled = false;
+    setRouteInfoLoading(true);
+    setRouteInfoError(null);
+
+    // Use Maps JS API DistanceMatrixService for approximate distance/duration.
+    (async () => {
+      try {
+        setOptions({ key: googleMapsApiKey, v: 'weekly', region: 'NZ' });
+        await importLibrary('maps');
+        await importLibrary('routes');
+
+        if (cancelled) return;
+        const service = new google.maps.DistanceMatrixService();
+        service.getDistanceMatrix(
+          {
+            origins: [pickup],
+            destinations: [dropoff],
+            travelMode: google.maps.TravelMode.DRIVING,
+            unitSystem: google.maps.UnitSystem.METRIC,
+          },
+          (response, status) => {
+            if (cancelled) return;
+            if (status !== 'OK' || !response?.rows?.[0]?.elements?.[0]) {
+              setRouteInfo(null);
+              setRouteInfoLoading(false);
+              setRouteInfoError('Distance unavailable (check Google APIs/billing).');
+              return;
+            }
+            const el = response.rows[0].elements[0];
+            const distanceText = el.distance?.text || '';
+            const durationText = el.duration?.text || '';
+            if (!distanceText && !durationText) {
+              setRouteInfo(null);
+              setRouteInfoLoading(false);
+              setRouteInfoError('Distance unavailable (no route found).');
+              return;
+            }
+            setRouteInfo({ distanceText, durationText });
+            setRouteInfoLoading(false);
+          },
+        );
+      } catch {
+        if (cancelled) return;
+        setRouteInfo(null);
+        setRouteInfoLoading(false);
+        setRouteInfoError('Distance unavailable (check Google APIs/billing).');
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.pickup, formData.dropoff]);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -160,9 +260,7 @@ export default function App() {
       alert(s2);
       return;
     }
-    const chosenVariant =
-      shopifyVariants.find((v) => v.id === formData.vehicle) ||
-      null;
+    const chosenVariant = selectedShopifyVariant;
     const selectedPackageMerchandiseId =
       (typeof selectedPackage?.variantId === 'string' && selectedPackage.variantId.trim()) ||
       (typeof selectedPackage?.shopifyVariantId === 'string' && selectedPackage.shopifyVariantId.trim()) ||
@@ -222,6 +320,10 @@ export default function App() {
           time: formData.time,
           passengers: formData.passengers,
           vehicle: chosenVariant?.label || formData.vehicle,
+          distance_km: typeof distanceKm === 'number' ? distanceKm.toFixed(1) : '',
+          extra_km_after_30: extraKm > 0 ? extraKm.toFixed(1) : '',
+          extra_km_rate: extraKm > 0 ? String(extraKmRate) : '',
+          extra_km_charge_estimate: extraKm > 0 ? extraKmChargeEstimate.toFixed(2) : '',
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
@@ -876,6 +978,20 @@ export default function App() {
                           inputId="modal-dropoff"
                         />
                         </div>
+                        {routeInfoLoading ? (
+                          <div className="text-xs font-semibold text-gray-600">Calculating distance…</div>
+                        ) : routeInfo ? (
+                          <div className="text-xs font-semibold text-gray-700">
+                            Distance: <span className="font-black">{routeInfo.distanceText}</span>
+                            {routeInfo.durationText ? (
+                              <>
+                                {' '}• Time: <span className="font-black">{routeInfo.durationText}</span>
+                              </>
+                            ) : null}
+                          </div>
+                        ) : routeInfoError ? (
+                          <div className="text-xs font-semibold text-gray-500">{routeInfoError}</div>
+                        ) : null}
                         <div className="space-y-1 group">
                           <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                             Pickup Date <span className="text-red-600">*</span>
@@ -942,6 +1058,15 @@ export default function App() {
                               <option value="largevan">Large Van (8-11 pax)</option>
                             </select>
                           )}
+                          {extraKm > 0 && formData.vehicle ? (
+                            <div className="mt-2 text-xs font-semibold text-gray-700">
+                              Extra after 30 km:{' '}
+                              <span className="font-black">{extraKm.toFixed(1)} km</span> ×{' '}
+                              <span className="font-black">${extraKmRate}/km</span> ={' '}
+                              <span className="font-black text-yellow-800">${extraKmChargeEstimate.toFixed(2)}</span>{' '}
+                              <span className="text-gray-500">(estimate)</span>
+                            </div>
+                          ) : null}
                           {shopifyVariantsError ? (
                             <div className="text-[11px] font-semibold text-gray-500">
                               Shopify products not loaded: {shopifyVariantsError}
@@ -1187,6 +1312,20 @@ export default function App() {
                         inputId="booking-dropoff"
                       />
                     </div>
+                    {routeInfoLoading ? (
+                      <div className="md:col-span-2 text-xs font-semibold text-gray-600">Calculating distance…</div>
+                    ) : routeInfo ? (
+                      <div className="md:col-span-2 text-xs font-semibold text-gray-700">
+                        Distance: <span className="font-black">{routeInfo.distanceText}</span>
+                        {routeInfo.durationText ? (
+                          <>
+                            {' '}• Time: <span className="font-black">{routeInfo.durationText}</span>
+                          </>
+                        ) : null}
+                      </div>
+                    ) : routeInfoError ? (
+                      <div className="md:col-span-2 text-xs font-semibold text-gray-500">{routeInfoError}</div>
+                    ) : null}
                     <div className="space-y-1 group">
                       <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                         Pickup Date <span className="text-red-600">*</span>
@@ -1254,6 +1393,15 @@ export default function App() {
                         <option value="largevan">Large Van (8-11 pax)</option>
                       </select>
                     )}
+                    {extraKm > 0 && formData.vehicle ? (
+                      <div className="mt-2 text-xs font-semibold text-gray-700">
+                        Extra after 30 km:{' '}
+                        <span className="font-black">{extraKm.toFixed(1)} km</span> ×{' '}
+                        <span className="font-black">${extraKmRate}/km</span> ={' '}
+                        <span className="font-black text-yellow-800">${extraKmChargeEstimate.toFixed(2)}</span>{' '}
+                        <span className="text-gray-500">(estimate)</span>
+                      </div>
+                    ) : null}
                     {shopifyVariantsError ? (
                       <div className="text-[11px] font-semibold text-gray-500">
                         Shopify products not loaded: {shopifyVariantsError}
@@ -1929,11 +2077,11 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {popularRoutes.map((route, index) => (
               <Card key={index} className="hover:shadow-2xl transition-all border-l-4 border-yellow-500">
-                <div className="h-40 overflow-hidden">
+                <div className="h-56 md:h-52 lg:h-56 overflow-hidden">
                   <ImageWithFallback
                     src={route.image}
                     alt={`${route.from} to ${route.to}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                   />
                 </div>
                 <CardContent className="p-6">

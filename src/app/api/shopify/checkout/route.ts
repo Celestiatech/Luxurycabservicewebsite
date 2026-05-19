@@ -33,6 +33,8 @@ export async function POST(req: Request) {
     const storefrontAccessToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN?.trim();
     const apiVersion = process.env.SHOPIFY_API_VERSION?.trim() || '2024-10';
     const defaultMerchandiseId = process.env.SHOPIFY_DEFAULT_MERCHANDISE_ID?.trim();
+    const extraKmCarMerchandiseId = process.env.SHOPIFY_EXTRA_KM_CAR_MERCHANDISE_ID?.trim() || '';
+    const extraKmVanMerchandiseId = process.env.SHOPIFY_EXTRA_KM_VAN_MERCHANDISE_ID?.trim() || '';
 
     if (!storeDomain || !storefrontAccessToken) {
       return NextResponse.json(
@@ -62,6 +64,42 @@ export async function POST(req: Request) {
     }
     const quantity = typeof body.quantity === 'number' && body.quantity > 0 ? body.quantity : 1;
     const attributes = Array.isArray(body.attributes) ? body.attributes : [];
+    // Put the same attributes on:
+    // - Cart (shows in order "Additional details" in admin)
+    // - Line item (often shows under the item in checkout / order, depending on checkout configuration)
+    const lineAttributes = attributes;
+
+    const findAttr = (key: string) => attributes.find((a) => a?.key === key)?.value;
+    const extraKmAfter30Raw = (findAttr('extra_km_after_30') || '').trim();
+    const extraKmRateRaw = (findAttr('extra_km_rate') || '').trim();
+
+    const extraKmAfter30 = Number(extraKmAfter30Raw);
+    const extraKmRate = Number(extraKmRateRaw);
+    const extraUnits = Number.isFinite(extraKmAfter30) && extraKmAfter30 > 0 ? Math.ceil(extraKmAfter30 * 10) : 0; // 0.1km units
+    const extraKmMerchandiseId =
+      extraUnits > 0 && extraKmRate === 5
+        ? extraKmVanMerchandiseId
+        : extraUnits > 0 && extraKmRate === 3.5
+          ? extraKmCarMerchandiseId
+          : '';
+
+    // Shopify may cap quantity per line (commonly 50). Split into chunks to avoid truncation.
+    const MAX_QTY_PER_LINE = 50;
+    const buildExtraLines = () => {
+      if (!extraKmMerchandiseId || extraUnits <= 0) return [];
+      const lines: { merchandiseId: string; quantity: number; attributes: { key: string; value: string }[] }[] = [];
+      let remaining = extraUnits;
+      let chunk = 1;
+      while (remaining > 0) {
+        const qty = Math.min(MAX_QTY_PER_LINE, remaining);
+        remaining -= qty;
+        // Add a chunk attribute so Shopify won't merge lines back together.
+        const attrs = [...lineAttributes, { key: 'extra_km_chunk', value: String(chunk) }];
+        lines.push({ merchandiseId: extraKmMerchandiseId, quantity: qty, attributes: attrs });
+        chunk += 1;
+      }
+      return lines;
+    };
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -86,7 +124,10 @@ export async function POST(req: Request) {
         query: cartCreateMutation,
         variables: {
           input: {
-            lines: [{ merchandiseId, quantity }],
+            lines: [
+              { merchandiseId, quantity, attributes: lineAttributes },
+              ...buildExtraLines(),
+            ],
             attributes,
           },
         },
