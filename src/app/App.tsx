@@ -9,12 +9,13 @@ import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { LocationAutocomplete } from './components/LocationAutocomplete';
 import { SectionHeader } from './components/SectionHeader';
 import { motion, AnimatePresence } from 'motion/react';
-import { createShopifyCheckoutUrl } from './lib/shopify';
+import { createStripeCheckoutUrl } from './lib/stripeCheckout';
 import { DatePicker } from './components/DatePicker';
 import { type ShopifyVariantOption } from './components/ShopifyVariantSelect';
 import { PassengersSelect } from './components/PassengersSelect';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
 import { toast } from 'sonner';
+import { calculateFare, parseDurationMinutes } from '@/lib/fare';
 
 export default function App() {
   const [formData, setFormData] = useState({
@@ -116,15 +117,11 @@ export default function App() {
   };
 
   const distanceKm = routeInfo?.distanceText ? parseDistanceKm(routeInfo.distanceText) : null;
+  const durationMinutes = routeInfo?.durationText ? parseDurationMinutes(routeInfo.durationText) : null;
   const isVanSelection =
     selectedVehicleType === 'van' ||
     selectedShopifyVariant?.vehicleType === 'van' ||
     (selectedShopifyVariant ? isVanVariant(selectedShopifyVariant.label || '') : false);
-
-  const extraKmRate = isVanSelection ? 5 : 3.5;
-  const extraKm =
-    typeof distanceKm === 'number' && distanceKm > 30 ? Math.max(0, distanceKm - 30) : 0;
-  const extraKmChargeEstimate = extraKm > 0 ? extraKm * extraKmRate : 0;
 
   const filteredShopifyVariants =
     selectedVehicleType === 'taxi'
@@ -139,10 +136,18 @@ export default function App() {
   const selectedVehicleLabel = selectedVehicleItems
     .map(({ variant, quantity }) => `${variant.label} x ${quantity}`)
     .join(', ');
-  const selectedVehicleTotal = selectedVehicleItems.reduce((total, { variant, quantity }) => {
-    const amount = variant.priceAmount ? Number(variant.priceAmount) : 0;
-    return total + (Number.isFinite(amount) ? amount * quantity : 0);
-  }, 0);
+  const selectedVehicleQuantity = selectedVehicleItems.length > 0
+    ? selectedVehicleItems.reduce((total, item) => total + item.quantity, 0)
+    : formData.vehicle
+      ? 1
+      : 0;
+  const fareBreakdown = calculateFare({
+    vehicleType: isVanSelection ? 'van' : 'taxi',
+    distanceKm,
+    durationMinutes,
+    time: formData.time,
+    vehicleQuantity: selectedVehicleQuantity || 1,
+  });
 
   const setVehicleQuantity = (variantId: string, quantity: number) => {
     const safeQuantity = Number.isFinite(quantity) ? Math.max(0, Math.min(99, Math.floor(quantity))) : 0;
@@ -180,13 +185,7 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.vehicleType, shopifyVariants]);
 
-  const basePrice =
-    selectedVehicleItems.length > 0
-      ? selectedVehicleTotal
-      : selectedShopifyVariant?.priceAmount
-        ? Number(selectedShopifyVariant.priceAmount)
-        : null;
-  const estimatedTotal = typeof basePrice === 'number' ? basePrice + (extraKm > 0 ? extraKmChargeEstimate : 0) : null;
+  const estimatedTotal = fareBreakdown?.total ?? null;
 
   const validateStep1 = (): string | null => {
     if (!formData.pickup.trim()) return 'Please enter pickup location.';
@@ -386,38 +385,10 @@ export default function App() {
       return;
     }
     const chosenVariant = selectedVehicleItems[0]?.variant || selectedShopifyVariant;
-    const checkoutLines = selectedVehicleItems.map(({ variant, quantity }) => ({
-      merchandiseId: variant.id,
-      quantity,
-    }));
-    const selectedPackageMerchandiseId =
-      (typeof selectedPackage?.variantId === 'string' && selectedPackage.variantId.trim()) ||
-      (typeof selectedPackage?.shopifyVariantId === 'string' && selectedPackage.shopifyVariantId.trim()) ||
-      null;
+    const bookingVehicle = selectedVehicleLabel || chosenVariant?.label || formData.vehicle;
 
-    // Prefer a Shopify variant selected from dropdown so orders always match the exact variant/price in Shopify.
-    const effectivePackage = checkoutLines.length > 0
-      ? {
-          name: selectedVehicleLabel || 'Booking',
-          price: selectedVehicleTotal || undefined,
-          variantId: checkoutLines[0].merchandiseId,
-        }
-      : chosenVariant
-      ? {
-          name: chosenVariant.label,
-          price: chosenVariant.priceAmount ? Number(chosenVariant.priceAmount) : undefined,
-          variantId: chosenVariant.id,
-        }
-      : selectedPackageMerchandiseId
-        ? {
-            name: selectedPackage?.name || selectedPackage?.title || 'Booking',
-            price: typeof selectedPackage?.price === 'number' ? selectedPackage.price : undefined,
-            variantId: selectedPackageMerchandiseId,
-          }
-        : null;
-
-    if (!effectivePackage) {
-      alert('Please select a vehicle/product (Shopify) so your order matches the correct variant and price.');
+    if (!fareBreakdown) {
+      alert('Please enter pickup and drop-off locations so we can calculate the fare.');
       return;
     }
 
@@ -433,7 +404,8 @@ export default function App() {
             time: formData.time,
             passengers: formData.passengers,
             vehicleType: formData.vehicleType,
-            vehicle: selectedVehicleLabel || chosenVariant?.label || formData.vehicle,
+            vehicle: bookingVehicle,
+            vehicleQuantity: selectedVehicleQuantity || 1,
             name: formData.name,
             email: formData.email,
             phone: formData.phone,
@@ -444,34 +416,31 @@ export default function App() {
         // ignore
       }
 
-      const checkoutUrl = await createShopifyCheckoutUrl({
-        merchandiseId: checkoutLines.length > 0 ? null : effectivePackage?.variantId || null,
-        quantity: 1,
-        lines: checkoutLines.length > 0 ? checkoutLines : undefined,
-        attributes: {
-          booking_type: effectivePackage?.name || 'Booking',
-          booking_price_display: effectivePackage?.price,
+      const checkoutUrl = await createStripeCheckoutUrl({
+        booking: {
           pickup: formData.pickup,
           dropoff: formData.dropoff,
           date: formData.date,
           time: formData.time,
           passengers: formData.passengers,
-          vehicle_type: formData.vehicleType,
-          vehicle: selectedVehicleLabel || chosenVariant?.label || formData.vehicle,
-          distance_km: typeof distanceKm === 'number' ? distanceKm.toFixed(1) : '',
-          extra_km_after_30: extraKm > 0 ? extraKm.toFixed(1) : '',
-          extra_km_rate: extraKm > 0 ? String(extraKmRate) : '',
-          extra_km_charge_estimate: extraKm > 0 ? extraKmChargeEstimate.toFixed(2) : '',
+          vehicleType: formData.vehicleType,
+          vehicle: bookingVehicle,
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          special_requests: formData.specialRequests,
+          specialRequests: formData.specialRequests,
+        },
+        pricing: {
+          distanceKm,
+          durationMinutes,
+          currency: 'nzd',
+          vehicleQuantity: selectedVehicleQuantity || 1,
         },
       });
 
       window.location.assign(checkoutUrl);
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Failed to start Shopify checkout.';
+      const message = e instanceof Error ? e.message : 'Failed to start Stripe checkout.';
       alert(message);
     } finally {
       setIsCheckingOut(false);
@@ -1000,6 +969,36 @@ export default function App() {
     return null;
   };
 
+  const renderFareSummary = (className = '') => {
+    if (!formData.vehicle || !fareBreakdown) return null;
+
+    return (
+      <div className={`rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs font-semibold text-gray-800 ${className}`}>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="font-black text-gray-900">Fare rule</div>
+            <div>{fareBreakdown.description}</div>
+          </div>
+          <div className="shrink-0 text-right text-lg font-black text-yellow-800">
+            ${fareBreakdown.total.toFixed(2)}
+          </div>
+        </div>
+        <div className="mt-2 grid gap-1 sm:grid-cols-2">
+          <div>Vehicle quantity: <span className="font-black">x{fareBreakdown.vehicleQuantity}</span></div>
+          <div>Starting fare: <span className="font-black">${fareBreakdown.startingFare.toFixed(2)}</span></div>
+          <div>Distance fare: <span className="font-black">${fareBreakdown.distanceAmount.toFixed(2)}</span></div>
+          <div>Discount: <span className="font-black">-${fareBreakdown.vehicleDiscountAmount.toFixed(2)}</span></div>
+          {fareBreakdown.nightSurcharge > 0 ? (
+            <div>Night surcharge: <span className="font-black">${fareBreakdown.nightSurcharge.toFixed(2)}</span></div>
+          ) : null}
+          {fareBreakdown.trafficSurcharge > 0 ? (
+            <div>Traffic surcharge: <span className="font-black">${fareBreakdown.trafficSurcharge.toFixed(2)}</span></div>
+          ) : null}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Top Bar */}
@@ -1336,21 +1335,7 @@ export default function App() {
                             Select Vehicle <span className="text-red-600">*</span>
                           </div>
                           {renderVehicleSelection()}
-                          {extraKm > 0 && formData.vehicle ? (
-                            <div className="mt-2 text-xs font-semibold text-gray-700">
-                              Extra after 30 km:{' '}
-                              <span className="font-black">{extraKm.toFixed(1)} km</span> ×{' '}
-                              <span className="font-black">${extraKmRate}/km</span> ={' '}
-                              <span className="font-black text-yellow-800">${extraKmChargeEstimate.toFixed(2)}</span>{' '}
-                              <span className="text-gray-500">(estimate)</span>
-                            </div>
-                          ) : null}
-                          {estimatedTotal !== null && formData.vehicle ? (
-                            <div className="mt-1 text-xs font-semibold text-gray-800">
-                              Estimated fare: <span className="font-black text-gray-900">${estimatedTotal.toFixed(2)}</span>{' '}
-                              <span className="text-gray-500">(shown only; checkout may differ)</span>
-                            </div>
-                          ) : null}
+                          {renderFareSummary('mt-2')}
                           {shopifyVariantsError ? (
                             <div className="text-[11px] font-semibold text-gray-500">
                               Shopify products not loaded: {shopifyVariantsError}
@@ -1461,23 +1446,19 @@ export default function App() {
                         </div>
                         <div className="border-t-2 border-yellow-400 pt-3 mt-3">
                           <div className="flex justify-between">
-                            <span className="font-bold text-lg">PRICE:</span>
+                            <span className="font-bold text-lg">TOTAL:</span>
                             <span className="font-black text-yellow-700 text-3xl">
                               $
-                              {typeof basePrice === 'number'
-                                ? basePrice.toFixed(2)
-                                : typeof selectedPackage?.price === 'number'
-                                  ? selectedPackage.price.toFixed(2)
-                                  : '0.00'}
+                              {typeof estimatedTotal === 'number' ? estimatedTotal.toFixed(2) : '0.00'}
                             </span>
                           </div>
-                          {extraKm > 0 ? (
+                          {fareBreakdown ? (
                             <div className="mt-1 text-xs font-semibold text-gray-700">
-                              Extra after 30 km:{' '}
-                              <span className="font-black">{extraKm.toFixed(1)} km</span> ×{' '}
-                              <span className="font-black">${extraKmRate}/km</span> ={' '}
-                              <span className="font-black text-yellow-800">${extraKmChargeEstimate.toFixed(2)}</span>{' '}
-                              <span className="text-gray-500">(estimate, not included above)</span>
+                              {fareBreakdown.description}
+                              {fareBreakdown.vehicleQuantity > 1 ? ` | Vehicles x${fareBreakdown.vehicleQuantity}` : ''}
+                              {fareBreakdown.startingFare > 0 ? ` | Start +$${fareBreakdown.startingFare.toFixed(2)}` : ''}
+                              {fareBreakdown.nightSurcharge > 0 ? ` | Night +$${fareBreakdown.nightSurcharge.toFixed(2)}` : ''}
+                              {fareBreakdown.trafficSurcharge > 0 ? ` | Traffic +$${fareBreakdown.trafficSurcharge.toFixed(2)}` : ''}
                             </div>
                           ) : null}
                         </div>
@@ -1667,21 +1648,7 @@ export default function App() {
                       Select Vehicle <span className="text-red-600">*</span>
                     </div>
                     {renderVehicleSelection()}
-                    {extraKm > 0 && formData.vehicle ? (
-                      <div className="mt-2 text-xs font-semibold text-gray-700">
-                        Extra after 30 km:{' '}
-                        <span className="font-black">{extraKm.toFixed(1)} km</span> ×{' '}
-                        <span className="font-black">${extraKmRate}/km</span> ={' '}
-                        <span className="font-black text-yellow-800">${extraKmChargeEstimate.toFixed(2)}</span>{' '}
-                        <span className="text-gray-500">(estimate)</span>
-                      </div>
-                    ) : null}
-                    {estimatedTotal !== null && formData.vehicle ? (
-                      <div className="mt-1 text-xs font-semibold text-gray-800">
-                        Estimated fare: <span className="font-black text-gray-900">${estimatedTotal.toFixed(2)}</span>{' '}
-                        <span className="text-gray-500">(shown only; checkout may differ)</span>
-                      </div>
-                    ) : null}
+                    {renderFareSummary('mt-2')}
                     {shopifyVariantsError ? (
                       <div className="text-[11px] font-semibold text-gray-500">
                         Shopify products not loaded: {shopifyVariantsError}

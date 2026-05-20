@@ -47,6 +47,7 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
   const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
   const sessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
   const requestIdRef = useRef(0);
+  const selectedValueRef = useRef('');
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [csvData, setCsvData] = useState<LocationData>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -84,7 +85,12 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
     return placesReadyRef.current;
   }, [debug, googleMapsApiKey]);
 
-  const selectSuggestion = (nextValue: string) => {
+  const selectSuggestion = useCallback((nextValue: string) => {
+    selectedValueRef.current = nextValue;
+    requestIdRef.current += 1;
+    setSuggestions([]);
+    setSuggestionsOpen(false);
+    setActiveIndex(-1);
     onChange(nextValue);
     const input = inputRef.current;
     input?.blur();
@@ -144,10 +150,7 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
         }
       });
     }
-
-    setSuggestionsOpen(false);
-    setActiveIndex(-1);
-  };
+  }, [layoutDebug, onChange]);
 
   useEffect(() => {
     if (!googleMapsApiKey) {
@@ -200,6 +203,14 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
 
     const query = value.trim().toLowerCase();
     if (!query) {
+      selectedValueRef.current = '';
+      setSuggestions([]);
+      setSuggestionsOpen(false);
+      setActiveIndex(-1);
+      return;
+    }
+
+    if (selectedValueRef.current && value.trim() === selectedValueRef.current) {
       setSuggestions([]);
       setSuggestionsOpen(false);
       setActiveIndex(-1);
@@ -301,7 +312,7 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
 
           geocoder.geocode({ location: latLng }, (results, status) => {
             if (status === 'OK' && results && results[0]?.formatted_address) {
-              onChange(results[0].formatted_address);
+              selectSuggestion(results[0].formatted_address);
               setShowMapPicker(false);
             }
           });
@@ -317,7 +328,7 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
       map = null;
       marker = null;
     };
-  }, [showMapPicker, onChange, debug]);
+  }, [showMapPicker, debug, selectSuggestion]);
 
   return (
     <>
@@ -329,7 +340,10 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
           type="text"
           placeholder={placeholder}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            selectedValueRef.current = '';
+            onChange(e.target.value);
+          }}
           onKeyDown={(e) => {
             if (!suggestions.length) return;
 
