@@ -14,6 +14,7 @@ import { DatePicker } from './components/DatePicker';
 import { type ShopifyVariantOption } from './components/ShopifyVariantSelect';
 import { PassengersSelect } from './components/PassengersSelect';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import { toast } from 'sonner';
 
 export default function App() {
   const [formData, setFormData] = useState({
@@ -46,6 +47,52 @@ export default function App() {
   const [routeInfo, setRouteInfo] = useState<{ distanceText: string; durationText: string } | null>(null);
   const [routeInfoLoading, setRouteInfoLoading] = useState(false);
   const [routeInfoError, setRouteInfoError] = useState<string | null>(null);
+
+  const [inquiryForm, setInquiryForm] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    pickup: '',
+    dropoff: '',
+    message: '',
+  });
+  const [inquirySending, setInquirySending] = useState(false);
+
+  const submitInquiry = async () => {
+    const name = inquiryForm.name.trim();
+    const phone = inquiryForm.phone.trim();
+    const email = inquiryForm.email.trim();
+    if (!name) return toast.error('Please enter your name.');
+    if (!phone) return toast.error('Please enter your phone number.');
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast.error('Please enter a valid email address.');
+
+    try {
+      setInquirySending(true);
+      const res = await fetch('/api/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          phone,
+          email,
+          pickup: inquiryForm.pickup.trim(),
+          dropoff: inquiryForm.dropoff.trim(),
+          message: inquiryForm.message.trim(),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error || 'Failed to send inquiry.');
+      }
+      setShowInquiryForm(false);
+      setInquiryForm({ name: '', phone: '', email: '', pickup: '', dropoff: '', message: '' });
+      toast.success('Inquiry sent! We will respond within 30 minutes.');
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to send inquiry.');
+    } finally {
+      setInquirySending(false);
+    }
+  };
 
   type VehicleType = 'taxi' | 'van';
 
@@ -1101,24 +1148,47 @@ export default function App() {
                   <CardDescription className="text-gray-900 font-bold">Get response within 30 minutes!</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
-                  <Input placeholder="Your Name *" className="font-semibold border-2" />
-                  <Input placeholder="Phone Number *" type="tel" className="font-semibold border-2" />
-                  <Input placeholder="Email Address *" type="email" className="font-semibold border-2" />
+                  <Input
+                    placeholder="Your Name *"
+                    className="font-semibold border-2"
+                    value={inquiryForm.name}
+                    onChange={(e) => setInquiryForm((p) => ({ ...p, name: e.target.value }))}
+                  />
+                  <Input
+                    placeholder="Phone Number *"
+                    type="tel"
+                    className="font-semibold border-2"
+                    value={inquiryForm.phone}
+                    onChange={(e) => setInquiryForm((p) => ({ ...p, phone: e.target.value }))}
+                  />
+                  <Input
+                    placeholder="Email Address *"
+                    type="email"
+                    className="font-semibold border-2"
+                    value={inquiryForm.email}
+                    onChange={(e) => setInquiryForm((p) => ({ ...p, email: e.target.value }))}
+                  />
                   <LocationAutocomplete
                     placeholder="Pickup Location"
-                    value={formData.pickup}
-                    onChange={(value) => setFormData((prev) => ({ ...prev, pickup: value }))}
+                    value={inquiryForm.pickup}
+                    onChange={(value) => setInquiryForm((p) => ({ ...p, pickup: value }))}
                   />
                   <LocationAutocomplete
                     placeholder="Drop-off Location"
-                    value={formData.dropoff}
-                    onChange={(value) => setFormData((prev) => ({ ...prev, dropoff: value }))}
+                    value={inquiryForm.dropoff}
+                    onChange={(value) => setInquiryForm((p) => ({ ...p, dropoff: value }))}
                   />
                   <textarea
                     placeholder="Additional Requirements..."
                     className="w-full border-2 rounded-md p-3 font-semibold min-h-24"
+                    value={inquiryForm.message}
+                    onChange={(e) => setInquiryForm((p) => ({ ...p, message: e.target.value }))}
                   />
-                  <Button className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-6">
+                  <Button
+                    onClick={submitInquiry}
+                    disabled={inquirySending}
+                    className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-6"
+                  >
                     SUBMIT INQUIRY
                   </Button>
                 </CardContent>

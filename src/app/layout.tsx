@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { Toaster } from '@/app/components/ui/sonner';
 
 export const metadata: Metadata = {
   title: 'Affordable Cabs Ltd - Premium Transport in Auckland, NZ | 24/7 Service',
@@ -107,6 +108,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <main>{children}</main>
+        <Toaster />
       </body>
     </html>
   );
