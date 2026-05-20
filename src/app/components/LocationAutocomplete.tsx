@@ -15,6 +15,15 @@ type Suggestion = {
   source: 'google' | 'csv';
 };
 
+type LayoutDebugInfo = {
+  vw: number;
+  visualOffsetLeft: number;
+  scrollWidth: number;
+  scrollLeft: number;
+  valueLen: number;
+  offenders: Array<{ tag: string; className: string; right: number; width: number }>;
+};
+
 interface LocationAutocompleteProps {
   placeholder: string;
   value: string;
@@ -42,9 +51,11 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [layoutDebugInfo, setLayoutDebugInfo] = useState<LayoutDebugInfo | null>(null);
 
   const googleMapsApiKey = (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '').trim();
   const debug = (process.env.NEXT_PUBLIC_DEBUG_MAPS || '').trim() === '1';
+  const layoutDebug = (process.env.NEXT_PUBLIC_DEBUG_LAYOUT || '').trim() === '1';
 
   const buildNzBounds = () =>
     new google.maps.LatLngBounds(
@@ -54,6 +65,65 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
 
   const selectSuggestion = (nextValue: string) => {
     onChange(nextValue);
+    const input = inputRef.current;
+    input?.blur();
+    if (input) {
+      input.scrollLeft = 0;
+    }
+    try {
+      window.scrollTo(0, window.scrollY);
+    } catch {
+      // no-op
+    }
+
+    if (layoutDebug) {
+      // Debug overflow sources after selection (only when NEXT_PUBLIC_DEBUG_LAYOUT=1)
+      window.requestAnimationFrame(() => {
+        try {
+          const docEl = document.documentElement;
+          const body = document.body;
+          const scrollWidth = Math.max(docEl.scrollWidth, body.scrollWidth);
+          const vw = window.innerWidth;
+          const visualOffsetLeft = window.visualViewport?.offsetLeft || 0;
+
+          const root = inputRef.current?.closest('section') || inputRef.current?.closest('main') || document.body;
+          const offenders: Array<{ tag: string; className: string; right: number; width: number }> = [];
+          const maxToCollect = 12;
+          root.querySelectorAll<HTMLElement>('*').forEach((el) => {
+            if (offenders.length >= maxToCollect) return;
+            const rect = el.getBoundingClientRect();
+            if (rect.width <= 0) return;
+            if (rect.right > vw + 1) {
+              offenders.push({
+                tag: el.tagName.toLowerCase(),
+                className: (el.getAttribute('class') || '').slice(0, 160),
+                right: Math.round(rect.right),
+                width: Math.round(rect.width),
+              });
+            }
+          });
+
+          setLayoutDebugInfo({
+            vw,
+            visualOffsetLeft,
+            scrollWidth,
+            scrollLeft: window.scrollX,
+            valueLen: nextValue.length,
+            offenders,
+          });
+        } catch (e) {
+          setLayoutDebugInfo({
+            vw: window.innerWidth,
+            visualOffsetLeft: window.visualViewport?.offsetLeft || 0,
+            scrollWidth: document.documentElement.scrollWidth,
+            scrollLeft: window.scrollX,
+            valueLen: nextValue.length,
+            offenders: [{ tag: 'error', className: String(e), right: 0, width: 0 }],
+          });
+        }
+      });
+    }
+
     setSuggestionsOpen(false);
     setActiveIndex(-1);
   };
@@ -236,7 +306,7 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
 
   return (
     <>
-      <div className="relative">
+      <div className="relative w-full max-w-full min-w-0">
         <MapPin className="absolute left-3 top-1/2 z-10 w-5 -translate-y-1/2 text-yellow-500" />
         <Input
           ref={inputRef}
@@ -270,7 +340,7 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
           onBlur={() => {
             window.setTimeout(() => setSuggestionsOpen(false), 150);
           }}
-          className={`pl-12 pr-12 font-semibold border-2 ${className ? className : ''}`}
+          className={`pl-12 pr-12 font-semibold border-2 truncate ${className ? className : ''}`}
         />
 
         {googleMapsApiKey ? (
@@ -287,7 +357,7 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
         ) : null}
 
         {suggestionsOpen ? (
-          <div className="absolute left-0 right-0 top-full z-[99999] mt-1 overflow-hidden rounded-md border-2 border-yellow-200 bg-white shadow-xl">
+          <div className="absolute left-0 right-0 top-full z-[99999] mt-1 w-full max-w-full overflow-hidden rounded-md border-2 border-yellow-200 bg-white shadow-xl">
             {suggestions.map((suggestion, index) => (
               <button
                 key={suggestion.id}
@@ -300,9 +370,9 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
                   selectSuggestion(suggestion.value);
                 }}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <span>{suggestion.label}</span>
-                  <span className="text-[10px] uppercase tracking-wide text-gray-400">
+                <div className="flex min-w-0 items-center justify-between gap-3">
+                  <span className="min-w-0 flex-1 truncate">{suggestion.label}</span>
+                  <span className="shrink-0 text-[10px] uppercase tracking-wide text-gray-400">
                     {suggestion.source === 'google' ? 'Maps' : 'Local'}
                   </span>
                 </div>
@@ -311,6 +381,39 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
           </div>
         ) : null}
       </div>
+
+      {layoutDebug ? (
+        <div className="fixed bottom-2 left-2 z-[100000] max-w-[92vw] rounded-md border border-yellow-200 bg-white/95 p-2 text-[11px] font-semibold text-gray-800 shadow-xl">
+          <div className="flex items-center justify-between gap-2">
+            <div className="font-black text-yellow-800">Layout Debug</div>
+            <button
+              type="button"
+              className="rounded bg-gray-900 px-2 py-0.5 text-[10px] font-black text-white"
+              onClick={() => setLayoutDebugInfo(null)}
+            >
+              CLEAR
+            </button>
+          </div>
+          <div className="mt-1">
+            vw: {layoutDebugInfo?.vw ?? '-'} | scrollWidth: {layoutDebugInfo?.scrollWidth ?? '-'} | scrollX:{' '}
+            {layoutDebugInfo?.scrollLeft ?? '-'} | visualX: {layoutDebugInfo?.visualOffsetLeft ?? '-'} | valueLen:{' '}
+            {layoutDebugInfo?.valueLen ?? '-'}
+          </div>
+          <div className="mt-1">
+            offenders: {layoutDebugInfo?.offenders?.length ?? 0}
+            {layoutDebugInfo?.offenders?.length ? (
+              <div className="mt-1 max-h-24 overflow-auto rounded bg-gray-50 p-1 font-mono text-[10px]">
+                {layoutDebugInfo.offenders.map((o, idx) => (
+                  <div key={idx}>
+                    {o.tag} right:{o.right} w:{o.width}{' '}
+                    {o.className ? `class="${o.className}"` : ''}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       {googleMapsApiKey && debug ? (
         <div className="mt-1 text-xs font-semibold text-gray-600">

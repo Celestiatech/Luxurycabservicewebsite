@@ -1202,7 +1202,7 @@ export default function App() {
       <AnimatePresence>
         {showBookingModal && (
           <motion.div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-x-hidden overflow-y-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1213,9 +1213,9 @@ export default function App() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.8, y: 50 }}
               onClick={(e) => e.stopPropagation()}
-              className="my-8"
+              className="my-8 w-full max-w-2xl min-w-0"
             >
-              <Card className="max-w-2xl w-full shadow-2xl">
+              <Card className="w-full min-w-0 max-w-full overflow-hidden shadow-2xl">
                 <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-t-lg">
                   <div className="flex items-center justify-between">
                     <h2 className="text-2xl font-black">BOOK YOUR AFFORDABLE RIDE</h2>
@@ -1233,9 +1233,9 @@ export default function App() {
                     </CardDescription>
                   )}
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent className="min-w-0 max-w-full p-6">
                   {/* Progress Steps */}
-                  <div className="flex items-center justify-between mb-8">
+                  <div className="flex min-w-0 items-center justify-between mb-8">
                     {[1, 2, 3].map((step) => (
                       <div key={step} className="flex items-center">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black transition-all ${
@@ -1254,10 +1254,10 @@ export default function App() {
 
                   {/* Step 1: Trip Details */}
                   {bookingStep === 1 && (
-                    <div className="space-y-4 text-left">
+                    <div className="min-w-0 space-y-4 text-left">
                       <h3 className="text-xl font-black text-gray-900 mb-4">TRIP DETAILS</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1 group">
+                      <div className="grid min-w-0 max-w-full grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="min-w-0 space-y-1 group">
                           <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                             Pickup Location <span className="text-red-600">*</span>
                           </div>
@@ -1268,7 +1268,7 @@ export default function App() {
                           inputId="modal-pickup"
                         />
                         </div>
-                        <div className="space-y-1 group">
+                        <div className="min-w-0 space-y-1 group">
                           <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                             Drop-off Location <span className="text-red-600">*</span>
                           </div>
@@ -1280,7 +1280,7 @@ export default function App() {
                         />
                         </div>
                         {renderRouteDistance('md:col-span-2')}
-                        <div className="space-y-1 group">
+                        <div className="min-w-0 space-y-1 group">
                           <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                             Pickup Date <span className="text-red-600">*</span>
                           </div>
@@ -1291,7 +1291,7 @@ export default function App() {
                           id="modal-date"
                         />
                         </div>
-                        <div className="space-y-1 group">
+                        <div className="min-w-0 space-y-1 group">
                           <label
                             htmlFor="modal-time"
                             className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700"
@@ -1306,7 +1306,7 @@ export default function App() {
                             className="font-semibold border-2"
                           />
                         </div>
-                        <div className="space-y-1 group">
+                        <div className="min-w-0 space-y-1 group">
                           <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                             Passengers <span className="text-red-600">*</span>
                           </div>
@@ -1315,7 +1315,7 @@ export default function App() {
                             onChange={(passengers) => setFormData({ ...formData, passengers })}
                           />
                         </div>
-                        <div className="space-y-1 group">
+                        <div className="min-w-0 space-y-1 group">
                           <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                             Vehicle Type <span className="text-red-600">*</span>
                           </div>
@@ -1329,7 +1329,7 @@ export default function App() {
                             <option value="van">Van</option>
                           </select>
                         </div>
-                        <div className="space-y-1 group">
+                        <div className="min-w-0 space-y-1 group">
                           <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                             Select Vehicle <span className="text-red-600">*</span>
                           </div>
@@ -1515,8 +1515,8 @@ export default function App() {
       </AnimatePresence>
 
       {/* Hero Section with Direct Booking Form */}
-      <section id="home" className="relative min-h-screen bg-black">
-        <div className="absolute inset-0">
+      <section id="home" className="relative min-h-screen max-w-full overflow-x-hidden bg-black">
+        <div className="absolute inset-0 max-w-full overflow-hidden">
           <ImageWithFallback
             src="https://images.unsplash.com/photo-1603122101829-e56305b0a5f7?w=1280&auto=format&fit=crop&q=70"
             alt="Affordable Car"
@@ -1526,8 +1526,8 @@ export default function App() {
             decoding="async"
           />
         </div>
-        <div className="container mx-auto px-4 relative z-10 min-h-screen flex items-center py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full">
+        <div className="container mx-auto w-full max-w-full px-4 relative z-10 min-h-screen flex items-center py-20 overflow-x-hidden">
+          <div className="grid w-full min-w-0 max-w-full grid-cols-1 gap-12 overflow-x-hidden lg:grid-cols-2">
             {/* Left: Heading */}
             <motion.div
               className="text-white flex flex-col justify-center"
@@ -1575,18 +1575,19 @@ export default function App() {
             {/* Right: Direct Booking Form */}
             <motion.div
               id="booking"
+              className="min-w-0 max-w-full"
               initial={{ opacity: 0, x: 100 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
             >
-              <Card className="bg-white/95 backdrop-blur shadow-2xl border-2 border-yellow-500">
+              <Card className="min-w-0 max-w-full overflow-hidden bg-white/95 backdrop-blur shadow-2xl border-2 border-yellow-500">
                 <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-t-lg">
                   <h2 className="text-3xl font-black">BOOK YOUR AFFORDABLE RIDE</h2>
                   <CardDescription className="text-gray-900 font-bold text-lg">Get instant quote & confirmation</CardDescription>
                 </CardHeader>
-                <CardContent className="p-6 space-y-4 text-left">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1 group">
+                <CardContent className="min-w-0 max-w-full p-6 space-y-4 text-left">
+                  <div className="grid min-w-0 max-w-full grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="min-w-0 space-y-1 group">
                       <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                         Pickup Location <span className="text-red-600">*</span>
                       </div>
@@ -1597,7 +1598,7 @@ export default function App() {
                         inputId="booking-pickup"
                       />
                     </div>
-                    <div className="space-y-1 group">
+                    <div className="min-w-0 space-y-1 group">
                       <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                         Drop-off Location <span className="text-red-600">*</span>
                       </div>
@@ -1609,7 +1610,7 @@ export default function App() {
                       />
                     </div>
                     {renderRouteDistance('md:col-span-2')}
-                    <div className="space-y-1 group">
+                    <div className="min-w-0 space-y-1 group">
                       <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                         Pickup Date <span className="text-red-600">*</span>
                       </div>
@@ -1620,7 +1621,7 @@ export default function App() {
                       id="booking-date"
                     />
                     </div>
-                    <div className="space-y-1 group">
+                    <div className="min-w-0 space-y-1 group">
                       <label
                         htmlFor="booking-time"
                         className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700"
@@ -1636,7 +1637,7 @@ export default function App() {
                     />
                     </div>
                   </div>
-                  <div className="space-y-1 group">
+                  <div className="min-w-0 space-y-1 group">
                     <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                       Passengers <span className="text-red-600">*</span>
                     </div>
@@ -1645,7 +1646,7 @@ export default function App() {
                       onChange={(passengers) => setFormData({ ...formData, passengers })}
                     />
                   </div>
-                  <div className="space-y-1 group">
+                  <div className="min-w-0 space-y-1 group">
                     <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                       Vehicle Type <span className="text-red-600">*</span>
                     </div>
@@ -1659,7 +1660,7 @@ export default function App() {
                       <option value="van">Van</option>
                     </select>
                   </div>
-                  <div className="space-y-1 group">
+                  <div className="min-w-0 space-y-1 group">
                     <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                       Select Vehicle <span className="text-red-600">*</span>
                     </div>
@@ -1685,7 +1686,7 @@ export default function App() {
                       </div>
                     ) : null}
                   </div>
-                  <div className="space-y-1 group">
+                  <div className="min-w-0 space-y-1 group">
                     <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                       Your Name
                     </div>
@@ -1697,7 +1698,7 @@ export default function App() {
                       className="font-semibold border-2"
                     />
                   </div>
-                  <div className="space-y-1 group">
+                  <div className="min-w-0 space-y-1 group">
                     <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                       Email Address <span className="text-red-600">*</span>
                     </div>
@@ -1732,14 +1733,14 @@ export default function App() {
                     <ShoppingCart className="w-6 h-6 mr-3" />
                     {isCheckingOut ? 'REDIRECTING…' : 'CONFIRM BOOKING & PAY'}
                   </Button>
-                  <div className="flex gap-3">
-                    <a href="tel:+64277777242" className="flex-1">
+                  <div className="flex min-w-0 gap-3">
+                    <a href="tel:+64277777242" className="min-w-0 flex-1">
                       <Button variant="outline" className="w-full font-bold border-2 border-yellow-700 text-yellow-700 hover:bg-yellow-50 transition-all duration-300">
                         <Phone className="w-5 h-5 mr-2" />
                         CALL US
                       </Button>
                     </a>
-                    <a href="https://wa.me/64277777242" target="_blank" rel="noopener noreferrer" className="flex-1">
+                    <a href="https://wa.me/64277777242" target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1">
                       <Button variant="outline" className="w-full font-bold border-2 border-green-600 text-green-600 hover:bg-green-50 transition-all duration-300">
                         <MessageCircle className="w-5 h-5 mr-2" />
                         WHATSAPP
@@ -2463,7 +2464,8 @@ export default function App() {
                   alt="Affordable Cabs Ltd"
                   className="w-27 h-23  shadow-lg rounded-full p-2 object-cover"
                 />
-                <h3 className="font-black text-xl">AFFORDABLE CABS LTD</h3>
+                {/* Small text for small screen */}
+                <h3 className="font-black text-xl text-sm">AFFORDABLE CABS LTD</h3>
               </div>
               <p className="text-gray-400 font-semibold mb-4">
                 Auckland's affordable taxi and tour service provider.
