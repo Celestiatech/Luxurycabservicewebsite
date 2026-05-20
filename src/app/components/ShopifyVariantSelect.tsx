@@ -44,7 +44,7 @@ export function ShopifyVariantSelect(props: {
                 <div className="font-black text-sm text-gray-900 truncate">{v.label}</div>
                 {v.priceAmount ? (
                   <div className="text-xs font-semibold text-gray-600">
-                    {v.priceAmount} {v.currencyCode || ''}
+                   
                   </div>
                 ) : null}
               </div>

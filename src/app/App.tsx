@@ -908,7 +908,7 @@ export default function App() {
                   <div className="truncate text-sm font-black text-gray-900">{variant.label}</div>
                   {variant.priceAmount ? (
                     <div className="text-xs font-semibold text-gray-600">
-                      {variant.priceAmount} {variant.currencyCode || ''}
+                    
                     </div>
                   ) : null}
                 </div>
@@ -1347,7 +1347,7 @@ export default function App() {
                           ) : null}
                           {estimatedTotal !== null && formData.vehicle ? (
                             <div className="mt-1 text-xs font-semibold text-gray-800">
-                              Estimated total: <span className="font-black text-gray-900">${estimatedTotal.toFixed(2)}</span>{' '}
+                              Estimated fare: <span className="font-black text-gray-900">${estimatedTotal.toFixed(2)}</span>{' '}
                               <span className="text-gray-500">(shown only; checkout may differ)</span>
                             </div>
                           ) : null}
@@ -1678,7 +1678,7 @@ export default function App() {
                     ) : null}
                     {estimatedTotal !== null && formData.vehicle ? (
                       <div className="mt-1 text-xs font-semibold text-gray-800">
-                        Estimated total: <span className="font-black text-gray-900">${estimatedTotal.toFixed(2)}</span>{' '}
+                        Estimated fare: <span className="font-black text-gray-900">${estimatedTotal.toFixed(2)}</span>{' '}
                         <span className="text-gray-500">(shown only; checkout may differ)</span>
                       </div>
                     ) : null}
