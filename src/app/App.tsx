@@ -521,7 +521,7 @@ export default function App() {
 
   const offers = [
     {
-      title: 'INSTANT 10% OFF ON PREPAY',
+      title: 'INSTANT 10% OFF ON PREPAY USE CODE "PREPAY10"',
       description: 'Pay online in advance and get instant discount on your ride',
       validUntil: 'Limited Time',
       code: 'PREPAY10',
@@ -1006,7 +1006,7 @@ export default function App() {
       <div className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white py-2.5 text-center font-bold shadow-lg">
         <div className="flex items-center justify-center gap-3 text-sm md:text-base">
           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-          <span>INSTANT OFFER: 10% OFF on Prepay | Inclusive GST | No Hidden Charges</span>
+          <span>INSTANT OFFER: 10% OFF use code "PREPAY10" | Inclusive GST | No Hidden Charges</span>
           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
         </div>
       </div>
@@ -1459,9 +1459,25 @@ export default function App() {
                         </div>
                         <div className="border-t-2 border-yellow-400 pt-3 mt-3">
                           <div className="flex justify-between">
-                            <span className="font-bold text-lg">TOTAL:</span>
-            <span className="font-black text-yellow-700 text-3xl">${selectedPackage?.price || 499}</span>
+                            <span className="font-bold text-lg">PRICE:</span>
+                            <span className="font-black text-yellow-700 text-3xl">
+                              $
+                              {typeof basePrice === 'number'
+                                ? basePrice.toFixed(2)
+                                : typeof selectedPackage?.price === 'number'
+                                  ? selectedPackage.price.toFixed(2)
+                                  : '0.00'}
+                            </span>
                           </div>
+                          {extraKm > 0 ? (
+                            <div className="mt-1 text-xs font-semibold text-gray-700">
+                              Extra after 30 km:{' '}
+                              <span className="font-black">{extraKm.toFixed(1)} km</span> ×{' '}
+                              <span className="font-black">${extraKmRate}/km</span> ={' '}
+                              <span className="font-black text-yellow-800">${extraKmChargeEstimate.toFixed(2)}</span>{' '}
+                              <span className="text-gray-500">(estimate, not included above)</span>
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                       <Button
@@ -1777,8 +1793,8 @@ export default function App() {
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex-1">
-              <h3 className="text-3xl font-black text-black mb-2">INSTANT 10% OFF ON PREPAY</h3>
-              <p className="text-lg font-bold text-gray-900">Pay in advance to save instantly. Returning users get extra 5–10% off.</p>
+              <h3 className="text-3xl font-black text-black mb-2">INSTANT 10% OFF USE CODE "PREPAY10"</h3>
+              <p className="text-lg font-bold text-gray-900">Pay in advance to save instantly. Distance more then 100km gets 15% off.</p>
             </div>
             <Button
               onClick={() => setShowBookingModal(true)}
