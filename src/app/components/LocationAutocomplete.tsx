@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
 import { MapPin, Map as MapIcon, X } from 'lucide-react';
 import { Input } from './ui/input';
@@ -43,6 +43,7 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapsReadyRef = useRef<Promise<void> | null>(null);
+  const placesReadyRef = useRef<Promise<void> | null>(null);
   const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null);
   const sessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
   const requestIdRef = useRef(0);
@@ -52,6 +53,7 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [layoutDebugInfo, setLayoutDebugInfo] = useState<LayoutDebugInfo | null>(null);
+  const [placesReady, setPlacesReady] = useState(false);
 
   const googleMapsApiKey = (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '').trim();
   const debug = (process.env.NEXT_PUBLIC_DEBUG_MAPS || '').trim() === '1';
@@ -62,6 +64,25 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
       new google.maps.LatLng(NEW_ZEALAND_BOUNDS.south, NEW_ZEALAND_BOUNDS.west),
       new google.maps.LatLng(NEW_ZEALAND_BOUNDS.north, NEW_ZEALAND_BOUNDS.east),
     );
+
+  const ensurePlacesReady = useCallback(() => {
+    if (!googleMapsApiKey || !mapsReadyRef.current) return null;
+    if (autocompleteServiceRef.current) return Promise.resolve();
+    if (!placesReadyRef.current) {
+      placesReadyRef.current = mapsReadyRef.current
+        .then(async () => {
+          await importLibrary('places');
+          autocompleteServiceRef.current = new google.maps.places.AutocompleteService();
+          sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
+          setPlacesReady(true);
+        })
+        .catch((error) => {
+          placesReadyRef.current = null;
+          if (debug) console.warn('[Maps] Failed to load Places library', error);
+        });
+    }
+    return placesReadyRef.current;
+  }, [debug, googleMapsApiKey]);
 
   const selectSuggestion = (nextValue: string) => {
     onChange(nextValue);
@@ -131,6 +152,10 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
   useEffect(() => {
     if (!googleMapsApiKey) {
       mapsReadyRef.current = null;
+      placesReadyRef.current = null;
+      autocompleteServiceRef.current = null;
+      sessionTokenRef.current = null;
+      setPlacesReady(false);
       return;
     }
 
@@ -139,23 +164,12 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
   }, [googleMapsApiKey]);
 
   useEffect(() => {
-    if (!googleMapsApiKey || !mapsReadyRef.current) return;
-
-    mapsReadyRef.current
-      .then(async () => {
-        await importLibrary('places');
-        autocompleteServiceRef.current = new google.maps.places.AutocompleteService();
-        sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
-      })
-      .catch(() => {
-        if (debug) console.warn('[Maps] Failed to load Places library');
-      });
-
     return () => {
       autocompleteServiceRef.current = null;
       sessionTokenRef.current = null;
+      placesReadyRef.current = null;
     };
-  }, [googleMapsApiKey, debug]);
+  }, []);
 
   useEffect(() => {
     const loadCsvData = async () => {
@@ -211,6 +225,7 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
         setSuggestions(csvSuggestions);
         setSuggestionsOpen(csvSuggestions.length > 0);
         setActiveIndex(-1);
+        ensurePlacesReady();
         return;
       }
 
@@ -248,7 +263,7 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
     }, 150);
 
     return () => window.clearTimeout(timer);
-  }, [value, csvData, googleMapsApiKey]);
+  }, [value, csvData, googleMapsApiKey, placesReady, ensurePlacesReady]);
 
   useEffect(() => {
     if (!showMapPicker || !mapsReadyRef.current || !mapRef.current) return;
@@ -335,6 +350,7 @@ export function LocationAutocomplete({ placeholder, value, onChange, className, 
             }
           }}
           onFocus={() => {
+            ensurePlacesReady();
             if (suggestions.length) setSuggestionsOpen(true);
           }}
           onBlur={() => {

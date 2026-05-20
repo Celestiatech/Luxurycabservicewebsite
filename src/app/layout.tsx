@@ -93,7 +93,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" />
-        <link rel="preconnect" href="https://cdn.shopify.com" />
         <link rel="icon" href="/logo-square.png" type="image/png" />
         <link rel="shortcut icon" href="/logo-square.png" type="image/png" />
         <link rel="apple-touch-icon" href="/logo-square.png" />

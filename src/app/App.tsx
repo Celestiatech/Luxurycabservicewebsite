@@ -1020,7 +1020,9 @@ export default function App() {
               <img
                 src="/logo-square.png"
                 alt="Affordable Cabs"
-                className="w-22 h-20 rounded-full shadow-2xl bg-white"
+                width={80}
+                height={80}
+                className="h-20 w-20 rounded-full shadow-2xl bg-white object-contain"
               />
               <div>
                 <h1 className="text-2xl font-black text-gray-900 tracking-tight">AFFORDABLE CABS LTD</h1>
@@ -2462,7 +2464,11 @@ export default function App() {
                 <img
                   src="/logo-square.png"
                   alt="Affordable Cabs Ltd"
-                  className="w-27 h-23  shadow-lg rounded-full p-2 object-cover"
+                  width={64}
+                  height={64}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-16 w-16 shadow-lg rounded-full p-2 object-contain"
                 />
                 {/* Small text for small screen */}
                 <h3 className="font-black text-xl text-sm">AFFORDABLE CABS LTD</h3>
