@@ -1543,7 +1543,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
               >
-                AUCKLAND'S PREMIER AFFORDABLE TRANSPORTATION
+                AUCKLAND'S AFFORDABLE COMMUTE
               </motion.h1>
               <motion.p
                 className="text-2xl font-bold text-yellow-400 mb-8"
