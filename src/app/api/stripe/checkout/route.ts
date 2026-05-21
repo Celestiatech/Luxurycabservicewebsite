@@ -96,6 +96,35 @@ export async function POST(req: Request) {
     const totalAmount = Math.max(1, fareBreakdown.total);
     const currency = trim(pricing.currency || process.env.STRIPE_CURRENCY || 'nzd').toLowerCase();
     const origin = new URL(req.url).origin;
+    const checkoutMetadata = {
+      booking_id: metadataValue(bookingId),
+      stripe_mode: metadataValue(stripeMode),
+      pickup: metadataValue(pickup),
+      dropoff: metadataValue(dropoff),
+      date: metadataValue(date),
+      time: metadataValue(time),
+      passengers: metadataValue(passengers),
+      vehicle_type: metadataValue(vehicleType),
+      vehicle: metadataValue(vehicle),
+      name: metadataValue(name),
+      email: metadataValue(email),
+      phone: metadataValue(phone),
+      special_requests: metadataValue(specialRequests),
+      distance_km: metadataValue(distanceKm !== null ? distanceKm.toFixed(1) : ''),
+      duration_minutes: metadataValue(durationMinutes !== null ? durationMinutes.toFixed(0) : ''),
+      vehicle_quantity: metadataValue(fareBreakdown.vehicleQuantity),
+      fare_rule: metadataValue(fareBreakdown.description),
+      starting_fare: metadataValue(fareBreakdown.startingFare.toFixed(2)),
+      base_amount: metadataValue(fareBreakdown.distanceAmount.toFixed(2)),
+      fare_after_discount: metadataValue(fareBreakdown.baseFare.toFixed(2)),
+      per_km_rate: metadataValue(fareBreakdown.distanceRate.toFixed(2)),
+      fare_discount_rate: metadataValue(`${fareBreakdown.vehicleDiscountRate * 100}%`),
+      discount_rate: metadataValue(`${fareBreakdown.vehicleDiscountRate * 100}%`),
+      discount_amount: metadataValue(fareBreakdown.vehicleDiscountAmount.toFixed(2)),
+      night_surcharge: metadataValue(fareBreakdown.nightSurcharge.toFixed(2)),
+      traffic_surcharge: metadataValue(fareBreakdown.trafficSurcharge.toFixed(2)),
+      total_amount: metadataValue(totalAmount.toFixed(2)),
+    };
 
     const stripe = new Stripe(stripeSecretKey);
     const session = await stripe.checkout.sessions.create({
@@ -117,34 +146,9 @@ export async function POST(req: Request) {
           },
         },
       ],
-      metadata: {
-        booking_id: metadataValue(bookingId),
-        stripe_mode: metadataValue(stripeMode),
-        pickup: metadataValue(pickup),
-        dropoff: metadataValue(dropoff),
-        date: metadataValue(date),
-        time: metadataValue(time),
-        passengers: metadataValue(passengers),
-        vehicle_type: metadataValue(vehicleType),
-        vehicle: metadataValue(vehicle),
-        name: metadataValue(name),
-        email: metadataValue(email),
-        phone: metadataValue(phone),
-        special_requests: metadataValue(specialRequests),
-        distance_km: metadataValue(distanceKm !== null ? distanceKm.toFixed(1) : ''),
-        duration_minutes: metadataValue(durationMinutes !== null ? durationMinutes.toFixed(0) : ''),
-        vehicle_quantity: metadataValue(fareBreakdown.vehicleQuantity),
-        fare_rule: metadataValue(fareBreakdown.description),
-        starting_fare: metadataValue(fareBreakdown.startingFare.toFixed(2)),
-        base_amount: metadataValue(fareBreakdown.distanceAmount.toFixed(2)),
-        fare_after_discount: metadataValue(fareBreakdown.baseFare.toFixed(2)),
-        per_km_rate: metadataValue(fareBreakdown.distanceRate.toFixed(2)),
-        fare_discount_rate: metadataValue(`${fareBreakdown.vehicleDiscountRate * 100}%`),
-        discount_rate: metadataValue(`${fareBreakdown.vehicleDiscountRate * 100}%`),
-        discount_amount: metadataValue(fareBreakdown.vehicleDiscountAmount.toFixed(2)),
-        night_surcharge: metadataValue(fareBreakdown.nightSurcharge.toFixed(2)),
-        traffic_surcharge: metadataValue(fareBreakdown.trafficSurcharge.toFixed(2)),
-        total_amount: metadataValue(totalAmount.toFixed(2)),
+      metadata: checkoutMetadata,
+      payment_intent_data: {
+        metadata: checkoutMetadata,
       },
     });
 
