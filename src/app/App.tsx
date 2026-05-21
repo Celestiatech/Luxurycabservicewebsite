@@ -938,7 +938,7 @@ export default function App() {
 
     if (routeInfoLoading) {
       return (
-        <div className={`rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs font-bold text-yellow-900 ${className}`}>
+        <div className={`rounded-lg border  px-3 py-2 text-xs font-bold text-yellow-900 ${className}`}>
           Calculating distance between pickup and drop-off...
         </div>
       );
@@ -973,10 +973,10 @@ export default function App() {
     if (!formData.vehicle || !fareBreakdown) return null;
 
     return (
-      <div className={`rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs font-semibold text-gray-800 ${className}`}>
+      <div className={`rounded-lg border  px-3 py-2 text-xs font-semibold text-gray-800 ${className}`}>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="font-black text-gray-900">Fare rule</div>
+            <div className="font-black text-gray-900">Fare regulations</div>
             <div>{fareBreakdown.description}</div>
           </div>
           <div className="shrink-0 text-right text-lg font-black text-yellow-800">
@@ -1884,7 +1884,7 @@ export default function App() {
             </Card>
           </div>
 
-          <div className="mt-8 rounded-2xl border-2 border-yellow-200 bg-yellow-50 p-5">
+          <div className="mt-8 rounded-2xl border-2  p-5">
             <div className="font-black text-gray-900 mb-2">Multiple Ride Benefits</div>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm font-semibold text-gray-800">
               <li className="flex items-start gap-2"><Check className="w-4 h-4 text-green-700 mt-0.5" />Fixed fare available for short distance rides (including under 7 km, where applicable)</li>

@@ -34,7 +34,7 @@ const TAXI_TIERS: FareTier[] = [
   { max: 20, rate: 4.4, discount: 0.05, description: '15.1-20 km at $4.40/km, 5% off' },
   { max: 25, rate: 4.2, discount: 0.05, description: '20.1-25 km at $4.20/km, 5% off' },
   { max: 30, rate: 3.8, discount: 0.05, description: '25.1-30 km at $3.80/km, 5% off' },
-  { max: 100, rate: 3.5, discount: 0.1, description: '30.1-100 km at $3.50/km, 10% off' },
+  { max: 99.999, rate: 3.5, discount: 0.1, description: '30.1-99.9 km at $3.50/km, 10% off' },
   { max: Infinity, rate: 3.4, discount: 0.15, description: '100+ km at $3.40/km, 15% off' },
 ];
 
@@ -45,7 +45,7 @@ const VAN_TIERS: FareTier[] = [
   { max: 20, rate: 5, discount: 0.05, description: '15.1-20 km at $5.00/km, 5% off' },
   { max: 25, rate: 4.7, discount: 0.05, description: '20.1-25 km at $4.70/km, 5% off' },
   { max: 30, rate: 4.4, discount: 0.05, description: '25.1-30 km at $4.40/km, 5% off' },
-  { max: 100, rate: 4.2, discount: 0.1, description: '30.1-100 km at $4.20/km, 10% off' },
+  { max: 99.999, rate: 4.2, discount: 0.1, description: '30.1-99.9 km at $4.20/km, 10% off' },
   { max: Infinity, rate: 4, discount: 0.1, description: '100+ km at $4.00/km, 10% off' },
 ];
 

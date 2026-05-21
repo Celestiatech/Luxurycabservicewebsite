@@ -3,6 +3,7 @@ export type BookingEmailInput = {
   paymentId: string;
   amount: string;
   currency: string;
+  adminEmail: string;
   pickup: string;
   dropoff: string;
   date: string;
@@ -42,6 +43,8 @@ const money = (amount: string, currency: string) => {
   if (!Number.isFinite(parsed)) return amount || '-';
   return `${currency.toUpperCase()} $${parsed.toFixed(2)}`;
 };
+
+const mailto = (email: string) => `mailto:${encodeURIComponent(email)}`;
 
 const rows = (items: Array<{ label: string; value: string }>) =>
   items
@@ -135,6 +138,12 @@ export function buildBookingCustomerEmailHtml(input: BookingEmailInput) {
       { title: 'Payment Summary', rows: paymentRows },
     ],
     footer: 'Need help? Reply to this email or call Affordable Cabs Ltd.',
+    footerHtml: input.adminEmail
+      ? `Need help? Reply to this email or contact <a href="${mailto(input.adminEmail)}" style="color:#b45309;font-weight:800;text-decoration:none;">${escapeHtml(input.adminEmail)}</a>.`
+      : 'Need help? Reply to this email or call Affordable Cabs Ltd.',
+    footerText: input.adminEmail
+      ? `Need help? Reply to this email or contact ${input.adminEmail}.`
+      : 'Need help? Reply to this email or call Affordable Cabs Ltd.',
   });
 }
 
@@ -144,6 +153,8 @@ function emailShell(input: {
   subtitle: string;
   sections: Array<{ title: string; rows: string }>;
   footer: string;
+  footerHtml?: string;
+  footerText?: string;
 }) {
   const sections = input.sections
     .map(
@@ -169,7 +180,7 @@ function emailShell(input: {
         <div style="font-size:14px;opacity:0.9;margin-top:8px;">${escapeHtml(input.subtitle)}</div>
       </div>
       ${sections}
-      <div style="color:#6b7280;font-size:12px;margin-top:14px;line-height:1.5;">${escapeHtml(input.footer)}</div>
+      <div style="color:#6b7280;font-size:12px;margin-top:14px;line-height:1.5;">${input.footerHtml || escapeHtml(input.footerText || input.footer)}</div>
     </div>
   </body>
 </html>`;
@@ -191,7 +202,7 @@ export function buildBookingEmailText(input: BookingEmailInput) {
     `Special requests: ${input.specialRequests || '-'}`,
     `Distance: ${input.distanceKm || '-'} km`,
     `Drive time: ${input.durationMinutes || '-'} min`,
-    `Fare rule: ${input.fareRule || '-'}`,
+    `Fare regulations: ${input.fareRule || '-'}`,
     `Starting fare: ${money(input.startingFare, input.currency)}`,
     `Distance fare: ${money(input.baseAmount, input.currency)}`,
     `Discount: ${input.discountRate || '-'} ${input.discountAmount ? `(-${money(input.discountAmount, input.currency)})` : ''}`,
@@ -200,5 +211,6 @@ export function buildBookingEmailText(input: BookingEmailInput) {
     `Total paid: ${money(input.totalAmount || input.amount, input.currency)}`,
     `Payment status: ${input.paymentStatus}`,
     `Payment ID: ${input.paymentId}`,
+    input.adminEmail ? `Need help? Reply to this email or contact ${input.adminEmail}.` : '',
   ].join('\n');
 }

@@ -19,13 +19,14 @@ const metadata = (session: Stripe.Checkout.Session, key: string) => session.meta
 const moneyFromCents = (amount: number | null | undefined) =>
   typeof amount === 'number' && Number.isFinite(amount) ? (amount / 100).toFixed(2) : '';
 
-const buildInput = (session: Stripe.Checkout.Session): BookingEmailInput => {
+const buildInput = (session: Stripe.Checkout.Session, adminEmail: string): BookingEmailInput => {
   const currency = (session.currency || metadata(session, 'currency') || 'nzd').toUpperCase();
   return {
     paymentStatus: session.payment_status || 'paid',
     paymentId: typeof session.payment_intent === 'string' ? session.payment_intent : session.id,
     amount: moneyFromCents(session.amount_total),
     currency,
+    adminEmail,
     pickup: metadata(session, 'pickup'),
     dropoff: metadata(session, 'dropoff'),
     date: metadata(session, 'date'),
@@ -58,7 +59,7 @@ async function sendBookingEmails(session: Stripe.Checkout.Session) {
   if (sentBookingIds.has(bookingId)) return;
 
   const adminMail = (process.env.ADMIN_MAIL || '').trim();
-  const input = buildInput(session);
+  const input = buildInput(session, adminMail);
   if (!adminMail || !input.email) {
     throw new Error('Missing ADMIN_MAIL or customer email for booking notification.');
   }

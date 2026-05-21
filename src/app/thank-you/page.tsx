@@ -98,7 +98,7 @@ export default function ThankYouPage() {
                 <DetailRow icon={<Phone className="h-5 w-5" />} label="Phone" value={booking.phone} />
               </div>
             ) : (
-              <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 font-bold text-yellow-900">
+              <div className="rounded-xl border  p-4 font-bold text-yellow-900">
                 Your payment was received. Booking details are being processed.
               </div>
             )}
