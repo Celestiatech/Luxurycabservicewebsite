@@ -1092,7 +1092,7 @@ export default function App() {
           type="button"
           variant="outline"
           onClick={() => setShowCouponInput(true)}
-          className="h-9 w-25 border-2 border-yellow-500 text-sm font-black text-yellow-700 hover:bg-yellow-50"
+          className="h-9  border-2 border-yellow-500 text-sm font-black text-yellow-700 hover:bg-yellow-50"
         >
           ADD COUPON
         </Button>
@@ -1104,18 +1104,19 @@ export default function App() {
     if (!formData.vehicle || !fareBreakdown) return null;
 
     return (
-      <div className={`rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs font-semibold text-gray-800 ${className}`}>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="font-black text-gray-900">Calculated fare</div>
-            <div>{fareBreakdown.description}</div>
-            {fareBreakdown.couponError ? <div className="font-black text-red-700">{fareBreakdown.couponError}</div> : null}
-          </div>
-          <div className="shrink-0 text-right text-lg font-black text-yellow-800">
-            ${fareBreakdown.total.toFixed(2)}
-          </div>
-        </div>
-      </div>
+      <div></div>
+      // <div className={`rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs font-semibold text-gray-800 ${className}`}>
+      //   <div className="flex items-start justify-between gap-3">
+      //     <div>
+      //       <div className="font-black text-gray-900">Calculated fare</div>
+      //       <div>{fareBreakdown.description}</div>
+      //       {fareBreakdown.couponError ? <div className="font-black text-red-700">{fareBreakdown.couponError}</div> : null}
+      //     </div>
+      //     <div className="shrink-0 text-right text-lg font-black text-yellow-800">
+      //       ${fareBreakdown.total.toFixed(2)}
+      //     </div>
+      //   </div>
+      // </div>
       // <div className={`rounded-lg border  px-3 py-2 text-xs font-semibold text-gray-800 ${className}`}>
       //   <div className="flex items-start justify-between gap-3">
       //     <div>
