@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, startTransition } from 'react';
-import { Phone, Mail, MapPin, Users, Check, Star, Shield, Award, Car, ChevronRight, MessageCircle, FileText, ArrowUp, X, ShoppingCart, CheckCircle2, ArrowRight, Calendar, Quote, ChevronLeft } from 'lucide-react';
+import { Phone, Mail, MapPin, Users, Check, Star, Shield, Award, Car, ChevronRight, MessageCircle, FileText, ArrowUp, X, ShoppingCart, CheckCircle2, ArrowRight, Calendar, Quote, ChevronLeft, Clock } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader } from './components/ui/card';
@@ -517,6 +517,27 @@ export default function App() {
       setIsSubmittingBooking(false);
     }
   };
+
+  const renderPickupTimeInput = (id: string) => (
+    <div className="relative">
+      <Clock className="pointer-events-none absolute left-4 top-1/2 z-10 h-5 w-5 -translate-y-1/2 text-yellow-600" />
+      <Input
+        id={id}
+        type="time"
+        value={formData.time}
+        onChange={(e) => setFormData((prev) => ({ ...prev, time: e.target.value }))}
+        aria-label="Pickup time"
+        className={`h-12 border-2 border-gray-200 bg-white pl-12 pr-4 text-base font-bold shadow-sm [color-scheme:light] [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-date-and-time-value]:text-left ${
+          formData.time ? 'text-gray-900' : 'text-transparent'
+        }`}
+      />
+      {!formData.time ? (
+        <span className="pointer-events-none absolute left-12 top-1/2 z-10 -translate-y-1/2 text-base font-semibold text-gray-500">
+          Select pickup time
+        </span>
+      ) : null}
+    </div>
+  );
 
   // Data
   const majorCities = [
@@ -1443,13 +1464,7 @@ export default function App() {
                           >
                             Pickup Time <span className="text-red-600">*</span>
                           </label>
-                          <Input
-                            id="modal-time"
-                            type="time"
-                            value={formData.time}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, time: e.target.value }))}
-                            className="font-semibold border-2"
-                          />
+                          {renderPickupTimeInput('modal-time')}
                         </div>
                         <div className="min-w-0 space-y-1 group">
                           <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
@@ -1757,13 +1772,7 @@ export default function App() {
                       >
                         Pickup Time <span className="text-red-600">*</span>
                       </label>
-                    <Input
-                      id="booking-time"
-                      type="time"
-                      value={formData.time}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, time: e.target.value }))}
-                      className="font-semibold border-2"
-                    />
+                    {renderPickupTimeInput('booking-time')}
                     </div>
                   </div>
                   <div className="min-w-0 space-y-1 group">
