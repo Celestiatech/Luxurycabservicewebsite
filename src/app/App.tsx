@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, startTransition } from 'react';
-import { Phone, Mail, MapPin, Users, Check, Star, Shield, Award, Car, ChevronRight, MessageCircle, FileText, ArrowUp, X, CreditCard, ShoppingCart, CheckCircle2, ArrowRight, Calendar, Quote, ChevronLeft } from 'lucide-react';
+import { Phone, Mail, MapPin, Users, Check, Star, Shield, Award, Car, ChevronRight, MessageCircle, FileText, ArrowUp, X, ShoppingCart, CheckCircle2, ArrowRight, Calendar, Quote, ChevronLeft } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader } from './components/ui/card';
@@ -9,7 +9,6 @@ import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { LocationAutocomplete } from './components/LocationAutocomplete';
 import { SectionHeader } from './components/SectionHeader';
 import { motion, AnimatePresence } from 'motion/react';
-import { createStripeCheckoutUrl } from './lib/stripeCheckout';
 import { DatePicker } from './components/DatePicker';
 import { type ShopifyVariantOption } from './components/ShopifyVariantSelect';
 import { PassengersSelect } from './components/PassengersSelect';
@@ -40,7 +39,7 @@ export default function App() {
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [currentClient, setCurrentClient] = useState(0);
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
   const [shopifyVariants, setShopifyVariants] = useState<ShopifyVariantOption[]>([]);
   const [vehicleQuantities, setVehicleQuantities] = useState<Record<string, number>>({});
   const [shopifyVariantsLoading, setShopifyVariantsLoading] = useState(true);
@@ -372,8 +371,8 @@ export default function App() {
     setBookingStep(1);
   };
 
-  const proceedToCheckout = async () => {
-    if (isCheckingOut) return;
+  const submitBookingRequest = async () => {
+    if (isSubmittingBooking) return;
     const s1 = validateStep1();
     if (s1) {
       alert(s1);
@@ -392,59 +391,88 @@ export default function App() {
       return;
     }
 
-    setIsCheckingOut(true);
+    setIsSubmittingBooking(true);
     try {
+      const bookingDetails = {
+        pickup: formData.pickup.trim(),
+        dropoff: formData.dropoff.trim(),
+        date: formData.date,
+        time: formData.time,
+        passengers: formData.passengers,
+        vehicleType: formData.vehicleType,
+        vehicle: bookingVehicle,
+        vehicleQuantity: selectedVehicleQuantity || 1,
+        distance: routeInfo?.distanceText || '',
+        duration: routeInfo?.durationText || '',
+        estimatedTotal: fareBreakdown.total.toFixed(2),
+        fareDescription: fareBreakdown.description,
+        startingFare: fareBreakdown.startingFare.toFixed(2),
+        distanceFare: fareBreakdown.distanceAmount.toFixed(2),
+        discount: fareBreakdown.vehicleDiscountAmount.toFixed(2),
+        nightSurcharge: fareBreakdown.nightSurcharge.toFixed(2),
+        trafficSurcharge: fareBreakdown.trafficSurcharge.toFixed(2),
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        specialRequests: formData.specialRequests.trim(),
+      };
+
       try {
-        localStorage.setItem(
-          'latest_booking',
-          JSON.stringify({
-            pickup: formData.pickup,
-            dropoff: formData.dropoff,
-            date: formData.date,
-            time: formData.time,
-            passengers: formData.passengers,
-            vehicleType: formData.vehicleType,
-            vehicle: bookingVehicle,
-            vehicleQuantity: selectedVehicleQuantity || 1,
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            specialRequests: formData.specialRequests,
-          }),
-        );
+        localStorage.setItem('latest_booking', JSON.stringify(bookingDetails));
       } catch {
         // ignore
       }
 
-      const checkoutUrl = await createStripeCheckoutUrl({
-        booking: {
-          pickup: formData.pickup,
-          dropoff: formData.dropoff,
-          date: formData.date,
-          time: formData.time,
-          passengers: formData.passengers,
-          vehicleType: formData.vehicleType,
-          vehicle: bookingVehicle,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          specialRequests: formData.specialRequests,
-        },
-        pricing: {
-          distanceKm,
-          durationMinutes,
-          currency: 'nzd',
-          vehicleQuantity: selectedVehicleQuantity || 1,
-        },
-      });
+      const message = [
+        'Booking request - no online payment collected.',
+        '',
+        `Pickup: ${bookingDetails.pickup}`,
+        `Drop-off: ${bookingDetails.dropoff}`,
+        `Date: ${bookingDetails.date}`,
+        `Time: ${bookingDetails.time}`,
+        `Passengers: ${bookingDetails.passengers}`,
+        `Vehicle type: ${bookingDetails.vehicleType}`,
+        `Vehicle: ${bookingDetails.vehicle}`,
+        `Vehicle quantity: x${bookingDetails.vehicleQuantity}`,
+        bookingDetails.distance ? `Distance: ${bookingDetails.distance}` : '',
+        bookingDetails.duration ? `Estimated drive time: ${bookingDetails.duration}` : '',
+        `Estimated total: $${bookingDetails.estimatedTotal}`,
+        `Fare: ${bookingDetails.fareDescription}`,
+        `Starting fare: $${bookingDetails.startingFare}`,
+        `Distance fare: $${bookingDetails.distanceFare}`,
+        `Discount: -$${bookingDetails.discount}`,
+        Number(bookingDetails.nightSurcharge) > 0 ? `Night surcharge: $${bookingDetails.nightSurcharge}` : '',
+        Number(bookingDetails.trafficSurcharge) > 0 ? `Traffic surcharge: $${bookingDetails.trafficSurcharge}` : '',
+        bookingDetails.specialRequests ? `Special requests: ${bookingDetails.specialRequests}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n');
 
-      window.location.assign(checkoutUrl);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : 'Failed to start Stripe checkout.';
-      alert(message);
-    } finally {
-      setIsCheckingOut(false);
+      const res = await fetch('/api/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: bookingDetails.name,
+          phone: bookingDetails.phone,
+          email: bookingDetails.email,
+          pickup: bookingDetails.pickup,
+          dropoff: bookingDetails.dropoff,
+          message,
+          source: 'Booking Form',
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error || 'Failed to send booking request.');
+      }
+
+      toast.success('Booking request sent! We will contact you shortly.');
       setShowBookingModal(false);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to send booking request.';
+      toast.error(message);
+    } finally {
+      setIsSubmittingBooking(false);
     }
   };
 
@@ -750,15 +778,15 @@ export default function App() {
 
   const popularRoutes = [
     {
-      from: 'CBD',
-      to: 'CBD',
+      from: 'Auckland CBD',
+      to: 'Auckland CBD',
       price: 35,
       time: 'Fixed Fare',
       demand: 'High',
       image: 'https://images.unsplash.com/photo-1574849693510-00ab036e8978?w=400'
     },
     {
-      from: 'CBD',
+      from: 'Auckland CBD',
       to: 'Airport',
       price: 89,
       time: 'Fixed Fare',
@@ -767,20 +795,12 @@ export default function App() {
     },
     {
       from: 'Airport',
-      to: 'CBD',
+      to: 'Auckland CBD',
       price: 89,
       time: 'Fixed Fare',
       demand: 'High',
       image: 'https://images.unsplash.com/photo-1603122101829-e56305b0a5f7?w=400'
     },
-    {
-      from: 'Suburb',
-      to: 'Suburb',
-      price: 50,
-      time: 'From (1–10 km)',
-      demand: 'High',
-      image: 'https://images.unsplash.com/photo-1576566465339-2b99f6b33277?w=400'
-    }
   ];
 
   const testimonials = [
@@ -821,7 +841,7 @@ export default function App() {
     },
     {
       question: 'What vehicles do you have for weddings?',
-      answer: 'We offer affordable sedans and decorated 12-seater vans perfect for weddings with professional chauffeurs.'
+      answer: 'We offer affordable sedans and decorated 11-seater vans perfect for weddings with professional chauffeurs.'
     },
     {
       question: 'Are your drivers licensed and insured?',
@@ -1021,11 +1041,11 @@ export default function App() {
                 alt="Affordable Cabs"
                 width={80}
                 height={80}
-                className="h-20 w-20 rounded-full shadow-2xl bg-white object-contain"
+                className="h-20 w-23 rounded-full shadow-2xl bg-white object-contain"
               />
               <div>
-                <h1 className="text-2xl font-black text-gray-900 tracking-tight">AFFORDABLE CABS LTD</h1>
-                <p className="text-xs font-bold text-yellow-800 tracking-widest">PREMIUM TRANSPORTATION</p>
+                <h1 className="text-2xl font-black text-yellow-800 tracking-tight">AFFORDABLE TRANSPORTATION</h1>
+                {/* <p className="text-xs font-bold text-yellow-800 tracking-widest">PREMIUM TRANSPORTATION</p> */}
               </div>
             </div>
 
@@ -1099,9 +1119,9 @@ export default function App() {
       </a>
 
       <button
-        onClick={openQuotePopup}
+        onClick={() => focusBookingForm({ focus: 'pickup' })}
         className="fixed right-6 bottom-24 z-50 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black p-4 rounded-full shadow-2xl hover:scale-110 transition-all"
-        aria-label="Open inquiry form"
+        aria-label="Go to booking form"
       >
         <FileText className="w-7 h-7" />
       </button>
@@ -1430,7 +1450,7 @@ export default function App() {
                   {/* Step 3: Confirmation */}
                   {bookingStep === 3 && (
                     <div className="space-y-4 text-left">
-                      <h3 className="text-xl font-black text-gray-900 mb-4">REVIEW & CHECKOUT</h3>
+                      <h3 className="text-xl font-black text-gray-900 mb-4">REVIEW BOOKING</h3>
                       <div className="bg-yellow-50 border-2 border-yellow-500 rounded-lg p-6 space-y-3">
                         <div className="flex justify-between">
                           <span className="font-bold">Date & Time:</span>
@@ -1480,12 +1500,12 @@ export default function App() {
                           BACK
                         </Button>
                         <Button
-                          onClick={proceedToCheckout}
-                          disabled={isCheckingOut}
+                          onClick={submitBookingRequest}
+                          disabled={isSubmittingBooking}
                           className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black text-lg py-6"
                         >
-                          <CreditCard className="w-5 h-5 mr-2" />
-                          {isCheckingOut ? 'REDIRECTING…' : 'CHECKOUT'}
+                          <Check className="w-5 h-5 mr-2" />
+                          {isSubmittingBooking ? 'SENDING...' : 'CONFIRM BOOKING'}
                         </Button>
                       </div>
                     </div>
@@ -1657,10 +1677,10 @@ export default function App() {
                   </div>
                   <div className="min-w-0 space-y-1 group">
                     <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
-                      Your Name
+                      Your Name <span className="text-red-600">*</span>
                     </div>
                     <Input
-                      placeholder="Your Name"
+                      placeholder="Your Name *"
                       value={formData.name}
                       autoComplete="name"
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -1682,10 +1702,10 @@ export default function App() {
                   </div>
                   <div className="space-y-1 group">
                     <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
-                      Phone Number
+                      Phone Number <span className="text-red-600">*</span>
                     </div>
                     <Input
-                      placeholder="Phone Number"
+                      placeholder="Phone Number *"
                       type="tel"
                       value={formData.phone}
                       autoComplete="tel"
@@ -1695,12 +1715,12 @@ export default function App() {
                     />
                   </div>
                   <Button
-                    onClick={proceedToCheckout}
-                    disabled={isCheckingOut}
+                    onClick={submitBookingRequest}
+                    disabled={isSubmittingBooking}
                     className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-7 shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     <ShoppingCart className="w-6 h-6 mr-3" />
-                    {isCheckingOut ? 'REDIRECTING…' : 'CONFIRM BOOKING & PAY'}
+                    {isSubmittingBooking ? 'SENDING...' : 'CONFIRM BOOKING'}
                   </Button>
                   <div className="flex min-w-0 gap-3">
                     <a href="tel:+64277777242" className="min-w-0 flex-1">
@@ -1734,12 +1754,12 @@ export default function App() {
       {/* Stats */}
       <section className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
             {[
-              { number: '500+', label: 'HAPPY CUSTOMERS' },
+              // { number: '500+', label: 'HAPPY CUSTOMERS' },
               { number: '24/7', label: 'SERVICE AVAILABLE' },
-              { number: '15+', label: 'AFFORDABLE VEHICLES' },
-              { number: '10+', label: 'YEARS EXPERIENCE' }
+              { number: '5 Star', label: 'PREMIUM DRIVERS' },
+              // { number: '10+', label: 'YEARS EXPERIENCE' }
             ].map((stat, index) => (
               <motion.div
                 key={index}
@@ -1897,7 +1917,7 @@ export default function App() {
       </section> */}
 
       {/* Services in Major Cities */}
-      <section id="cities" className="py-20 bg-white">
+      {/* <section id="cities" className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -1950,7 +1970,7 @@ export default function App() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Offers Section */}
       {/* <section id="tours" className="py-20 bg-gray-50">
@@ -2056,7 +2076,7 @@ export default function App() {
       </section> */}
 
       {/* What Makes Us Unique */}
-      <section className="py-20 bg-gray-50">
+      {/* <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <SectionHeader
             title="WHAT MAKES US UNIQUE"
@@ -2085,7 +2105,7 @@ export default function App() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Happy Recent Clients (Image Slider + Reviews) */}
       <section className="py-20 bg-white">
@@ -2145,7 +2165,7 @@ export default function App() {
       </section>
 
       {/* Popular Destinations */}
-      <section className="py-20 bg-gray-50">
+      {/* <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <SectionHeader
             title="POPULAR DESTINATIONS"
@@ -2177,10 +2197,10 @@ export default function App() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Driver Reviews */}
-      <section className="py-20 bg-white">
+      {/* <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <SectionHeader
             title="MEET OUR PROFESSIONAL DRIVERS"
@@ -2222,7 +2242,7 @@ export default function App() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* How It Works */}
       <section className="py-20 bg-gray-900 text-white">
@@ -2231,12 +2251,12 @@ export default function App() {
             <h2 className="text-5xl font-black mb-4 uppercase">HOW IT WORKS</h2>
             <p className="text-xl font-bold text-gray-300">Simple 4-step booking process</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
-              { step: '1', title: 'CHOOSE SERVICE', desc: 'Select from our premium services' },
+              { step: '1', title: 'CHOOSE SERVICE', desc: 'Select from our portal' },
               { step: '2', title: 'BOOK ONLINE', desc: 'Fill details or call us instantly' },
-              { step: '3', title: 'GET CONFIRMED', desc: 'Receive driver details immediately' },
-              { step: '4', title: 'ENJOY RIDE', desc: 'Affordable transportation experience' }
+              // { step: '3', title: 'GET CONFIRMED', desc: 'Receive driver details immediately' },
+              { step: '3', title: 'ENJOY RIDE', desc: 'Affordable transportation experience' }
             ].map((item, index) => (
               <div key={index} className="text-center group">
                 <div className="relative mb-6">
@@ -2319,7 +2339,7 @@ export default function App() {
             onPrev={() => {}}
             onNext={() => {}}
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {popularRoutes.map((route, index) => (
               <Card key={index} className="hover:shadow-2xl transition-all border-l-4 border-yellow-500">
                 <div className="h-56 md:h-52 lg:h-56 overflow-hidden">
@@ -2481,7 +2501,7 @@ export default function App() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center">
-            <p className="text-gray-400 font-semibold">&copy; 2026 AFFORDABLE CABS LTD. All Rights Reserved.</p>
+            <p className="text-gray-400 font-semibold">&copy; 2026 LUXURY CABS LTD. All Rights Reserved.</p>
           </div>
         </div>
       </footer>

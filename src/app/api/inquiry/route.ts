@@ -12,6 +12,7 @@ type InquiryPayload = {
   pickup: string;
   dropoff: string;
   message: string;
+  source?: string;
 };
 
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -26,6 +27,7 @@ export async function POST(req: Request) {
     const pickup = (body.pickup || '').trim();
     const dropoff = (body.dropoff || '').trim();
     const message = (body.message || '').trim();
+    const source = (body.source || 'Quick Inquiry Form').trim();
 
     if (!name) return NextResponse.json({ ok: false, error: 'Name is required.' }, { status: 400 });
     if (!email || !isEmail(email)) return NextResponse.json({ ok: false, error: 'Valid email is required.' }, { status: 400 });
@@ -39,7 +41,8 @@ export async function POST(req: Request) {
     const smtp = getSmtpConfigFromEnv(process.env);
     const transporter = createMailer(smtp);
 
-    const subject = `New Inquiry: ${name}${pickup || dropoff ? ` (${pickup || '-'} → ${dropoff || '-'})` : ''}`;
+    const subjectPrefix = source === 'Booking Form' ? 'New Booking Request' : 'New Inquiry';
+    const subject = `${subjectPrefix}: ${name}${pickup || dropoff ? ` (${pickup || '-'} to ${dropoff || '-'})` : ''}`;
     const html = buildInquiryEmailHtml({
       name,
       email,
@@ -47,7 +50,7 @@ export async function POST(req: Request) {
       pickup,
       dropoff,
       message,
-      source: 'Quick Inquiry Form',
+      source,
     });
 
     await transporter.sendMail({
@@ -56,7 +59,7 @@ export async function POST(req: Request) {
       subject,
       replyTo: email,
       html,
-      text: `New inquiry\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nPickup: ${pickup}\nDrop-off: ${dropoff}\nMessage: ${message}\n`,
+      text: `${subjectPrefix}\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nPickup: ${pickup}\nDrop-off: ${dropoff}\nMessage: ${message}\n`,
     });
 
     return NextResponse.json({ ok: true });
@@ -67,4 +70,3 @@ export async function POST(req: Request) {
     );
   }
 }
-
