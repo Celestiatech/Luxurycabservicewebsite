@@ -1881,11 +1881,11 @@ export default function App() {
       {/* Stats */}
       <section className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
             {[
               // { number: '500+', label: 'HAPPY CUSTOMERS' },
-              { number: '24/7', label: 'SERVICE AVAILABLE' },
-              { number: '5 Star', label: 'PREMIUM DRIVERS' },
+              { number: '24/7', label: 'SERVICE AVAILABLE IN AUCKLAND' },
+              // { number: 'SERVICE AVAILABLE IN AUCKLAND', label: '' },
               // { number: '10+', label: 'YEARS EXPERIENCE' }
             ].map((stat, index) => (
               <motion.div
