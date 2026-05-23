@@ -843,7 +843,7 @@ export default function App() {
     {
       from: 'Auckland CBD',
       to: 'Auckland CBD',
-      price: 35,
+      price: 60,
       time: 'Fixed Fare',
       demand: 'High',
       image: 'https://wallpapers.com/images/high/majestic-view-of-auckland-sky-tower-amidst-cityscape-t1fbqvyhh3wrr1td.webp?w=400'
@@ -851,7 +851,7 @@ export default function App() {
     {
       from: 'Auckland CBD',
       to: 'Airport',
-      price: 89,
+      price: 130,
       time: 'Fixed Fare',
       demand: 'Medium',
       image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400'
@@ -859,7 +859,7 @@ export default function App() {
     {
       from: 'Airport',
       to: 'Auckland CBD',
-      price: 89,
+      price: 130,
       time: 'Fixed Fare',
       demand: 'High',
       image: 'https://s28477.pcdn.co/wp-content/uploads/2018/01/Auckland_2-984x554.jpg?w=400'
@@ -2517,6 +2517,60 @@ export default function App() {
           </div>
         </div>
       </section>
+
+        {/* Popular Route Vans */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <SectionHeader
+            title="POPULAR ROUTE VANS"
+            subtitle="Most traveled routes with transparent pricing"
+            showNavigation
+            onPrev={() => {}}
+            onNext={() => {}}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {popularRoutes.map((route, index) => (
+              <Card key={index} className="hover:shadow-2xl transition-all border-l-4 border-yellow-500">
+                <div className="h-56 md:h-52 lg:h-56 overflow-hidden">
+                  <ImageWithFallback
+                    src={route.image}
+                    alt={`${route.from} to ${route.to}`}
+                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                  />
+                </div>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-green-500 w-3 h-3 rounded-full"></div>
+                        <p className="font-black text-gray-900">{route.from}</p>
+                      </div>
+                      <div className="border-l-2 border-dashed border-gray-300 h-4 ml-1.5"></div>
+                      <div className="flex items-center gap-2">
+                        <div className="bg-red-500 w-3 h-3 rounded-full"></div>
+                        <p className="font-black text-gray-900">{route.to}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-4 border-t-2 border-gray-100">
+                    <div>
+                      <p className="text-3xl font-black text-yellow-700">${route.price}</p>
+                      <p className="text-sm font-bold text-gray-500">{route.time}</p>
+                    </div>
+                    <Button
+                      onClick={() => focusBookingForm({ pickup: route.from, dropoff: route.to, focus: 'date' })}
+                      className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black"
+                    >
+                      BOOK
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
 
       {/* FAQs */}
       <section className="py-20 bg-gray-50">
