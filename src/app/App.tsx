@@ -2611,7 +2611,7 @@ export default function App() {
         <div className="container mx-auto px-4 text-center relative z-10">
           <h2 className="text-5xl font-black mb-6 text-white">READY FOR AFFORDABLE?</h2>
           <p className="text-2xl mb-10 text-yellow-400 font-bold max-w-3xl mx-auto">
-            Book now with secure checkout and experience premium service
+            Book now with secure checkout and experience affordable service
           </p>
           <div className="flex flex-wrap gap-6 justify-center">
             <a href="tel:+64277777242">
