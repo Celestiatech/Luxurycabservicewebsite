@@ -393,11 +393,21 @@ export default function App() {
 
     setIsSubmittingBooking(true);
     try {
+      const estimatedDropTime = (() => {
+        if (!formData.time || durationMinutes === null) return '';
+        const [hours, minutes] = formData.time.split(':').map(Number);
+        if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return '';
+        const date = new Date(2000, 0, 1, hours, minutes);
+        date.setMinutes(date.getMinutes() + durationMinutes);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      })();
+
       const bookingDetails = {
         pickup: formData.pickup.trim(),
         dropoff: formData.dropoff.trim(),
         date: formData.date,
         time: formData.time,
+        dropTime: estimatedDropTime,
         passengers: formData.passengers,
         vehicleType: formData.vehicleType,
         vehicle: bookingVehicle,
@@ -429,7 +439,8 @@ export default function App() {
         `Pickup: ${bookingDetails.pickup}`,
         `Drop-off: ${bookingDetails.dropoff}`,
         `Date: ${bookingDetails.date}`,
-        `Time: ${bookingDetails.time}`,
+        `Pickup time: ${bookingDetails.time}`,
+        bookingDetails.dropTime ? `Drop time: ${bookingDetails.dropTime}` : '',
         `Passengers: ${bookingDetails.passengers}`,
         `Vehicle type: ${bookingDetails.vehicleType}`,
         `Vehicle: ${bookingDetails.vehicle}`,
@@ -459,6 +470,18 @@ export default function App() {
           dropoff: bookingDetails.dropoff,
           message,
           source: 'Booking Form',
+          date: bookingDetails.date,
+          pickupTime: bookingDetails.time,
+          dropTime: bookingDetails.dropTime,
+          passengers: bookingDetails.passengers,
+          vehicleType: bookingDetails.vehicleType,
+          vehicle: bookingDetails.vehicle,
+          vehicleQuantity: String(bookingDetails.vehicleQuantity),
+          distance: bookingDetails.distance,
+          driveTime: bookingDetails.duration,
+          estimatedTotal: `$${bookingDetails.estimatedTotal}`,
+          fareRule: bookingDetails.fareDescription,
+          specialRequests: bookingDetails.specialRequests,
         }),
       });
       const data = await res.json().catch(() => ({}));

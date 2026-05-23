@@ -13,6 +13,18 @@ type InquiryPayload = {
   dropoff: string;
   message: string;
   source?: string;
+  date?: string;
+  pickupTime?: string;
+  dropTime?: string;
+  passengers?: string;
+  vehicleType?: string;
+  vehicle?: string;
+  vehicleQuantity?: string;
+  distance?: string;
+  driveTime?: string;
+  estimatedTotal?: string;
+  fareRule?: string;
+  specialRequests?: string;
 };
 
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -28,6 +40,18 @@ export async function POST(req: Request) {
     const dropoff = (body.dropoff || '').trim();
     const message = (body.message || '').trim();
     const source = (body.source || 'Quick Inquiry Form').trim();
+    const date = (body.date || '').trim();
+    const pickupTime = (body.pickupTime || '').trim();
+    const dropTime = (body.dropTime || '').trim();
+    const passengers = (body.passengers || '').trim();
+    const vehicleType = (body.vehicleType || '').trim();
+    const vehicle = (body.vehicle || '').trim();
+    const vehicleQuantity = (body.vehicleQuantity || '').trim();
+    const distance = (body.distance || '').trim();
+    const driveTime = (body.driveTime || '').trim();
+    const estimatedTotal = (body.estimatedTotal || '').trim();
+    const fareRule = (body.fareRule || '').trim();
+    const specialRequests = (body.specialRequests || '').trim();
 
     if (!name) return NextResponse.json({ ok: false, error: 'Name is required.' }, { status: 400 });
     if (!email || !isEmail(email)) return NextResponse.json({ ok: false, error: 'Valid email is required.' }, { status: 400 });
@@ -51,6 +75,18 @@ export async function POST(req: Request) {
       dropoff,
       message,
       source,
+      date,
+      pickupTime,
+      dropTime,
+      passengers,
+      vehicleType,
+      vehicle,
+      vehicleQuantity,
+      distance,
+      driveTime,
+      estimatedTotal,
+      fareRule,
+      specialRequests,
     });
 
     await transporter.sendMail({
@@ -59,7 +95,28 @@ export async function POST(req: Request) {
       subject,
       replyTo: email,
       html,
-      text: `${subjectPrefix}\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nPickup: ${pickup}\nDrop-off: ${dropoff}\nMessage: ${message}\n`,
+      text: [
+        subjectPrefix,
+        '',
+        `Name: ${name}`,
+        `Email: ${email}`,
+        `Phone: ${phone}`,
+        `Pickup: ${pickup}`,
+        `Drop-off: ${dropoff}`,
+        date ? `Pickup date: ${date}` : '',
+        pickupTime ? `Pickup time: ${pickupTime}` : '',
+        dropTime ? `Drop time: ${dropTime}` : '',
+        distance ? `Distance: ${distance}` : '',
+        driveTime ? `Drive time: ${driveTime}` : '',
+        passengers ? `Passengers: ${passengers}` : '',
+        vehicleType ? `Vehicle type: ${vehicleType}` : '',
+        vehicle ? `Vehicle: ${vehicle}` : '',
+        vehicleQuantity ? `Vehicle quantity: ${vehicleQuantity}` : '',
+        estimatedTotal ? `Estimated total: ${estimatedTotal}` : '',
+        fareRule ? `Fare rule: ${fareRule}` : '',
+        specialRequests ? `Special requests: ${specialRequests}` : '',
+        `Message: ${message}`,
+      ].filter(Boolean).join('\n'),
     });
 
     return NextResponse.json({ ok: true });

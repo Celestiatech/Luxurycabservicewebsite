@@ -6,6 +6,18 @@ type InquiryTemplateInput = {
   dropoff: string;
   message: string;
   source?: string;
+  date?: string;
+  pickupTime?: string;
+  dropTime?: string;
+  passengers?: string;
+  vehicleType?: string;
+  vehicle?: string;
+  vehicleQuantity?: string;
+  distance?: string;
+  driveTime?: string;
+  estimatedTotal?: string;
+  fareRule?: string;
+  specialRequests?: string;
 };
 
 const escapeHtml = (value: string) =>
@@ -17,16 +29,43 @@ const escapeHtml = (value: string) =>
     .replaceAll("'", '&#39;');
 
 export function buildInquiryEmailHtml(input: InquiryTemplateInput) {
-  const lines: Array<{ label: string; value: string }> = [
+  const source = input.source ? escapeHtml(input.source) : 'Website';
+  const isBooking = input.source === 'Booking Form';
+  const title = isBooking ? 'New Booking Request' : 'Quick Inquiry';
+  const eyebrow = isBooking ? 'New booking request received' : 'New inquiry received';
+
+  const customerLines: Array<{ label: string; value: string }> = [
     { label: 'Name', value: input.name || '-' },
     { label: 'Email', value: input.email || '-' },
     { label: 'Phone', value: input.phone || '-' },
+  ];
+
+  const tripLines: Array<{ label: string; value: string }> = [
+    { label: 'Pickup', value: input.pickup || '-' },
+    { label: 'Drop-off', value: input.dropoff || '-' },
+    { label: 'Pickup Date', value: input.date || '-' },
+    { label: 'Pickup Time', value: input.pickupTime || '-' },
+    { label: 'Drop Time', value: input.dropTime || '-' },
+    { label: 'Distance', value: input.distance || '-' },
+    { label: 'Drive Time', value: input.driveTime || '-' },
+    { label: 'Passengers', value: input.passengers || '-' },
+    { label: 'Vehicle Type', value: input.vehicleType || '-' },
+    { label: 'Vehicle', value: input.vehicle || '-' },
+    { label: 'Vehicle Quantity', value: input.vehicleQuantity || '-' },
+    { label: 'Estimated Total', value: input.estimatedTotal || '-' },
+    { label: 'Fare Rule', value: input.fareRule || '-' },
+    { label: 'Special Requests', value: input.specialRequests || '-' },
+  ];
+
+  const inquiryLines: Array<{ label: string; value: string }> = [
+    ...customerLines,
     { label: 'Pickup', value: input.pickup || '-' },
     { label: 'Drop-off', value: input.dropoff || '-' },
     { label: 'Message', value: input.message || '-' },
   ];
 
-  const rows = lines
+  const rows = (lines: Array<{ label: string; value: string }>) =>
+    lines
     .map(
       (l) => `
         <tr>
@@ -35,31 +74,46 @@ export function buildInquiryEmailHtml(input: InquiryTemplateInput) {
           )}</td>
           <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;">${escapeHtml(
             l.value,
-          )}</td>
+          ).replaceAll('\n', '<br>')}</td>
         </tr>`,
     )
     .join('');
 
-  const source = input.source ? escapeHtml(input.source) : 'Website';
+  const customerRows = rows(customerLines);
+  const tripRows = rows(tripLines);
+  const inquiryRows = rows(inquiryLines);
 
   return `<!doctype html>
 <html>
   <body style="margin:0;padding:0;background:#f3f4f6;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;">
     <div style="max-width:640px;margin:0 auto;padding:24px;">
       <div style="background:#111827;color:#ffffff;border-radius:14px;padding:18px 20px;">
-        <div style="font-size:14px;opacity:0.9;">New inquiry received</div>
-        <div style="font-size:22px;font-weight:900;letter-spacing:0.3px;">Quick Inquiry</div>
+        <div style="font-size:14px;opacity:0.9;">${eyebrow}</div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:0.3px;">${title}</div>
         <div style="font-size:12px;opacity:0.8;margin-top:6px;">Source: ${source}</div>
       </div>
 
       <div style="background:#ffffff;border-radius:14px;margin-top:14px;overflow:hidden;border:1px solid #e5e7eb;">
         <div style="padding:14px 16px;background:linear-gradient(90deg,#facc15,#f59e0b);color:#111827;font-weight:900;">
+          ${isBooking ? 'Trip Details' : 'Customer Details'}
+        </div>
+        <table style="width:100%;border-collapse:collapse;">
+          ${isBooking ? tripRows : inquiryRows}
+        </table>
+      </div>
+
+      ${
+        isBooking
+          ? `<div style="background:#ffffff;border-radius:14px;margin-top:14px;overflow:hidden;border:1px solid #e5e7eb;">
+        <div style="padding:14px 16px;background:#111827;color:#ffffff;font-weight:900;">
           Customer Details
         </div>
         <table style="width:100%;border-collapse:collapse;">
-          ${rows}
+          ${customerRows}
         </table>
-      </div>
+      </div>`
+          : ''
+      }
 
       <div style="color:#6b7280;font-size:12px;margin-top:14px;line-height:1.4;">
         Reply directly to this email to respond to the customer.
