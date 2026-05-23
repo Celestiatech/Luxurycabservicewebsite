@@ -524,7 +524,7 @@ export default function App() {
       city: 'Auckland',
       routes: 120,
       image: 'https://images.unsplash.com/photo-1595125989588-36d745a2a828?w=600',
-      description: 'Premium airport transfers and city tours'
+      description: 'Affordable airport transfers and city tours'
     },
     {
       city: 'Hamilton',
@@ -635,7 +635,7 @@ export default function App() {
   const services = [
     {
       title: 'AIRPORT TRANSFERS',
-      description: '24/7 Auckland Airport premium pickup and drop-off services',
+      description: '24/7 Auckland Airport affordable pickup and drop-off services',
       image: 'https://images.unsplash.com/photo-1616804947838-6646ae0e423d?w=600',
       features: ['Flight Tracking', 'Meet & Greet', 'Free Wait Time']
     },
@@ -673,7 +673,7 @@ export default function App() {
 
   const uniqueFeatures = [
     {
-      title: 'PREMIUM FLEET',
+      title: 'AFFORDABLE FLEET',
       description: 'Latest model affordable vehicles maintained to perfection',
       image: 'https://images.unsplash.com/photo-1599912027667-755b68b4dd3b?w=600',
       stat: '15+ Vehicles'
@@ -694,7 +694,7 @@ export default function App() {
       title: 'AFFORDABLE AMENITIES',
       description: 'Free WiFi, charging ports, bottled water, climate control',
       image: 'https://images.unsplash.com/photo-1624976609551-0d7577bd4ce2?w=600',
-      stat: 'Premium Comfort'
+      stat: 'Affordable Comfort'
     }
   ];
 
@@ -707,7 +707,7 @@ export default function App() {
     },
     {
       name: 'Waiheke Island',
-      description: 'Wine country paradise with premium wineries',
+      description: 'Wine country paradise with affordable wineries',
       image: 'https://images.unsplash.com/photo-1602847189686-6bb361a3066d?w=600',
       distance: '40 min ferry ride'
     },
@@ -801,19 +801,19 @@ export default function App() {
     {
       title: 'Affordable Cabs Ltd Wins "Best Transport Service 2026" Award',
       date: 'April 2026',
-      excerpt: 'Recognized for outstanding customer service and premium fleet management excellence.',
+      excerpt: 'Recognized for outstanding customer service and affordable fleet management excellence.',
       image: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600'
     },
     {
       title: 'Expansion to Wellington: New Fleet of Affordable Vans',
       date: 'March 2026',
-      excerpt: 'Major expansion with introduction of premium intercity services to capital city.',
+      excerpt: 'Major expansion with introduction of affordable intercity services to capital city.',
       image: 'https://images.unsplash.com/photo-1552581234-26160f608093?w=600'
     },
     {
       title: 'Partnership with Auckland Airport for VIP Services',
       date: 'February 2026',
-      excerpt: 'Exclusive deal to provide premium transfers for business travelers and VIP guests.',
+      excerpt: 'Exclusive deal to provide affordable transfers for business travelers and VIP guests.',
       image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600'
     }
   ];
@@ -1890,15 +1890,15 @@ export default function App() {
             ].map((stat, index) => (
               <motion.div
                 key={index}
-                className="text-center"
+                className="mx-auto flex w-full max-w-3xl flex-col items-center justify-center gap-1 text-center md:flex-row md:justify-between md:gap-8 md:text-left"
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 whileHover={{ scale: 1.1, y: -10 }}
               >
-                <div className="text-5xl font-black text-yellow-500 mb-2">{stat.number}</div>
-                <div className="font-bold text-gray-300">{stat.label}</div>
+                <div className="text-5xl font-black text-yellow-500 md:shrink-0 md:text-6xl">{stat.number}</div>
+                <div className="font-bold text-gray-300 md:text-2xl">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -2577,7 +2577,7 @@ export default function App() {
               <div className="flex items-center gap-3 mb-4">
                 <img
                   src="/logo-square.png"
-                  alt="Affordable Cabs Ltd"
+                  alt="Affordable Transportation "
                   width={64}
                   height={64}
                   loading="lazy"
@@ -2585,7 +2585,7 @@ export default function App() {
                   className="h-16 w-16 shadow-lg rounded-full p-2 object-contain"
                 />
                 {/* Small text for small screen */}
-                <h3 className="font-black text-xl text-sm">AFFORDABLE CABS LTD</h3>
+                <h3 className="font-black text-xl text-sm">AFFORDABLE Transportation</h3>
               </div>
               <p className="text-gray-400 font-semibold mb-4">
                 Auckland's affordable taxi and tour service provider.
