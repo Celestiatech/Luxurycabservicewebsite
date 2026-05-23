@@ -17,6 +17,12 @@ type InquiryTemplateInput = {
   driveTime?: string;
   estimatedTotal?: string;
   fareRule?: string;
+  couponCode?: string;
+  startingFare?: string;
+  distanceFare?: string;
+  discount?: string;
+  nightSurcharge?: string;
+  trafficSurcharge?: string;
   specialRequests?: string;
 };
 
@@ -30,9 +36,9 @@ const escapeHtml = (value: string) =>
 
 export function buildInquiryEmailHtml(input: InquiryTemplateInput) {
   const source = input.source ? escapeHtml(input.source) : 'Website';
-  const isBooking = input.source === 'Booking Form';
-  const title = isBooking ? 'New Booking Request' : 'Quick Inquiry';
-  const eyebrow = isBooking ? 'New booking request received' : 'New inquiry received';
+  const isBooking = input.source === 'Booking Form' || input.source === 'Booking Quote Form';
+  const title = isBooking ? 'New Quote Request' : 'Quick Inquiry';
+  const eyebrow = isBooking ? 'New quote request received' : 'New inquiry received';
 
   const customerLines: Array<{ label: string; value: string }> = [
     { label: 'Name', value: input.name || '-' },
@@ -45,15 +51,21 @@ export function buildInquiryEmailHtml(input: InquiryTemplateInput) {
     { label: 'Drop-off', value: input.dropoff || '-' },
     { label: 'Pickup Date', value: input.date || '-' },
     { label: 'Pickup Time', value: input.pickupTime || '-' },
-    { label: 'Drop Time', value: input.dropTime || '-' },
-    { label: 'Distance', value: input.distance || '-' },
+    { label: 'Drop-off Time', value: input.dropTime || '-' },
+    { label: 'Total Distance', value: input.distance || '-' },
     { label: 'Drive Time', value: input.driveTime || '-' },
     { label: 'Passengers', value: input.passengers || '-' },
     { label: 'Vehicle Type', value: input.vehicleType || '-' },
     { label: 'Vehicle', value: input.vehicle || '-' },
     { label: 'Vehicle Quantity', value: input.vehicleQuantity || '-' },
-    { label: 'Estimated Total', value: input.estimatedTotal || '-' },
+    { label: 'Calculated Total', value: input.estimatedTotal || '-' },
     { label: 'Fare Rule', value: input.fareRule || '-' },
+    { label: 'Coupon', value: input.couponCode || '-' },
+    { label: 'Starting Fare', value: input.startingFare || '-' },
+    { label: 'Distance Fare', value: input.distanceFare || '-' },
+    { label: 'Discount', value: input.discount || '-' },
+    { label: 'Night Surcharge', value: input.nightSurcharge || '-' },
+    { label: 'Traffic Surcharge', value: input.trafficSurcharge || '-' },
     { label: 'Special Requests', value: input.specialRequests || '-' },
   ];
 

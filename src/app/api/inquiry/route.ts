@@ -24,6 +24,12 @@ type InquiryPayload = {
   driveTime?: string;
   estimatedTotal?: string;
   fareRule?: string;
+  couponCode?: string;
+  startingFare?: string;
+  distanceFare?: string;
+  discount?: string;
+  nightSurcharge?: string;
+  trafficSurcharge?: string;
   specialRequests?: string;
 };
 
@@ -51,6 +57,12 @@ export async function POST(req: Request) {
     const driveTime = (body.driveTime || '').trim();
     const estimatedTotal = (body.estimatedTotal || '').trim();
     const fareRule = (body.fareRule || '').trim();
+    const couponCode = (body.couponCode || '').trim();
+    const startingFare = (body.startingFare || '').trim();
+    const distanceFare = (body.distanceFare || '').trim();
+    const discount = (body.discount || '').trim();
+    const nightSurcharge = (body.nightSurcharge || '').trim();
+    const trafficSurcharge = (body.trafficSurcharge || '').trim();
     const specialRequests = (body.specialRequests || '').trim();
 
     if (!name) return NextResponse.json({ ok: false, error: 'Name is required.' }, { status: 400 });
@@ -65,7 +77,8 @@ export async function POST(req: Request) {
     const smtp = getSmtpConfigFromEnv(process.env);
     const transporter = createMailer(smtp);
 
-    const subjectPrefix = source === 'Booking Form' ? 'New Booking Request' : 'New Inquiry';
+    const isBooking = source === 'Booking Form' || source === 'Booking Quote Form';
+    const subjectPrefix = isBooking ? 'New Quote Request' : 'New Inquiry';
     const subject = `${subjectPrefix}: ${name}${pickup || dropoff ? ` (${pickup || '-'} to ${dropoff || '-'})` : ''}`;
     const html = buildInquiryEmailHtml({
       name,
@@ -86,6 +99,12 @@ export async function POST(req: Request) {
       driveTime,
       estimatedTotal,
       fareRule,
+      couponCode,
+      startingFare,
+      distanceFare,
+      discount,
+      nightSurcharge,
+      trafficSurcharge,
       specialRequests,
     });
 
@@ -105,15 +124,21 @@ export async function POST(req: Request) {
         `Drop-off: ${dropoff}`,
         date ? `Pickup date: ${date}` : '',
         pickupTime ? `Pickup time: ${pickupTime}` : '',
-        dropTime ? `Drop time: ${dropTime}` : '',
-        distance ? `Distance: ${distance}` : '',
+        dropTime ? `Drop-off time: ${dropTime}` : '',
+        distance ? `Total distance: ${distance}` : '',
         driveTime ? `Drive time: ${driveTime}` : '',
         passengers ? `Passengers: ${passengers}` : '',
         vehicleType ? `Vehicle type: ${vehicleType}` : '',
         vehicle ? `Vehicle: ${vehicle}` : '',
         vehicleQuantity ? `Vehicle quantity: ${vehicleQuantity}` : '',
-        estimatedTotal ? `Estimated total: ${estimatedTotal}` : '',
+        estimatedTotal ? `Calculated total: ${estimatedTotal}` : '',
         fareRule ? `Fare rule: ${fareRule}` : '',
+        couponCode ? `Coupon: ${couponCode}` : '',
+        startingFare ? `Starting fare: ${startingFare}` : '',
+        distanceFare ? `Distance fare: ${distanceFare}` : '',
+        discount ? `Discount: ${discount}` : '',
+        nightSurcharge ? `Night surcharge: ${nightSurcharge}` : '',
+        trafficSurcharge ? `Traffic surcharge: ${trafficSurcharge}` : '',
         specialRequests ? `Special requests: ${specialRequests}` : '',
         `Message: ${message}`,
       ].filter(Boolean).join('\n'),

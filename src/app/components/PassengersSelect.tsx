@@ -1,29 +1,24 @@
 'use client';
 
 import { Users } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-
-const OPTIONS = [
-  { value: '1-4', label: '1–4 Passengers' },
-  { value: '5-11', label: '5–11 Passengers' },
-];
+import { Input } from './ui/input';
 
 export function PassengersSelect(props: { value: string; onChange: (value: string) => void }) {
   return (
-    <Select value={props.value} onValueChange={props.onChange}>
-      <SelectTrigger aria-label="Select passengers" className="w-full border-2 font-semibold bg-input-background justify-between text-left">
-        <div className="flex flex-1 items-center gap-2 min-w-0 text-left">
-          <Users className="h-4 w-4 text-yellow-600 shrink-0" />
-          <SelectValue placeholder="Select passengers" />
-        </div>
-      </SelectTrigger>
-      <SelectContent className="p-1">
-        {OPTIONS.map((o) => (
-          <SelectItem key={o.value} value={o.value} className="py-2 font-semibold">
-            {o.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="relative">
+      <Users className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-yellow-600" />
+      <Input
+        aria-label="Passenger count"
+        type="number"
+        min={1}
+        max={99}
+        step={1}
+        inputMode="numeric"
+        placeholder="Enter passengers"
+        value={props.value}
+        onChange={(event) => props.onChange(event.target.value)}
+        className="border-2 pl-10 font-semibold"
+      />
+    </div>
   );
 }

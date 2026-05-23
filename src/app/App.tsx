@@ -28,6 +28,7 @@ export default function App() {
     name: '',
     email: '',
     phone: '',
+    couponCode: '',
     specialRequests: ''
   });
 
@@ -40,6 +41,7 @@ export default function App() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [currentClient, setCurrentClient] = useState(0);
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
+  const [showCouponInput, setShowCouponInput] = useState(false);
   const [shopifyVariants, setShopifyVariants] = useState<ShopifyVariantOption[]>([]);
   const [vehicleQuantities, setVehicleQuantities] = useState<Record<string, number>>({});
   const [shopifyVariantsLoading, setShopifyVariantsLoading] = useState(true);
@@ -146,7 +148,14 @@ export default function App() {
     durationMinutes,
     time: formData.time,
     vehicleQuantity: selectedVehicleQuantity || 1,
+    couponCode: formData.couponCode,
   });
+
+  useEffect(() => {
+    if (formData.couponCode === 'DISTANCE15' && (distanceKm === null || distanceKm <= 100)) {
+      setFormData((prev) => ({ ...prev, couponCode: '' }));
+    }
+  }, [distanceKm, formData.couponCode]);
 
   const setVehicleQuantity = (variantId: string, quantity: number) => {
     const safeQuantity = Number.isFinite(quantity) ? Math.max(0, Math.min(99, Math.floor(quantity))) : 0;
@@ -194,6 +203,7 @@ export default function App() {
     if (!formData.passengers.trim()) return 'Please select passengers.';
     if (!formData.vehicleType.trim()) return 'Please select vehicle type.';
     if (!formData.vehicle.trim()) return 'Please select vehicle/product.';
+    if (fareBreakdown?.couponError) return fareBreakdown.couponError;
     return null;
   };
 
@@ -416,6 +426,8 @@ export default function App() {
         duration: routeInfo?.durationText || '',
         estimatedTotal: fareBreakdown.total.toFixed(2),
         fareDescription: fareBreakdown.description,
+        couponCode: fareBreakdown.couponCode,
+        couponLabel: fareBreakdown.couponLabel,
         startingFare: fareBreakdown.startingFare.toFixed(2),
         distanceFare: fareBreakdown.distanceAmount.toFixed(2),
         discount: fareBreakdown.vehicleDiscountAmount.toFixed(2),
@@ -434,21 +446,22 @@ export default function App() {
       }
 
       const message = [
-        'Booking request - no online payment collected.',
+        'Booking quote request - no online payment collected.',
         '',
         `Pickup: ${bookingDetails.pickup}`,
         `Drop-off: ${bookingDetails.dropoff}`,
         `Date: ${bookingDetails.date}`,
         `Pickup time: ${bookingDetails.time}`,
-        bookingDetails.dropTime ? `Drop time: ${bookingDetails.dropTime}` : '',
+        bookingDetails.dropTime ? `Drop-off time: ${bookingDetails.dropTime}` : '',
         `Passengers: ${bookingDetails.passengers}`,
         `Vehicle type: ${bookingDetails.vehicleType}`,
         `Vehicle: ${bookingDetails.vehicle}`,
         `Vehicle quantity: x${bookingDetails.vehicleQuantity}`,
-        bookingDetails.distance ? `Distance: ${bookingDetails.distance}` : '',
+        bookingDetails.distance ? `Total distance: ${bookingDetails.distance}` : '',
         bookingDetails.duration ? `Estimated drive time: ${bookingDetails.duration}` : '',
-        `Estimated total: $${bookingDetails.estimatedTotal}`,
+        `Calculated total: $${bookingDetails.estimatedTotal}`,
         `Fare: ${bookingDetails.fareDescription}`,
+        bookingDetails.couponLabel ? `Coupon: ${bookingDetails.couponLabel}` : '',
         `Starting fare: $${bookingDetails.startingFare}`,
         `Distance fare: $${bookingDetails.distanceFare}`,
         `Discount: -$${bookingDetails.discount}`,
@@ -469,7 +482,7 @@ export default function App() {
           pickup: bookingDetails.pickup,
           dropoff: bookingDetails.dropoff,
           message,
-          source: 'Booking Form',
+          source: 'Booking Quote Form',
           date: bookingDetails.date,
           pickupTime: bookingDetails.time,
           dropTime: bookingDetails.dropTime,
@@ -481,18 +494,24 @@ export default function App() {
           driveTime: bookingDetails.duration,
           estimatedTotal: `$${bookingDetails.estimatedTotal}`,
           fareRule: bookingDetails.fareDescription,
+          couponCode: bookingDetails.couponLabel || bookingDetails.couponCode,
+          startingFare: `$${bookingDetails.startingFare}`,
+          distanceFare: `$${bookingDetails.distanceFare}`,
+          discount: `-$${bookingDetails.discount}`,
+          nightSurcharge: `$${bookingDetails.nightSurcharge}`,
+          trafficSurcharge: `$${bookingDetails.trafficSurcharge}`,
           specialRequests: bookingDetails.specialRequests,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || 'Failed to send booking request.');
+        throw new Error(data?.error || 'Failed to send quote request.');
       }
 
-      toast.success('Booking request sent! We will contact you shortly.');
+      toast.success('Quote request sent! We will contact you shortly.');
       setShowBookingModal(false);
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Failed to send booking request.';
+      const message = e instanceof Error ? e.message : 'Failed to send quote request.';
       toast.error(message);
     } finally {
       setIsSubmittingBooking(false);
@@ -541,20 +560,20 @@ export default function App() {
 
   const offers = [
     {
-      title: 'INSTANT 10% OFF ON PREPAY USE CODE "PREPAY10"',
-      description: 'Pay online in advance and get instant discount on your ride',
+      title: '10% OFF USE COUPON "PREPAY10"',
+      description: 'All users can enter PREPAY10 in the booking form for 10% off',
       validUntil: 'Limited Time',
       code: 'PREPAY10',
       image: 'https://images.unsplash.com/photo-1574849693510-00ab036e8978?w=600',
       discount: '10%'
     },
     {
-      title: 'RETURNING USER BONUS',
-      description: 'Returning users receive an additional 5–10% discount',
-      validUntil: 'Ongoing',
-      code: 'WELCOME_BACK',
+      title: '15% OFF OVER 100 KM',
+      description: 'Use DISTANCE15 when your total trip distance is more than 100 km',
+      validUntil: 'Limited Time',
+      code: 'DISTANCE15',
       image: 'https://images.unsplash.com/photo-1603122101829-e56305b0a5f7?w=600',
-      discount: '5–10%'
+      discount: '15%'
     },
     {
       title: 'FIXED FARE SHORT RIDES',
@@ -806,7 +825,7 @@ export default function App() {
       price: 35,
       time: 'Fixed Fare',
       demand: 'High',
-      image: 'https://images.unsplash.com/photo-1574849693510-00ab036e8978?w=400'
+      image: 'https://wallpapers.com/images/high/majestic-view-of-auckland-sky-tower-amidst-cityscape-t1fbqvyhh3wrr1td.webp?w=400'
     },
     {
       from: 'Auckland CBD',
@@ -822,7 +841,7 @@ export default function App() {
       price: 89,
       time: 'Fixed Fare',
       demand: 'High',
-      image: 'https://images.unsplash.com/photo-1603122101829-e56305b0a5f7?w=400'
+      image: 'https://s28477.pcdn.co/wp-content/uploads/2018/01/Auckland_2-984x554.jpg?w=400'
     },
   ];
 
@@ -1012,33 +1031,114 @@ export default function App() {
     return null;
   };
 
+  const renderCouponBox = (className = '') => (
+    <div className={`min-w-0 space-y-1 group ${className}`}>
+      {showCouponInput ? (
+        <>
+          <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+            Available Coupons
+          </div>
+          <div className="grid gap-1.5 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setFormData((prev) => ({ ...prev, couponCode: prev.couponCode === 'PREPAY10' ? '' : 'PREPAY10' }))}
+              className={`rounded-md border px-2.5 py-2 text-left transition-all ${
+                formData.couponCode === 'PREPAY10'
+                  ? 'border-yellow-500 bg-yellow-50'
+                  : 'border-gray-200 bg-white hover:border-yellow-300 hover:bg-yellow-50'
+              }`}
+            >
+              <div className="text-xs font-black text-gray-900">PREPAY10</div>
+              <div className="text-[11px] font-semibold text-gray-600">10% off</div>
+            </button>
+            {distanceKm !== null && distanceKm > 100 ? (
+              <button
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, couponCode: prev.couponCode === 'DISTANCE15' ? '' : 'DISTANCE15' }))}
+                className={`rounded-md border px-2.5 py-2 text-left transition-all ${
+                  formData.couponCode === 'DISTANCE15'
+                    ? 'border-yellow-500 bg-yellow-50'
+                    : 'border-gray-200 bg-white hover:border-yellow-300 hover:bg-yellow-50'
+                }`}
+              >
+                <div className="text-xs font-black text-gray-900">DISTANCE15</div>
+                <div className="text-[11px] font-semibold text-gray-600">15% off over 100 km</div>
+              </button>
+            ) : (
+              <div className="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-2 text-left opacity-75">
+                <div className="text-xs font-black text-gray-500">DISTANCE15</div>
+                <div className="text-[11px] font-semibold text-gray-500">Over 100 km only</div>
+              </div>
+            )}
+          </div>
+          {formData.couponCode ? (
+            <button
+              type="button"
+              onClick={() => setFormData((prev) => ({ ...prev, couponCode: '' }))}
+              className="text-[11px] font-black text-gray-600 underline"
+            >
+              Remove coupon
+            </button>
+          ) : null}
+          {fareBreakdown?.couponLabel ? (
+            <div className="text-[11px] font-black text-green-700">{fareBreakdown.couponLabel} applied.</div>
+          ) : null}
+          {fareBreakdown?.couponError ? (
+            <div className="text-[11px] font-black text-red-700">{fareBreakdown.couponError}</div>
+          ) : null}
+        </>
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setShowCouponInput(true)}
+          className="h-9 w-25 border-2 border-yellow-500 text-sm font-black text-yellow-700 hover:bg-yellow-50"
+        >
+          ADD COUPON
+        </Button>
+      )}
+    </div>
+  );
+
   const renderFareSummary = (className = '') => {
     if (!formData.vehicle || !fareBreakdown) return null;
 
     return (
-      <div className={`rounded-lg border  px-3 py-2 text-xs font-semibold text-gray-800 ${className}`}>
+      <div className={`rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs font-semibold text-gray-800 ${className}`}>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="font-black text-gray-900">Fare regulations</div>
+            <div className="font-black text-gray-900">Calculated fare</div>
             <div>{fareBreakdown.description}</div>
+            {fareBreakdown.couponError ? <div className="font-black text-red-700">{fareBreakdown.couponError}</div> : null}
           </div>
           <div className="shrink-0 text-right text-lg font-black text-yellow-800">
             ${fareBreakdown.total.toFixed(2)}
           </div>
         </div>
-        <div className="mt-2 grid gap-1 sm:grid-cols-2">
-          <div>Vehicle quantity: <span className="font-black">x{fareBreakdown.vehicleQuantity}</span></div>
-          <div>Starting fare: <span className="font-black">${fareBreakdown.startingFare.toFixed(2)}</span></div>
-          <div>Distance fare: <span className="font-black">${fareBreakdown.distanceAmount.toFixed(2)}</span></div>
-          <div>Discount: <span className="font-black">-${fareBreakdown.vehicleDiscountAmount.toFixed(2)}</span></div>
-          {fareBreakdown.nightSurcharge > 0 ? (
-            <div>Night surcharge: <span className="font-black">${fareBreakdown.nightSurcharge.toFixed(2)}</span></div>
-          ) : null}
-          {fareBreakdown.trafficSurcharge > 0 ? (
-            <div>Traffic surcharge: <span className="font-black">${fareBreakdown.trafficSurcharge.toFixed(2)}</span></div>
-          ) : null}
-        </div>
       </div>
+      // <div className={`rounded-lg border  px-3 py-2 text-xs font-semibold text-gray-800 ${className}`}>
+      //   <div className="flex items-start justify-between gap-3">
+      //     <div>
+      //       <div className="font-black text-gray-900">Fare regulations</div>
+      //       <div>{fareBreakdown.description}</div>
+      //     </div>
+      //     <div className="shrink-0 text-right text-lg font-black text-yellow-800">
+      //       ${fareBreakdown.total.toFixed(2)}
+      //     </div>
+      //   </div>
+      //   <div className="mt-2 grid gap-1 sm:grid-cols-2">
+      //     <div>Vehicle quantity: <span className="font-black">x{fareBreakdown.vehicleQuantity}</span></div>
+      //     <div>Starting fare: <span className="font-black">${fareBreakdown.startingFare.toFixed(2)}</span></div>
+      //     <div>Distance fare: <span className="font-black">${fareBreakdown.distanceAmount.toFixed(2)}</span></div>
+      //     <div>Discount: <span className="font-black">-${fareBreakdown.vehicleDiscountAmount.toFixed(2)}</span></div>
+      //     {fareBreakdown.nightSurcharge > 0 ? (
+      //       <div>Night surcharge: <span className="font-black">${fareBreakdown.nightSurcharge.toFixed(2)}</span></div>
+      //     ) : null}
+      //     {fareBreakdown.trafficSurcharge > 0 ? (
+      //       <div>Traffic surcharge: <span className="font-black">${fareBreakdown.trafficSurcharge.toFixed(2)}</span></div>
+      //     ) : null}
+      //   </div>
+      // </div>
     );
   };
 
@@ -1048,7 +1148,7 @@ export default function App() {
       <div className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white py-2.5 text-center font-bold shadow-lg">
         <div className="flex items-center justify-center gap-3 text-sm md:text-base">
           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-          <span>INSTANT OFFER: 10% OFF use code "PREPAY10" | Inclusive GST | No Hidden Charges</span>
+          <span>COUPON CODES: PREPAY10 = 10% OFF | DISTANCE15 = 15% OFF OVER 100 KM</span>
           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
         </div>
       </div>
@@ -1067,7 +1167,7 @@ export default function App() {
                 className="h-20 w-23 rounded-full shadow-2xl bg-white object-contain"
               />
               <div>
-                <h1 className="text-2xl font-black text-yellow-800 tracking-tight">AFFORDABLE TRANSPORTATION</h1>
+                <h1 className="text-2xl font-black text-yellow-500 tracking-tight">AFFORDABLE TRANSPORTATION</h1>
                 {/* <p className="text-xs font-bold text-yellow-800 tracking-widest">PREMIUM TRANSPORTATION</p> */}
               </div>
             </div>
@@ -1359,6 +1459,7 @@ export default function App() {
                             onChange={(passengers) => setFormData({ ...formData, passengers })}
                           />
                         </div>
+                        {renderCouponBox()}
                         <div className="min-w-0 space-y-1 group">
                           <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                             Vehicle Type <span className="text-red-600">*</span>
@@ -1499,6 +1600,7 @@ export default function App() {
                             <div className="mt-1 text-xs font-semibold text-gray-700">
                               {fareBreakdown.description}
                               {fareBreakdown.vehicleQuantity > 1 ? ` | Vehicles x${fareBreakdown.vehicleQuantity}` : ''}
+                              {fareBreakdown.couponLabel ? ` | Coupon ${fareBreakdown.couponLabel}` : ''}
                               {fareBreakdown.startingFare > 0 ? ` | Start +$${fareBreakdown.startingFare.toFixed(2)}` : ''}
                               {fareBreakdown.nightSurcharge > 0 ? ` | Night +$${fareBreakdown.nightSurcharge.toFixed(2)}` : ''}
                               {fareBreakdown.trafficSurcharge > 0 ? ` | Traffic +$${fareBreakdown.trafficSurcharge.toFixed(2)}` : ''}
@@ -1528,7 +1630,7 @@ export default function App() {
                           className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black text-lg py-6"
                         >
                           <Check className="w-5 h-5 mr-2" />
-                          {isSubmittingBooking ? 'SENDING...' : 'CONFIRM BOOKING'}
+                          {isSubmittingBooking ? 'SENDING...' : 'GET QUOTE BY EMAIL'}
                         </Button>
                       </div>
                     </div>
@@ -1672,6 +1774,7 @@ export default function App() {
                       onChange={(passengers) => setFormData({ ...formData, passengers })}
                     />
                   </div>
+                  {renderCouponBox()}
                   <div className="min-w-0 space-y-1 group">
                     <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
                       Vehicle Type <span className="text-red-600">*</span>
@@ -1743,7 +1846,7 @@ export default function App() {
                     className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-7 shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     <ShoppingCart className="w-6 h-6 mr-3" />
-                    {isSubmittingBooking ? 'SENDING...' : 'CONFIRM BOOKING'}
+                    {isSubmittingBooking ? 'SENDING...' : 'GET QUOTE BY EMAIL'}
                   </Button>
                   <div className="flex min-w-0 gap-3">
                     <a href="tel:+64277777242" className="min-w-0 flex-1">
@@ -1806,15 +1909,15 @@ export default function App() {
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex-1">
-              <h3 className="text-3xl font-black text-black mb-2">INSTANT 10% OFF USE CODE "PREPAY10"</h3>
-              <p className="text-lg font-bold text-gray-900">Pay in advance to save instantly. Distance more then 100km gets 15% off.</p>
+              <h3 className="text-3xl font-black text-black mb-2">USE COUPON CODE</h3>
+              <p className="text-lg font-bold text-gray-900">PREPAY10 gives all users 10% off. DISTANCE15 gives 15% off when total distance is more than 100 km.</p>
             </div>
             <Button
               onClick={() => setShowBookingModal(true)}
               size="lg"
               className="bg-black hover:bg-gray-900 text-white font-black px-12 py-6"
             >
-              PREPAY & SAVE
+              USE COUPON CODE
             </Button>
           </div>
         </div>
@@ -2531,3 +2634,4 @@ export default function App() {
     </div>
   );
 }
+
