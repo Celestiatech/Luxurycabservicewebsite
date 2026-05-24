@@ -61,11 +61,11 @@ export function ServicesFullPage({ onBookNow }: ServicesFullPageProps) {
   ];
 
   const pricing = [
-    { service: 'Airport Transfer', sedan: '$65', van: '$120', description: 'One-way to city center' },
-    { service: 'Hourly Hire', sedan: '$75/hr', van: '$125/hr', description: 'Minimum 2 hours' },
-    { service: 'City Tour (3hrs)', sedan: '$499', van: '$990', description: 'All attractions included' },
-    { service: 'Intercity Hamilton', sedan: '$180', van: '$320', description: 'One-way transfer' },
-    { service: 'Wedding Package', sedan: '$799', van: '$1,499', description: 'Full day service' }
+    { service: 'Airport Transfer', car: '$65', van: '$120', description: 'One-way to city center' },
+    { service: 'Hourly Hire', car: '$75/hr', van: '$125/hr', description: 'Minimum 2 hours' },
+    { service: 'City Tour (3hrs)', car: '$499', van: '$990', description: 'All attractions included' },
+    { service: 'Intercity Hamilton', car: '$180', van: '$320', description: 'One-way transfer' },
+    { service: 'Wedding Package', car: '$799', van: '$1,499', description: 'Full day service' }
   ];
 
   const whyChoose = [
@@ -201,7 +201,7 @@ export function ServicesFullPage({ onBookNow }: ServicesFullPageProps) {
                   <thead className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black">
                     <tr>
                       <th className="text-left p-6 font-black text-lg">SERVICE</th>
-                      <th className="text-center p-6 font-black text-lg">SEDAN</th>
+                      <th className="text-center p-6 font-black text-lg">CAR</th>
                       <th className="text-center p-6 font-black text-lg">VAN</th>
                       <th className="text-left p-6 font-black text-lg">DETAILS</th>
                     </tr>
@@ -210,7 +210,7 @@ export function ServicesFullPage({ onBookNow }: ServicesFullPageProps) {
                     {pricing.map((item, index) => (
                       <tr key={index} className="border-b hover:bg-gray-50 transition">
                         <td className="p-6 font-bold text-gray-900">{item.service}</td>
-                        <td className="p-6 text-center font-black text-2xl text-yellow-600">{item.sedan}</td>
+                        <td className="p-6 text-center font-black text-2xl text-yellow-600">{item.car}</td>
                         <td className="p-6 text-center font-black text-2xl text-yellow-600">{item.van}</td>
                         <td className="p-6 font-semibold text-gray-600">{item.description}</td>
                       </tr>

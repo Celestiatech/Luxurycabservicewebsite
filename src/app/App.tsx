@@ -906,7 +906,7 @@ export default function App() {
     },
     {
       question: 'What vehicles do you have for weddings?',
-      answer: 'We offer affordable sedans and decorated 11-seater vans perfect for weddings with professional chauffeurs.'
+      answer: 'We offer affordable cars and decorated 11-seater vans perfect for weddings with professional chauffeurs.'
     },
     {
       question: 'Are your drivers licensed and insured?',
