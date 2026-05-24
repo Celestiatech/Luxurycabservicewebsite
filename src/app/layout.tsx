@@ -1,15 +1,16 @@
 import type { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import { Toaster } from '@/app/components/ui/sonner';
 
 export const metadata: Metadata = {
-  title: 'Affordable Cabs Ltd - Premium Transport in Auckland, NZ | 24/7 Service',
-  description: 'Book affordable cabs in Auckland with Affordable Cabs Ltd. Premium airport transfers, city tours, wedding services & intercity travel. Professional drivers, 24/7 service, fixed prices. Call +64 27 777 7242',
+  title: 'Luxury Cabs Ltd - Premium Transport in Auckland, NZ | 24/7 Service',
+  description: 'Book affordable cabs in Auckland with Luxury Cabs Ltd. Premium airport transfers, city tours, wedding services & intercity travel. Professional drivers, 24/7 service, fixed prices. Call +64 27 777 7242',
   keywords: 'affordable cabs Auckland, cab booking, airport transfer Auckland, taxi service New Zealand, wedding car hire, city tours Auckland',
-  authors: [{ name: 'Affordable Cabs Ltd' }],
-  creator: 'Affordable Cabs Ltd',
-  publisher: 'Affordable Cabs Ltd',
+  authors: [{ name: 'Luxury Cabs Ltd' }],
+  creator: 'Luxury Cabs Ltd',
+  publisher: 'Luxury Cabs Ltd',
   robots: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
   alternates: {
     canonical: 'https://affordablecabsltd.nz',
@@ -18,22 +19,22 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_NZ',
     url: 'https://affordablecabsltd.nz',
-    siteName: 'Affordable Cabs Ltd',
-    title: 'Affordable Cabs Ltd - Premium Transport in Auckland, NZ',
+    siteName: 'Luxury Cabs Ltd',
+    title: 'Luxury Cabs Ltd - Premium Transport in Auckland, NZ',
     description: 'Book affordable cabs in Auckland. Professional drivers, 24/7 service, airport transfers, wedding cars & city tours.',
     images: [
       {
         url: 'https://affordablecabsltd.nz/logo-square.png',
         width: 400,
         height: 400,
-        alt: 'Affordable Cabs Ltd - Premium Transportation',
+        alt: 'Luxury Cabs Ltd - Premium Transportation',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Affordable Cabs Ltd - Auckland Transport',
+    title: 'Luxury Cabs Ltd - Auckland Transport',
     description: 'Professional cab service in Auckland. Book now for airport transfers, tours & more.',
     creator: '@affordablecabs',
   },
@@ -54,7 +55,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
   '@id': 'https://affordablecabsltd.nz',
-  name: 'Affordable Cabs Ltd',
+  name: 'Luxury Cabs Ltd',
   image: 'https://affordablecabsltd.nz/logo-square.png',
   description: 'Premium affordable transportation services in Auckland, New Zealand',
   telephone: '+64 27 777 7242',
@@ -92,6 +93,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
+        <Script id="google-tag-manager" strategy="beforeInteractive">
+          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-M46M6TM9');`}
+        </Script>
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="icon" href="/logo-square.png" type="image/png" />
         <link rel="shortcut icon" href="/logo-square.png" type="image/png" />
@@ -106,6 +114,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-M46M6TM9"
+            height="0"
+            width="0"
+            style={{ display: 'none', visibility: 'hidden' }}
+          />
+        </noscript>
         <main>{children}</main>
         <Toaster />
       </body>
