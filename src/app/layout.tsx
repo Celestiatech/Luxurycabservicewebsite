@@ -5,8 +5,8 @@ import './globals.css';
 import { Toaster } from '@/app/components/ui/sonner';
 
 export const metadata: Metadata = {
-  title: 'Luxury Cabs Ltd - Premium Transport in Auckland, NZ | 24/7 Service',
-  description: 'Book affordable cabs in Auckland with Luxury Cabs Ltd. Premium airport transfers, city tours, wedding services & intercity travel. Professional drivers, 24/7 service, fixed prices. Call +64 27 777 7242',
+  title: 'Luxury Cabs Ltd - Affordable Transport in Auckland, NZ | 24/7 Service',
+  description: 'Book affordable cabs in Auckland with Luxury Cabs Ltd. Affordable airport transfers, city tours, wedding services & intercity travel. Professional drivers, 24/7 service, fixed prices. Call +64 27 777 7242',
   keywords: 'affordable cabs Auckland, cab booking, airport transfer Auckland, taxi service New Zealand, wedding car hire, city tours Auckland',
   authors: [{ name: 'Luxury Cabs Ltd' }],
   creator: 'Luxury Cabs Ltd',
@@ -20,14 +20,14 @@ export const metadata: Metadata = {
     locale: 'en_NZ',
     url: 'https://affordablecabsltd.nz',
     siteName: 'Luxury Cabs Ltd',
-    title: 'Luxury Cabs Ltd - Premium Transport in Auckland, NZ',
+    title: 'Luxury Cabs Ltd - Affordable Transport in Auckland, NZ',
     description: 'Book affordable cabs in Auckland. Professional drivers, 24/7 service, airport transfers, wedding cars & city tours.',
     images: [
       {
         url: 'https://affordablecabsltd.nz/logo-square.png',
         width: 400,
         height: 400,
-        alt: 'Luxury Cabs Ltd - Premium Transportation',
+        alt: 'Luxury Cabs Ltd - Affordable Transportation',
         type: 'image/png',
       },
     ],
@@ -57,7 +57,7 @@ const jsonLd = {
   '@id': 'https://affordablecabsltd.nz',
   name: 'Luxury Cabs Ltd',
   image: 'https://affordablecabsltd.nz/logo-square.png',
-  description: 'Premium affordable transportation services in Auckland, New Zealand',
+  description: 'Affordable transportation services in Auckland, New Zealand',
   telephone: '+64 27 777 7242',
   email: 'Luxurycabsltd@gmail.com',
   address: {
