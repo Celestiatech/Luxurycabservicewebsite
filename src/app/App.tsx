@@ -96,7 +96,7 @@ export default function App() {
     }
   };
 
-  type VehicleType = 'taxi' | 'van';
+  type VehicleType = 'van' | 'van';
 
   const isVanVariant = (label: string) => {
     const t = label.toLowerCase();
@@ -125,8 +125,8 @@ export default function App() {
     (selectedShopifyVariant ? isVanVariant(selectedShopifyVariant.label || '') : false);
 
   const filteredShopifyVariants =
-    selectedVehicleType === 'taxi'
-      ? shopifyVariants.filter((v) => v.vehicleType === 'taxi' || (!v.vehicleType && !isVanVariant(v.label || '')))
+    selectedVehicleType === 'van'
+      ? shopifyVariants.filter((v) => v.vehicleType === 'van' || (!v.vehicleType && !isVanVariant(v.label || '')))
       : selectedVehicleType === 'van'
         ? shopifyVariants.filter((v) => v.vehicleType === 'van' || (!v.vehicleType && isVanVariant(v.label || '')))
         : shopifyVariants;
@@ -143,7 +143,7 @@ export default function App() {
       ? 1
       : 0;
   const fareBreakdown = calculateFare({
-    vehicleType: isVanSelection ? 'van' : 'taxi',
+    vehicleType: isVanSelection ? 'van' : 'van',
     distanceKm,
     durationMinutes,
     time: formData.time,
@@ -1003,8 +1003,8 @@ export default function App() {
         disabled={!selectedVehicleType}
       >
         <option value="">{selectedVehicleType ? 'Select vehicle' : 'Select vehicle type first'}</option>
-        {selectedVehicleType === 'taxi' ? (
-          <option value="sedan">Affordable Taxi (1-4 pax)</option>
+        {selectedVehicleType === 'van' ? (
+          <option value="sedan">Affordable Van (1-4 pax)</option>
         ) : null}
         {selectedVehicleType === 'van' ? (
           <>
@@ -1488,7 +1488,7 @@ export default function App() {
                             onChange={(e) => handleVehicleTypeChange(e.target.value)}
                           >
                             <option value="">Select vehicle type</option>
-                            <option value="taxi">Taxi</option>
+                            <option value="van">Van</option>
                             <option value="van">Van</option>
                           </select>
                           {renderFareSummary('mt-2')}
@@ -1786,7 +1786,7 @@ export default function App() {
                       onChange={(e) => handleVehicleTypeChange(e.target.value)}
                     >
                       <option value="">Select vehicle type</option>
-                      <option value="taxi">Taxi</option>
+                      <option value="van">Van</option>
                       <option value="van">Van</option>
                     </select>
                     {renderFareSummary('mt-2')}
@@ -2636,7 +2636,7 @@ export default function App() {
                 <h3 className="font-black text-xl text-sm">AFFORDABLE Transportation</h3>
               </div>
               <p className="text-gray-400 font-semibold mb-4">
-                Auckland's affordable taxi and tour service provider.
+                Auckland's affordable van and tour service provider.
               </p>
             </div>
             <div>

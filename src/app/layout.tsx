@@ -7,7 +7,7 @@ import { Toaster } from '@/app/components/ui/sonner';
 export const metadata: Metadata = {
   title: 'Luxury Cabs Ltd - Affordable Transport in Auckland, NZ | 24/7 Service',
   description: 'Book affordable cabs in Auckland with Luxury Cabs Ltd. Affordable airport transfers, city tours, wedding services & intercity travel. Professional drivers, 24/7 service, fixed prices. Call +64 27 777 7242',
-  keywords: 'affordable cabs Auckland, cab booking, airport transfer Auckland, taxi service New Zealand, wedding car hire, city tours Auckland',
+  keywords: 'affordable cabs Auckland, cab booking, airport transfer Auckland, van service New Zealand, wedding car hire, city tours Auckland',
   authors: [{ name: 'Luxury Cabs Ltd' }],
   creator: 'Luxury Cabs Ltd',
   publisher: 'Luxury Cabs Ltd',

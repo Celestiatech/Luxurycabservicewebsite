@@ -1,4 +1,4 @@
-export type VehicleFareType = 'taxi' | 'van';
+export type VehicleFareType = 'van' | 'van';
 
 export type FareBreakdown = {
   vehicleType: VehicleFareType;
@@ -30,7 +30,7 @@ type FareTier = {
   fixed?: number;
 };
 
-const TAXI_TIERS: FareTier[] = [
+const VAN_TIERS: FareTier[] = [
   { max: 5, rate: 6.3, discount: 0, description: '1-5 km at $6.30/km' },
   { max: 10, rate: 5.5, discount: 0, description: '5.1-10 km at $5.50/km' },
   { max: 15, rate: 4.7, discount: 0, description: '10.1-15 km at $4.70/km' },
@@ -88,8 +88,8 @@ export function calculateFare(input: {
     ? Math.max(1, Math.floor(vehicleQuantityValue))
     : 1;
 
-  const vehicleType: VehicleFareType = input.vehicleType === 'van' ? 'van' : 'taxi';
-  const tier = (vehicleType === 'van' ? VAN_TIERS : TAXI_TIERS).find((item) => distanceKm <= item.max);
+  const vehicleType: VehicleFareType = input.vehicleType === 'van' ? 'van' : 'van';
+  const tier = (vehicleType === 'van' ? VAN_TIERS : VAN_TIERS).find((item) => distanceKm <= item.max);
   if (!tier) return null;
   const couponCode = (input.couponCode || '').trim().toUpperCase();
   let couponRate = 0;

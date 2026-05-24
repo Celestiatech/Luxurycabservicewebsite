@@ -116,7 +116,7 @@ export function generateRatingSchema(
 export function generateLocalBusinessSchema() {
   return {
     '@context': 'https://schema.org',
-    '@type': ['LocalBusiness', 'TaxiService'],
+    '@type': ['LocalBusiness', 'VanService'],
     '@id': SITE_CONFIG.url,
     name: SITE_CONFIG.name,
     image: `${SITE_CONFIG.url}/logo-square.png`,
