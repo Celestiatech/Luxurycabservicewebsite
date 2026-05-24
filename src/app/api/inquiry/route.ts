@@ -18,8 +18,6 @@ type InquiryPayload = {
   dropTime?: string;
   passengers?: string;
   vehicleType?: string;
-  vehicle?: string;
-  vehicleQuantity?: string;
   distance?: string;
   driveTime?: string;
   estimatedTotal?: string;
@@ -51,8 +49,6 @@ export async function POST(req: Request) {
     const dropTime = (body.dropTime || '').trim();
     const passengers = (body.passengers || '').trim();
     const vehicleType = (body.vehicleType || '').trim();
-    const vehicle = (body.vehicle || '').trim();
-    const vehicleQuantity = (body.vehicleQuantity || '').trim();
     const distance = (body.distance || '').trim();
     const driveTime = (body.driveTime || '').trim();
     const estimatedTotal = (body.estimatedTotal || '').trim();
@@ -93,8 +89,6 @@ export async function POST(req: Request) {
       dropTime,
       passengers,
       vehicleType,
-      vehicle,
-      vehicleQuantity,
       distance,
       driveTime,
       estimatedTotal,
@@ -129,8 +123,6 @@ export async function POST(req: Request) {
         driveTime ? `Drive time: ${driveTime}` : '',
         passengers ? `Passengers: ${passengers}` : '',
         vehicleType ? `Vehicle type: ${vehicleType}` : '',
-        vehicle ? `Vehicle: ${vehicle}` : '',
-        vehicleQuantity ? `Vehicle quantity: ${vehicleQuantity}` : '',
         estimatedTotal ? `Calculated total: ${estimatedTotal}` : '',
         fareRule ? `Fare rule: ${fareRule}` : '',
         couponCode ? `Coupon: ${couponCode}` : '',

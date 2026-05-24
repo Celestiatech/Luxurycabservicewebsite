@@ -33,8 +33,6 @@ const buildInput = (session: Stripe.Checkout.Session, adminEmail: string): Booki
     time: metadata(session, 'time'),
     passengers: metadata(session, 'passengers'),
     vehicleType: metadata(session, 'vehicle_type'),
-    vehicle: metadata(session, 'vehicle'),
-    vehicleQuantity: metadata(session, 'vehicle_quantity'),
     name: metadata(session, 'name'),
     email: metadata(session, 'email') || session.customer_details?.email || session.customer_email || '',
     phone: metadata(session, 'phone') || session.customer_details?.phone || '',

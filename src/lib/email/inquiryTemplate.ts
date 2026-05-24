@@ -11,8 +11,6 @@ type InquiryTemplateInput = {
   dropTime?: string;
   passengers?: string;
   vehicleType?: string;
-  vehicle?: string;
-  vehicleQuantity?: string;
   distance?: string;
   driveTime?: string;
   estimatedTotal?: string;
@@ -56,8 +54,6 @@ export function buildInquiryEmailHtml(input: InquiryTemplateInput) {
     { label: 'Drive Time', value: input.driveTime || '-' },
     { label: 'Passengers', value: input.passengers || '-' },
     { label: 'Vehicle Type', value: input.vehicleType || '-' },
-    { label: 'Vehicle', value: input.vehicle || '-' },
-    { label: 'Vehicle Quantity', value: input.vehicleQuantity || '-' },
     { label: 'Calculated Total', value: input.estimatedTotal || '-' },
     { label: 'Fare Rule', value: input.fareRule || '-' },
     { label: 'Coupon', value: input.couponCode || '-' },

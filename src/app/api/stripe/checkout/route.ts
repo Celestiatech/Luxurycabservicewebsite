@@ -14,7 +14,6 @@ type StripeCheckoutPayload = {
     time?: string;
     passengers?: string;
     vehicleType?: string;
-    vehicle?: string;
     name?: string;
     email?: string;
     phone?: string;
@@ -60,13 +59,12 @@ export async function POST(req: Request) {
     const time = trim(booking.time);
     const passengers = trim(booking.passengers);
     const vehicleType = trim(booking.vehicleType).toLowerCase();
-    const vehicle = trim(booking.vehicle);
     const name = trim(booking.name);
     const email = trim(booking.email);
     const phone = trim(booking.phone);
     const specialRequests = trim(booking.specialRequests);
 
-    if (!pickup || !dropoff || !date || !time || !passengers || !vehicle || !name || !email || !phone) {
+    if (!pickup || !dropoff || !date || !time || !passengers || !vehicleType || !name || !email || !phone) {
       return NextResponse.json(
         { error: 'Missing required booking details.' },
         { status: 400, headers: { 'Cache-Control': 'no-store, max-age=0' } },
@@ -105,7 +103,6 @@ export async function POST(req: Request) {
       time: metadataValue(time),
       passengers: metadataValue(passengers),
       vehicle_type: metadataValue(vehicleType),
-      vehicle: metadataValue(vehicle),
       name: metadataValue(name),
       email: metadataValue(email),
       phone: metadataValue(phone),
@@ -140,7 +137,7 @@ export async function POST(req: Request) {
             currency,
             unit_amount: Math.round(totalAmount * 100),
             product_data: {
-              name: vehicle || 'Affordable Cabs booking',
+              name: `${vehicleType === 'van' ? 'Van' : 'Taxi'} booking`,
               description: `${pickup} to ${dropoff}`,
             },
           },

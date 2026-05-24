@@ -202,7 +202,6 @@ export default function App() {
     if (!formData.time.trim()) return 'Please select pickup time.';
     if (!formData.passengers.trim()) return 'Please select passengers.';
     if (!formData.vehicleType.trim()) return 'Please select vehicle type.';
-    if (!formData.vehicle.trim()) return 'Please select vehicle/product.';
     if (fareBreakdown?.couponError) return fareBreakdown.couponError;
     return null;
   };
@@ -393,9 +392,6 @@ export default function App() {
       alert(s2);
       return;
     }
-    const chosenVariant = selectedVehicleItems[0]?.variant || selectedShopifyVariant;
-    const bookingVehicle = selectedVehicleLabel || chosenVariant?.label || formData.vehicle;
-
     if (!fareBreakdown) {
       alert('Please enter pickup and drop-off locations so we can calculate the fare.');
       return;
@@ -420,8 +416,6 @@ export default function App() {
         dropTime: estimatedDropTime,
         passengers: formData.passengers,
         vehicleType: formData.vehicleType,
-        vehicle: bookingVehicle,
-        vehicleQuantity: selectedVehicleQuantity || 1,
         distance: routeInfo?.distanceText || '',
         duration: routeInfo?.durationText || '',
         estimatedTotal: fareBreakdown.total.toFixed(2),
@@ -455,8 +449,6 @@ export default function App() {
         bookingDetails.dropTime ? `Drop-off time: ${bookingDetails.dropTime}` : '',
         `Passengers: ${bookingDetails.passengers}`,
         `Vehicle type: ${bookingDetails.vehicleType}`,
-        `Vehicle: ${bookingDetails.vehicle}`,
-        `Vehicle quantity: x${bookingDetails.vehicleQuantity}`,
         bookingDetails.distance ? `Total distance: ${bookingDetails.distance}` : '',
         bookingDetails.duration ? `Estimated drive time: ${bookingDetails.duration}` : '',
         `Calculated total: $${bookingDetails.estimatedTotal}`,
@@ -488,8 +480,6 @@ export default function App() {
           dropTime: bookingDetails.dropTime,
           passengers: bookingDetails.passengers,
           vehicleType: bookingDetails.vehicleType,
-          vehicle: bookingDetails.vehicle,
-          vehicleQuantity: String(bookingDetails.vehicleQuantity),
           distance: bookingDetails.distance,
           driveTime: bookingDetails.duration,
           estimatedTotal: `$${bookingDetails.estimatedTotal}`,
@@ -843,7 +833,11 @@ export default function App() {
     {
       from: 'Auckland CBD',
       to: 'Auckland CBD',
-      price: 60,
+      cabPrices: [
+        { label: 'ECO', price: 35 },
+        { label: 'Sedan', price: 40 },
+      ],
+      vanPrice: 60,
       time: 'Fixed Fare',
       demand: 'High',
       image: 'https://wallpapers.com/images/high/majestic-view-of-auckland-sky-tower-amidst-cityscape-t1fbqvyhh3wrr1td.webp?w=400'
@@ -851,7 +845,11 @@ export default function App() {
     {
       from: 'Auckland CBD',
       to: 'Airport',
-      price: 130,
+      cabPrices: [
+        { label: 'ECO', price: 89 },
+        { label: 'Sedan', price: 99 },
+      ],
+      vanPrice: 130,
       time: 'Fixed Fare',
       demand: 'Medium',
       image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400'
@@ -859,7 +857,11 @@ export default function App() {
     {
       from: 'Airport',
       to: 'Auckland CBD',
-      price: 130,
+      cabPrices: [
+        { label: 'ECO', price: 89 },
+        { label: 'Sedan', price: 99 },
+      ],
+      vanPrice: 130,
       time: 'Fixed Fare',
       demand: 'High',
       image: 'https://s28477.pcdn.co/wp-content/uploads/2018/01/Auckland_2-984x554.jpg?w=400'
@@ -1122,7 +1124,7 @@ export default function App() {
   );
 
   const renderFareSummary = (className = '') => {
-    if (!formData.vehicle || !fareBreakdown) return null;
+    if (!formData.vehicleType || !fareBreakdown) return null;
 
     return (
       <div></div>
@@ -1489,18 +1491,7 @@ export default function App() {
                             <option value="taxi">Taxi</option>
                             <option value="van">Van</option>
                           </select>
-                        </div>
-                        <div className="min-w-0 space-y-1 group">
-                          <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
-                            Select Vehicle <span className="text-red-600">*</span>
-                          </div>
-                          {renderVehicleSelection()}
                           {renderFareSummary('mt-2')}
-                          {shopifyVariantsError ? (
-                            <div className="text-[11px] font-semibold text-gray-500">
-                              Shopify products not loaded: {shopifyVariantsError}
-                            </div>
-                          ) : null}
                         </div>
                       </div>
                       <textarea
@@ -1798,18 +1789,7 @@ export default function App() {
                       <option value="taxi">Taxi</option>
                       <option value="van">Van</option>
                     </select>
-                  </div>
-                  <div className="min-w-0 space-y-1 group">
-                    <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
-                      Select Vehicle <span className="text-red-600">*</span>
-                    </div>
-                    {renderVehicleSelection()}
                     {renderFareSummary('mt-2')}
-                    {shopifyVariantsError ? (
-                      <div className="text-[11px] font-semibold text-gray-500">
-                        Shopify products not loaded: {shopifyVariantsError}
-                      </div>
-                    ) : null}
                   </div>
                   <div className="min-w-0 space-y-1 group">
                     <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
@@ -2500,8 +2480,12 @@ export default function App() {
                     </div>
                   </div>
                   <div className="flex items-center justify-between pt-4 border-t-2 border-gray-100">
-                    <div>
-                      <p className="text-3xl font-black text-yellow-700">${route.price}</p>
+                    <div className="space-y-1">
+                      {route.cabPrices.map((cabPrice) => (
+                        <p key={cabPrice.label} className="text-lg font-black text-gray-900">
+                          {cabPrice.label} <span className="text-yellow-700">- ${cabPrice.price}</span>
+                        </p>
+                      ))}
                       <p className="text-sm font-bold text-gray-500">{route.time}</p>
                     </div>
                     <Button
@@ -2554,7 +2538,8 @@ export default function App() {
                   </div>
                   <div className="flex items-center justify-between pt-4 border-t-2 border-gray-100">
                     <div>
-                      <p className="text-3xl font-black text-yellow-700">${route.price}</p>
+                      <p className="text-3xl font-black text-yellow-700">${route.vanPrice}</p>
+                      <p className="text-base font-black text-gray-900">Van</p>
                       <p className="text-sm font-bold text-gray-500">{route.time}</p>
                     </div>
                     <Button

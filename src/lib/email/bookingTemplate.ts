@@ -10,8 +10,6 @@ export type BookingEmailInput = {
   time: string;
   passengers: string;
   vehicleType: string;
-  vehicle: string;
-  vehicleQuantity: string;
   name: string;
   email: string;
   phone: string;
@@ -68,8 +66,6 @@ export function buildBookingAdminEmailHtml(input: BookingEmailInput) {
     { label: 'Date / Time', value: `${input.date} ${input.time}`.trim() },
     { label: 'Passengers', value: input.passengers },
     { label: 'Vehicle Type', value: input.vehicleType },
-    { label: 'Vehicle', value: input.vehicle },
-    { label: 'Vehicle Quantity', value: input.vehicleQuantity },
     { label: 'Distance', value: input.distanceKm ? `${input.distanceKm} km` : '-' },
     { label: 'Drive Time', value: input.durationMinutes ? `${input.durationMinutes} min` : '-' },
     { label: 'Special Requests', value: input.specialRequests },
@@ -113,8 +109,7 @@ export function buildBookingCustomerEmailHtml(input: BookingEmailInput) {
     { label: 'Drop-off', value: input.dropoff },
     { label: 'Date / Time', value: `${input.date} ${input.time}`.trim() },
     { label: 'Passengers', value: input.passengers },
-    { label: 'Vehicle', value: input.vehicle },
-    { label: 'Vehicle Quantity', value: input.vehicleQuantity },
+    { label: 'Vehicle Type', value: input.vehicleType },
     { label: 'Special Requests', value: input.specialRequests },
   ]);
 
@@ -194,8 +189,7 @@ export function buildBookingEmailText(input: BookingEmailInput) {
     `Drop-off: ${input.dropoff || '-'}`,
     `Date/Time: ${input.date || '-'} ${input.time || ''}`,
     `Passengers: ${input.passengers || '-'}`,
-    `Vehicle: ${input.vehicle || '-'}`,
-    `Vehicle quantity: ${input.vehicleQuantity || '-'}`,
+    `Vehicle type: ${input.vehicleType || '-'}`,
     `Name: ${input.name || '-'}`,
     `Email: ${input.email || '-'}`,
     `Phone: ${input.phone || '-'}`,
