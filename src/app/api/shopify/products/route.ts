@@ -18,7 +18,7 @@ type ShopifyProductNode = {
 };
 type ShopifyResponse = {
   data?: {
-    van?: { products?: { nodes?: ShopifyProductNode[] } } | null;
+    sedan?: { products?: { nodes?: ShopifyProductNode[] } } | null;
     van?: { products?: { nodes?: ShopifyProductNode[] } } | null;
   };
   errors?: { message: string }[];
@@ -26,7 +26,7 @@ type ShopifyResponse = {
 
 const productsQuery = `
   query ProductsByVehicleCollection($first: Int!, $variantsFirst: Int!) {
-    van: collection(handle: "van") {
+    sedan: collection(handle: "sedan") {
       products(first: $first) {
         nodes {
           title
@@ -122,7 +122,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ variants: [], error: gqlErrors.join('; ') }, { status: 200 });
     }
 
-    const toVariants = (products: ShopifyProductNode[] | undefined, vehicleType: 'van' | 'van') =>
+    const toVariants = (products: ShopifyProductNode[] | undefined, vehicleType: 'sedan' | 'van') =>
       (products || [])
         .flatMap((p) =>
           (p.variants?.nodes || []).map((v) => ({
@@ -139,7 +139,7 @@ export async function GET(req: Request) {
         .filter((v) => typeof v.id === 'string' && v.id.startsWith('gid://'));
 
     const variants = [
-      ...toVariants(json.data?.van?.products?.nodes, 'van'),
+      ...toVariants(json.data?.sedan?.products?.nodes, 'sedan'),
       ...toVariants(json.data?.van?.products?.nodes, 'van'),
     ];
 

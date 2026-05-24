@@ -137,7 +137,7 @@ export async function POST(req: Request) {
             currency,
             unit_amount: Math.round(totalAmount * 100),
             product_data: {
-              name: `${vehicleType === 'van' ? 'Van' : 'Van'} booking`,
+              name: `${vehicleType === 'van' ? 'Van' : 'Affordable Van'} booking`,
               description: `${pickup} to ${dropoff}`,
             },
           },
