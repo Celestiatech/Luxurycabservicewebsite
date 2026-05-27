@@ -31,7 +31,6 @@ export default function App() {
     phone: '',
     couponCode: '',
     specialRequests: '',
-    pickupNow: false,
   });
 
   const [currentPage, setCurrentPage] = useState('home');
@@ -51,6 +50,15 @@ export default function App() {
   const [routeInfo, setRouteInfo] = useState<{ distanceText: string; durationText: string } | null>(null);
   const [routeInfoLoading, setRouteInfoLoading] = useState(false);
   const [routeInfoError, setRouteInfoError] = useState<string | null>(null);
+  const [postSubmitModal, setPostSubmitModal] = useState<{
+    open: boolean;
+    title: string;
+    subtitle: string;
+    detailsText: string;
+    whatsappUrl: string;
+    callUrl: string;
+    smsUrl: string;
+  } | null>(null);
 
   const [inquiryForm, setInquiryForm] = useState({
     name: '',
@@ -437,7 +445,6 @@ export default function App() {
         email: formData.email.trim(),
         phone: formData.phone.trim(),
         specialRequests: formData.specialRequests.trim(),
-        pickupNow: Boolean(formData.pickupNow),
       };
 
       try {
@@ -448,7 +455,6 @@ export default function App() {
 
       const message = [
         'Booking quote request - no online payment collected.',
-        bookingDetails.pickupNow ? 'Pickup right now: YES (please contact ASAP).' : '',
         '',
         `Pickup: ${bookingDetails.pickup}`,
         `Drop-off: ${bookingDetails.dropoff}`,
@@ -472,23 +478,27 @@ export default function App() {
         .filter(Boolean)
         .join('\n');
 
-      const openSmsComposer = async (smsBody: string) => {
-        const body = smsBody.trim();
-        if (!body) return;
+      const detailsText = [
+        'New booking request.',
+        `Pickup: ${bookingDetails.pickup}`,
+        `Drop-off: ${bookingDetails.dropoff}`,
+        `Date/Time: ${bookingDetails.date} ${bookingDetails.time}`,
+        `Passengers: ${bookingDetails.passengers}`,
+        `Vehicle: ${bookingDetails.vehicleType}`,
+        `Name: ${bookingDetails.name}`,
+        `Email: ${bookingDetails.email}`,
+        `Phone: ${bookingDetails.phone}`,
+        bookingDetails.specialRequests ? `Notes: ${bookingDetails.specialRequests}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n');
 
-        const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-        const isIOS = /\b(iPhone|iPad|iPod)\b/i.test(ua);
-        const separator = isIOS ? '&' : '?';
-        const smsUrl = `sms:${BUSINESS_PHONE_E164}${separator}body=${encodeURIComponent(body)}`;
-
-        try {
-          await navigator.clipboard?.writeText(body);
-        } catch {
-          // ignore
-        }
-
-        window.location.href = smsUrl;
-      };
+      const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+      const isIOS = /\b(iPhone|iPad|iPod)\b/i.test(ua);
+      const separator = isIOS ? '&' : '?';
+      const smsUrl = `sms:${BUSINESS_PHONE_E164}${separator}body=${encodeURIComponent(detailsText)}`;
+      const whatsappUrl = `https://wa.me/${BUSINESS_PHONE_E164.replace(/^\+/, '')}?text=${encodeURIComponent(detailsText)}`;
+      const callUrl = `tel:${BUSINESS_PHONE_E164}`;
 
       const res = await fetch('/api/inquiry', {
         method: 'POST',
@@ -517,7 +527,6 @@ export default function App() {
           nightSurcharge: `$${bookingDetails.nightSurcharge}`,
           trafficSurcharge: `$${bookingDetails.trafficSurcharge}`,
           specialRequests: bookingDetails.specialRequests,
-          pickupNow: bookingDetails.pickupNow ? 'Yes' : 'No',
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -525,27 +534,15 @@ export default function App() {
         throw new Error(data?.error || 'Failed to send quote request.');
       }
 
-      toast.success(bookingDetails.pickupNow ? 'Sent! Opening SMS so you can connect now.' : 'Quote request sent! We will contact you shortly.');
-      if (bookingDetails.pickupNow) {
-        const smsText = [
-          'New booking request (Pickup right now).',
-          `Pickup: ${bookingDetails.pickup}`,
-          `Drop-off: ${bookingDetails.dropoff}`,
-          `Date/Time: ${bookingDetails.date} ${bookingDetails.time}`,
-          `Passengers: ${bookingDetails.passengers}`,
-          `Vehicle: ${bookingDetails.vehicleType}`,
-          `Name: ${bookingDetails.name}`,
-          `Email: ${bookingDetails.email}`,
-          `Phone: ${bookingDetails.phone}`,
-          bookingDetails.specialRequests ? `Notes: ${bookingDetails.specialRequests}` : '',
-        ]
-          .filter(Boolean)
-          .join('\n');
-        window.setTimeout(() => {
-          toast.info('Sending you to SMS (booking details copied if supported).');
-          openSmsComposer(smsText);
-        }, 400);
-      }
+      setPostSubmitModal({
+        open: true,
+        title: 'Quote submitted!',
+        subtitle: 'Our team will contact you shortly. Please be patient.',
+        detailsText,
+        whatsappUrl,
+        callUrl,
+        smsUrl,
+      });
       setShowBookingModal(false);
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Failed to send quote request.';
@@ -1628,19 +1625,6 @@ export default function App() {
                           onChange={(e) => setFormData({...formData, phone: e.target.value})}
                           className="font-semibold border-2"
                         />
-                        <label
-                          htmlFor="modal-pickup-now"
-                          className="mt-2 flex cursor-pointer items-start gap-3 rounded-lg border-2 border-yellow-200 bg-yellow-50 p-3 text-sm font-semibold text-gray-900"
-                        >
-                          <input
-                            id="modal-pickup-now"
-                            type="checkbox"
-                            checked={Boolean(formData.pickupNow)}
-                            onChange={(e) => setFormData((p) => ({ ...p, pickupNow: e.target.checked }))}
-                            className="mt-0.5 h-5 w-5 accent-yellow-500"
-                          />
-                          <span>Pickup right now (connect immediately via SMS service after submit)</span>
-                        </label>
                       </div>
                       <div className="flex gap-3">
                         <Button
@@ -1722,8 +1706,8 @@ export default function App() {
                           disabled={isSubmittingBooking}
                           className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black text-lg py-6"
                         >
-                          {formData.pickupNow ? <MessageCircle className="w-5 h-5 mr-2" /> : <Mail className="w-5 h-5 mr-2" />}
-                          {isSubmittingBooking ? 'SENDING...' : formData.pickupNow ? 'CONNECT NOW' : 'GET QUOTE BY EMAIL'}
+                          <Mail className="w-5 h-5 mr-2" />
+                          {isSubmittingBooking ? 'SENDING...' : 'GET QUOTE BY EMAIL'}
                         </Button>
                       </div>
                     </div>
@@ -1733,6 +1717,155 @@ export default function App() {
             </motion.div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* Post Submit Alert (blocks until OK) */}
+      <AnimatePresence>
+        {postSubmitModal?.open ? (
+          <motion.div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="w-full max-w-lg max-h-[85vh]"
+            >
+              <Card className="shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+                <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 rounded-full bg-black/10 p-2">
+                      <CheckCircle2 className="h-6 w-6" />
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="text-2xl font-black leading-tight">{postSubmitModal.title}</h2>
+                      <CardDescription className="text-gray-900 font-bold mt-1">
+                        {postSubmitModal.subtitle}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4 overflow-y-auto">
+                  <div className="rounded-xl border-2 border-gray-200 bg-white p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="font-black text-gray-900">Booking details</div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-9 px-3 font-bold border-2"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard?.writeText(postSubmitModal.detailsText);
+                            toast.success('Booking details copied.');
+                          } catch {
+                            toast.error('Copy not supported on this device.');
+                          }
+                        }}
+                      >
+                        <Check className="h-4 w-4 mr-2" />
+                        Copy
+                      </Button>
+                    </div>
+                    <div className="mt-3 grid grid-cols-1 gap-2 text-sm max-h-[34vh] overflow-y-auto pr-1">
+                      {postSubmitModal.detailsText
+                        .split('\n')
+                        .filter(Boolean)
+                        .map((line, idx) => {
+                          const i = line.indexOf(':');
+                          if (i === -1) {
+                            return (
+                              <div key={idx} className="font-black text-gray-900">
+                                {line}
+                              </div>
+                            );
+                          }
+                          const k = line.slice(0, i).trim();
+                          const v = line.slice(i + 1).trim();
+                          return (
+                            <div key={idx} className="flex gap-3 rounded-lg bg-gray-50 p-2 border border-gray-200">
+                              <div className="w-28 shrink-0 font-black text-gray-700">{k}</div>
+                              <div className="min-w-0 font-semibold text-gray-900 break-words">{v || '-'}</div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <a
+                      href={postSubmitModal.whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard?.writeText(postSubmitModal.detailsText);
+                          toast.success('Booking details copied.');
+                        } catch {
+                          // ignore
+                        }
+                      }}
+                    >
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full font-bold border-2 border-green-600 text-green-700 hover:bg-green-50"
+                      >
+                        <MessageCircle className="w-5 h-5 mr-2" />
+                        WhatsApp
+                      </Button>
+                    </a>
+                    <a
+                      href={postSubmitModal.callUrl}
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard?.writeText(postSubmitModal.detailsText);
+                          toast.success('Booking details copied.');
+                        } catch {
+                          // ignore
+                        }
+                      }}
+                    >
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full font-bold border-2 border-yellow-700 text-yellow-800 hover:bg-yellow-50"
+                      >
+                        <Phone className="w-5 h-5 mr-2" />
+                        Call
+                      </Button>
+                    </a>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full font-bold border-2 border-gray-800 text-gray-900 hover:bg-gray-100"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard?.writeText(postSubmitModal.detailsText);
+                          toast.success('Booking details copied.');
+                        } catch {
+                          // ignore
+                        }
+                        window.location.href = postSubmitModal.smsUrl;
+                      }}
+                    >
+                      <MessageCircle className="w-5 h-5 mr-2" />
+                      Message
+                    </Button>
+                  </div>
+                  <Button
+                    type="button"
+                    className="w-full bg-gray-900 hover:bg-black text-white font-black text-lg py-6"
+                    onClick={() => setPostSubmitModal(null)}
+                  >
+                    OK
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        ) : null}
       </AnimatePresence>
 
       {/* Hero Section with Direct Booking Form */}
@@ -1915,27 +2048,14 @@ export default function App() {
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       className="font-semibold border-2"
                     />
-                    <label
-                      htmlFor="booking-pickup-now"
-                      className="mt-2 flex cursor-pointer items-start gap-3 rounded-lg border-2 border-yellow-200 bg-yellow-50 p-3 text-sm font-semibold text-gray-900"
-                    >
-                      <input
-                        id="booking-pickup-now"
-                        type="checkbox"
-                        checked={Boolean(formData.pickupNow)}
-                        onChange={(e) => setFormData((p) => ({ ...p, pickupNow: e.target.checked }))}
-                        className="mt-0.5 h-5 w-5 accent-yellow-500"
-                      />
-                      <span>Pickup right now (connect immediately via SMS after submit)</span>
-                    </label>
                   </div>
                   <Button
                     onClick={submitBookingRequest}
                     disabled={isSubmittingBooking}
                     className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-7 shadow-xl transition-all duration-300 hover:scale-105"
                   >
-                    {formData.pickupNow ? <MessageCircle className="w-6 h-6 mr-3" /> : <Mail className="w-6 h-6 mr-3" />}
-                    {isSubmittingBooking ? 'SENDING...' : formData.pickupNow ? 'CONNECT NOW' : 'GET QUOTE BY EMAIL'}
+                    <Mail className="w-6 h-6 mr-3" />
+                    {isSubmittingBooking ? 'SENDING...' : 'GET QUOTE BY EMAIL'}
                   </Button>
                   <div className="flex min-w-0 gap-3">
                     <a href="tel:+64277777242" className="min-w-0 flex-1">
