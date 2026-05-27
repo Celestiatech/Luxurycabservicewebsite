@@ -1394,20 +1394,30 @@ export default function App() {
                     onChange={(value) => setInquiryForm((p) => ({ ...p, dropoff: value }))}
                   />
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    <Input
-                      placeholder="Pickup Time (Optional)"
-                      type="time"
-                      value={inquiryForm.pickupTime}
-                      onChange={(e) => setInquiryForm((p) => ({ ...p, pickupTime: e.target.value }))}
-                      className="font-semibold border-2 [color-scheme:light]"
-                    />
-                    <Input
-                      placeholder="Drop-off Time (Optional)"
-                      type="time"
-                      value={inquiryForm.dropTime}
-                      onChange={(e) => setInquiryForm((p) => ({ ...p, dropTime: e.target.value }))}
-                      className="font-semibold border-2 [color-scheme:light]"
-                    />
+                    <div className="space-y-1 group">
+                      <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                        Pickup Time <span className="text-gray-500">(optional)</span>
+                      </div>
+                      <Input
+                        aria-label="Pickup time"
+                        type="time"
+                        value={inquiryForm.pickupTime}
+                        onChange={(e) => setInquiryForm((p) => ({ ...p, pickupTime: e.target.value }))}
+                        className="font-semibold border-2 [color-scheme:light]"
+                      />
+                    </div>
+                    <div className="space-y-1 group">
+                      <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                        Drop-off Time <span className="text-gray-500">(optional)</span>
+                      </div>
+                      <Input
+                        aria-label="Drop-off time"
+                        type="time"
+                        value={inquiryForm.dropTime}
+                        onChange={(e) => setInquiryForm((p) => ({ ...p, dropTime: e.target.value }))}
+                        className="font-semibold border-2 [color-scheme:light]"
+                      />
+                    </div>
                   </div>
                   <textarea
                     placeholder="Additional Requirements..."
@@ -1712,7 +1722,7 @@ export default function App() {
                           disabled={isSubmittingBooking}
                           className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black text-lg py-6"
                         >
-                          <Check className="w-5 h-5 mr-2" />
+                          {formData.pickupNow ? <MessageCircle className="w-5 h-5 mr-2" /> : <Mail className="w-5 h-5 mr-2" />}
                           {isSubmittingBooking ? 'SENDING...' : formData.pickupNow ? 'CONNECT NOW' : 'GET QUOTE BY EMAIL'}
                         </Button>
                       </div>
@@ -1924,7 +1934,7 @@ export default function App() {
                     disabled={isSubmittingBooking}
                     className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-7 shadow-xl transition-all duration-300 hover:scale-105"
                   >
-                    <ShoppingCart className="w-6 h-6 mr-3" />
+                    {formData.pickupNow ? <MessageCircle className="w-6 h-6 mr-3" /> : <Mail className="w-6 h-6 mr-3" />}
                     {isSubmittingBooking ? 'SENDING...' : formData.pickupNow ? 'CONNECT NOW' : 'GET QUOTE BY EMAIL'}
                   </Button>
                   <div className="flex min-w-0 gap-3">
