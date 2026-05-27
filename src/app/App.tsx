@@ -58,6 +58,8 @@ export default function App() {
     email: '',
     pickup: '',
     dropoff: '',
+    pickupTime: '',
+    dropTime: '',
     message: '',
   });
   const [inquirySending, setInquirySending] = useState(false);
@@ -81,6 +83,8 @@ export default function App() {
           email,
           pickup: inquiryForm.pickup.trim(),
           dropoff: inquiryForm.dropoff.trim(),
+          pickupTime: inquiryForm.pickupTime.trim(),
+          dropTime: inquiryForm.dropTime.trim(),
           message: inquiryForm.message.trim(),
         }),
       });
@@ -89,7 +93,7 @@ export default function App() {
         throw new Error(data?.error || 'Failed to send inquiry.');
       }
       setShowInquiryForm(false);
-      setInquiryForm({ name: '', phone: '', email: '', pickup: '', dropoff: '', message: '' });
+      setInquiryForm({ name: '', phone: '', email: '', pickup: '', dropoff: '', pickupTime: '', dropTime: '', message: '' });
       toast.success('Inquiry sent! We will respond within 30 minutes.');
     } catch (e: any) {
       toast.error(e?.message || 'Failed to send inquiry.');
@@ -1389,6 +1393,22 @@ export default function App() {
                     value={inquiryForm.dropoff}
                     onChange={(value) => setInquiryForm((p) => ({ ...p, dropoff: value }))}
                   />
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <Input
+                      placeholder="Pickup Time (Optional)"
+                      type="time"
+                      value={inquiryForm.pickupTime}
+                      onChange={(e) => setInquiryForm((p) => ({ ...p, pickupTime: e.target.value }))}
+                      className="font-semibold border-2 [color-scheme:light]"
+                    />
+                    <Input
+                      placeholder="Drop-off Time (Optional)"
+                      type="time"
+                      value={inquiryForm.dropTime}
+                      onChange={(e) => setInquiryForm((p) => ({ ...p, dropTime: e.target.value }))}
+                      className="font-semibold border-2 [color-scheme:light]"
+                    />
+                  </div>
                   <textarea
                     placeholder="Additional Requirements..."
                     className="w-full border-2 rounded-md p-3 font-semibold min-h-24"
@@ -1693,7 +1713,7 @@ export default function App() {
                           className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black text-lg py-6"
                         >
                           <Check className="w-5 h-5 mr-2" />
-                          {isSubmittingBooking ? 'SENDING...' : formData.pickupNow ? 'GET QUOTE & CONNECT NOW' : 'GET QUOTE BY EMAIL'}
+                          {isSubmittingBooking ? 'SENDING...' : formData.pickupNow ? 'CONNECT NOW' : 'GET QUOTE BY EMAIL'}
                         </Button>
                       </div>
                     </div>
@@ -1905,7 +1925,7 @@ export default function App() {
                     className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-7 shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     <ShoppingCart className="w-6 h-6 mr-3" />
-                    {isSubmittingBooking ? 'SENDING...' : formData.pickupNow ? 'GET QUOTE & CONNECT NOW' : 'GET QUOTE BY EMAIL'}
+                    {isSubmittingBooking ? 'SENDING...' : formData.pickupNow ? 'CONNECT NOW' : 'GET QUOTE BY EMAIL'}
                   </Button>
                   <div className="flex min-w-0 gap-3">
                     <a href="tel:+64277777242" className="min-w-0 flex-1">

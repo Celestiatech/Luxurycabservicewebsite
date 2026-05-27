@@ -69,6 +69,8 @@ export function buildInquiryEmailHtml(input: InquiryTemplateInput) {
     ...customerLines,
     { label: 'Pickup', value: input.pickup || '-' },
     { label: 'Drop-off', value: input.dropoff || '-' },
+    { label: 'Pickup Time', value: input.pickupTime || '-' },
+    { label: 'Drop-off Time', value: input.dropTime || '-' },
     { label: 'Message', value: input.message || '-' },
   ];
 
@@ -130,4 +132,3 @@ export function buildInquiryEmailHtml(input: InquiryTemplateInput) {
   </body>
 </html>`;
 }
-
