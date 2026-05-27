@@ -1732,23 +1732,23 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="w-full max-w-lg max-h-[85vh]"
+              className="w-full max-w-md max-h-[75vh]"
             >
-              <Card className="shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+              <Card className="shadow-2xl overflow-hidden max-h-[75vh] flex flex-col">
                 <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black">
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5 rounded-full bg-black/10 p-2">
                       <CheckCircle2 className="h-6 w-6" />
                     </div>
                     <div className="min-w-0">
-                      <h2 className="text-2xl font-black leading-tight">{postSubmitModal.title}</h2>
-                      <CardDescription className="text-gray-900 font-bold mt-1">
+                      <h2 className="text-xl font-black leading-tight">{postSubmitModal.title}</h2>
+                      <CardDescription className="text-gray-900 font-bold mt-0.5 text-sm">
                         {postSubmitModal.subtitle}
                       </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-6 space-y-4 overflow-y-auto">
+                <CardContent className="p-4 space-y-3 overflow-y-auto">
                   <div className="rounded-xl border-2 border-gray-200 bg-white p-4">
                     <div className="flex items-center justify-between gap-3">
                       <div className="font-black text-gray-900">Booking details</div>
@@ -1769,7 +1769,7 @@ export default function App() {
                         Copy
                       </Button>
                     </div>
-                    <div className="mt-3 grid grid-cols-1 gap-2 text-sm max-h-[34vh] overflow-y-auto pr-1">
+                    <div className="mt-3 grid grid-cols-1 gap-2 text-sm max-h-[24vh] overflow-y-auto pr-1">
                       {postSubmitModal.detailsText
                         .split('\n')
                         .filter(Boolean)
@@ -1785,7 +1785,7 @@ export default function App() {
                           const k = line.slice(0, i).trim();
                           const v = line.slice(i + 1).trim();
                           return (
-                            <div key={idx} className="flex gap-3 rounded-lg bg-gray-50 p-2 border border-gray-200">
+                            <div key={idx} className="flex gap-3 rounded-lg p-2">
                               <div className="w-28 shrink-0 font-black text-gray-700">{k}</div>
                               <div className="min-w-0 font-semibold text-gray-900 break-words">{v || '-'}</div>
                             </div>
@@ -1793,7 +1793,12 @@ export default function App() {
                         })}
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="pt-1">
+                    <div className="text-[12px] font-black text-gray-900 tracking-wider uppercase">
+                      For instant quote
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
                     <a
                       href={postSubmitModal.whatsappUrl}
                       target="_blank"
@@ -1810,10 +1815,12 @@ export default function App() {
                       <Button
                         type="button"
                         variant="outline"
-                        className="w-full font-bold border-2 border-green-600 text-green-700 hover:bg-green-50"
+                        className="w-full min-w-0 border-2 border-green-600 text-green-700 hover:bg-green-50 px-2 h-10 text-[11px] font-black"
                       >
-                        <MessageCircle className="w-5 h-5 mr-2" />
-                        WhatsApp
+                        <span className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+                          <MessageCircle className="h-4 w-4 shrink-0" />
+                          <span>WhatsApp</span>
+                        </span>
                       </Button>
                     </a>
                     <a
@@ -1830,16 +1837,18 @@ export default function App() {
                       <Button
                         type="button"
                         variant="outline"
-                        className="w-full font-bold border-2 border-yellow-700 text-yellow-800 hover:bg-yellow-50"
+                        className="w-full min-w-0 border-2 border-yellow-700 text-yellow-800 hover:bg-yellow-50 px-2 h-10 text-[11px] font-black"
                       >
-                        <Phone className="w-5 h-5 mr-2" />
-                        Call
+                        <span className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+                          <Phone className="h-4 w-4 shrink-0" />
+                          <span>Call</span>
+                        </span>
                       </Button>
                     </a>
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full font-bold border-2 border-gray-800 text-gray-900 hover:bg-gray-100"
+                      className="w-full min-w-0 border-2 border-gray-800 text-gray-900 hover:bg-gray-100 px-2 h-10 text-[11px] font-black"
                       onClick={async () => {
                         try {
                           await navigator.clipboard?.writeText(postSubmitModal.detailsText);
@@ -1850,13 +1859,15 @@ export default function App() {
                         window.location.href = postSubmitModal.smsUrl;
                       }}
                     >
-                      <MessageCircle className="w-5 h-5 mr-2" />
-                      Message
+                      <span className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        <MessageCircle className="h-4 w-4 shrink-0" />
+                        <span>Message</span>
+                      </span>
                     </Button>
                   </div>
                   <Button
                     type="button"
-                    className="w-full bg-gray-900 hover:bg-black text-white font-black text-lg py-6"
+                    className="w-full bg-gray-900 hover:bg-black text-white font-black text-base py-5"
                     onClick={() => setPostSubmitModal(null)}
                   >
                     OK
