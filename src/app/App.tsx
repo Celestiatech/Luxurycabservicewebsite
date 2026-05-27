@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { calculateFare, parseDurationMinutes } from '@/lib/fare';
 
 export default function App() {
+  const BUSINESS_PHONE_E164 = '+64277777242';
   const [formData, setFormData] = useState({
     pickup: '',
     dropoff: '',
@@ -29,7 +30,8 @@ export default function App() {
     email: '',
     phone: '',
     couponCode: '',
-    specialRequests: ''
+    specialRequests: '',
+    pickupNow: false,
   });
 
   const [currentPage, setCurrentPage] = useState('home');
@@ -431,6 +433,7 @@ export default function App() {
         email: formData.email.trim(),
         phone: formData.phone.trim(),
         specialRequests: formData.specialRequests.trim(),
+        pickupNow: Boolean(formData.pickupNow),
       };
 
       try {
@@ -441,6 +444,7 @@ export default function App() {
 
       const message = [
         'Booking quote request - no online payment collected.',
+        bookingDetails.pickupNow ? 'Pickup right now: YES (please contact ASAP).' : '',
         '',
         `Pickup: ${bookingDetails.pickup}`,
         `Drop-off: ${bookingDetails.dropoff}`,
@@ -463,6 +467,24 @@ export default function App() {
       ]
         .filter(Boolean)
         .join('\n');
+
+      const openSmsComposer = async (smsBody: string) => {
+        const body = smsBody.trim();
+        if (!body) return;
+
+        const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+        const isIOS = /\b(iPhone|iPad|iPod)\b/i.test(ua);
+        const separator = isIOS ? '&' : '?';
+        const smsUrl = `sms:${BUSINESS_PHONE_E164}${separator}body=${encodeURIComponent(body)}`;
+
+        try {
+          await navigator.clipboard?.writeText(body);
+        } catch {
+          // ignore
+        }
+
+        window.location.href = smsUrl;
+      };
 
       const res = await fetch('/api/inquiry', {
         method: 'POST',
@@ -491,6 +513,7 @@ export default function App() {
           nightSurcharge: `$${bookingDetails.nightSurcharge}`,
           trafficSurcharge: `$${bookingDetails.trafficSurcharge}`,
           specialRequests: bookingDetails.specialRequests,
+          pickupNow: bookingDetails.pickupNow ? 'Yes' : 'No',
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -498,7 +521,27 @@ export default function App() {
         throw new Error(data?.error || 'Failed to send quote request.');
       }
 
-      toast.success('Quote request sent! We will contact you shortly.');
+      toast.success(bookingDetails.pickupNow ? 'Sent! Opening SMS so you can connect now.' : 'Quote request sent! We will contact you shortly.');
+      if (bookingDetails.pickupNow) {
+        const smsText = [
+          'New booking request (Pickup right now).',
+          `Pickup: ${bookingDetails.pickup}`,
+          `Drop-off: ${bookingDetails.dropoff}`,
+          `Date/Time: ${bookingDetails.date} ${bookingDetails.time}`,
+          `Passengers: ${bookingDetails.passengers}`,
+          `Vehicle: ${bookingDetails.vehicleType}`,
+          `Name: ${bookingDetails.name}`,
+          `Email: ${bookingDetails.email}`,
+          `Phone: ${bookingDetails.phone}`,
+          bookingDetails.specialRequests ? `Notes: ${bookingDetails.specialRequests}` : '',
+        ]
+          .filter(Boolean)
+          .join('\n');
+        window.setTimeout(() => {
+          toast.info('Sending you to SMS (booking details copied if supported).');
+          openSmsComposer(smsText);
+        }, 400);
+      }
       setShowBookingModal(false);
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Failed to send quote request.';
@@ -891,7 +934,7 @@ export default function App() {
       rating: 5,
       text: 'Perfect for our wedding day! The 12-seater van was spacious and elegant. Made our day extra special.',
       service: 'Wedding',
-      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200'
+      image: 'https://media.istockphoto.com/id/1191193169/photo/portrait-of-a-confident-young-woman-at-the-park.webp?a=1&b=1&s=612x612&w=0&k=20&c=xuL5z1fnQt8NT18S4-8Y-lD6sIHp1BUJZ8kJ8rbVlGw='
     }
   ];
 
@@ -1555,6 +1598,19 @@ export default function App() {
                           onChange={(e) => setFormData({...formData, phone: e.target.value})}
                           className="font-semibold border-2"
                         />
+                        <label
+                          htmlFor="modal-pickup-now"
+                          className="mt-2 flex cursor-pointer items-start gap-3 rounded-lg border-2 border-yellow-200 bg-yellow-50 p-3 text-sm font-semibold text-gray-900"
+                        >
+                          <input
+                            id="modal-pickup-now"
+                            type="checkbox"
+                            checked={Boolean(formData.pickupNow)}
+                            onChange={(e) => setFormData((p) => ({ ...p, pickupNow: e.target.checked }))}
+                            className="mt-0.5 h-5 w-5 accent-yellow-500"
+                          />
+                          <span>Pickup right now (connect immediately via SMS service after submit)</span>
+                        </label>
                       </div>
                       <div className="flex gap-3">
                         <Button
@@ -1637,7 +1693,7 @@ export default function App() {
                           className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black text-lg py-6"
                         >
                           <Check className="w-5 h-5 mr-2" />
-                          {isSubmittingBooking ? 'SENDING...' : 'GET QUOTE BY EMAIL'}
+                          {isSubmittingBooking ? 'SENDING...' : formData.pickupNow ? 'GET QUOTE & CONNECT NOW' : 'GET QUOTE BY EMAIL'}
                         </Button>
                       </div>
                     </div>
@@ -1829,6 +1885,19 @@ export default function App() {
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       className="font-semibold border-2"
                     />
+                    <label
+                      htmlFor="booking-pickup-now"
+                      className="mt-2 flex cursor-pointer items-start gap-3 rounded-lg border-2 border-yellow-200 bg-yellow-50 p-3 text-sm font-semibold text-gray-900"
+                    >
+                      <input
+                        id="booking-pickup-now"
+                        type="checkbox"
+                        checked={Boolean(formData.pickupNow)}
+                        onChange={(e) => setFormData((p) => ({ ...p, pickupNow: e.target.checked }))}
+                        className="mt-0.5 h-5 w-5 accent-yellow-500"
+                      />
+                      <span>Pickup right now (connect immediately via SMS after submit)</span>
+                    </label>
                   </div>
                   <Button
                     onClick={submitBookingRequest}
@@ -1836,7 +1905,7 @@ export default function App() {
                     className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-7 shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     <ShoppingCart className="w-6 h-6 mr-3" />
-                    {isSubmittingBooking ? 'SENDING...' : 'GET QUOTE BY EMAIL'}
+                    {isSubmittingBooking ? 'SENDING...' : formData.pickupNow ? 'GET QUOTE & CONNECT NOW' : 'GET QUOTE BY EMAIL'}
                   </Button>
                   <div className="flex min-w-0 gap-3">
                     <a href="tel:+64277777242" className="min-w-0 flex-1">
@@ -1879,15 +1948,15 @@ export default function App() {
             ].map((stat, index) => (
               <motion.div
                 key={index}
-                className="mx-auto flex w-full max-w-3xl flex-col items-center justify-center gap-1 text-center md:flex-row md:justify-between md:gap-8 md:text-left"
+                className="mx-auto flex max-w-1xl flex-col items-center justify-center gap-1 text-center md:flex-row md:justify-between md:gap-8 md:text-left"
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 whileHover={{ scale: 1.1, y: -10 }}
               >
-                <div className="text-5xl font-black text-yellow-500 md:shrink-0 md:text-6xl">{stat.number}</div>
-                <div className="font-bold text-gray-300 md:text-2xl">{stat.label}</div>
+                <div className="text-5xl font-black text-yellow-500 md:shrink-0 md:text-6xl ">{stat.number}</div>
+                <div className="font-bold text-gray-300 md:text-6xl text-3xl">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -2365,7 +2434,7 @@ export default function App() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-5xl font-black mb-4 uppercase">HOW IT WORKS</h2>
-            <p className="text-xl font-bold text-gray-300">Simple 4-step booking process</p>
+            <p className="text-xl font-bold text-gray-300">Simple 3-step booking process</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
@@ -2683,4 +2752,3 @@ export default function App() {
     </div>
   );
 }
-
