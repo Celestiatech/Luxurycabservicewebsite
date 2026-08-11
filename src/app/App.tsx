@@ -374,6 +374,39 @@ export default function App() {
     setShowInquiryForm(true);
   };
 
+  const openToursQuote = () => {
+    const hasData = [
+      formData.pickup.trim(),
+      formData.dropoff.trim(),
+      formData.date.trim(),
+      formData.time.trim(),
+      formData.passengers,
+      formData.name.trim(),
+      formData.phone.trim(),
+    ].some(Boolean);
+
+    const message = hasData
+      ? [
+          'Tour quote request',
+          '',
+          'I would like a quote for a tour.',
+          '',
+          formData.pickup.trim() ? `Pickup: ${formData.pickup.trim()}` : '',
+          formData.dropoff.trim() ? `Drop-off: ${formData.dropoff.trim()}` : '',
+          formData.date.trim() ? `Date: ${formData.date.trim()}` : '',
+          formData.time.trim() ? `Pickup time: ${formData.time.trim()}` : '',
+          formData.passengers ? `Passengers: ${formData.passengers}` : '',
+          formData.name.trim() ? `Name: ${formData.name.trim()}` : '',
+          formData.phone.trim() ? `Phone: ${formData.phone.trim()}` : '',
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : 'I would like a quote for a tour. Please contact me.';
+
+    const whatsappUrl = `https://wa.me/64277777242?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   const handleShopifyCheckout = (packageData: any) => {
     setSelectedPackage(packageData);
     setShowBookingModal(true);
@@ -464,41 +497,10 @@ export default function App() {
         .filter(Boolean)
         .join('\n');
 
-      const res = await fetch('/api/inquiry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: bookingDetails.name,
-          phone: bookingDetails.phone,
-          email: bookingDetails.email,
-          pickup: bookingDetails.pickup,
-          dropoff: bookingDetails.dropoff,
-          message,
-          source: 'Booking Quote Form',
-          date: bookingDetails.date,
-          pickupTime: bookingDetails.time,
-          dropTime: bookingDetails.dropTime,
-          passengers: bookingDetails.passengers,
-          vehicleType: bookingDetails.vehicleType,
-          distance: bookingDetails.distance,
-          driveTime: bookingDetails.duration,
-          estimatedTotal: `$${bookingDetails.estimatedTotal}`,
-          fareRule: bookingDetails.fareDescription,
-          couponCode: bookingDetails.couponLabel || bookingDetails.couponCode,
-          startingFare: `$${bookingDetails.startingFare}`,
-          distanceFare: `$${bookingDetails.distanceFare}`,
-          discount: `-$${bookingDetails.discount}`,
-          nightSurcharge: `$${bookingDetails.nightSurcharge}`,
-          trafficSurcharge: `$${bookingDetails.trafficSurcharge}`,
-          specialRequests: bookingDetails.specialRequests,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || 'Failed to send quote request.');
-      }
+      const whatsappUrl = `https://wa.me/64277777242?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
 
-      toast.success('Quote request sent! We will contact you shortly.');
+      toast.success('Opening WhatsApp to send your quote request.');
       setShowBookingModal(false);
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Failed to send quote request.';
@@ -1191,7 +1193,7 @@ export default function App() {
                 className="h-20 w-23 rounded-full shadow-2xl bg-white object-contain"
               />
               <div>
-                <h1 className="text-2xl font-black text-yellow-500 tracking-tight">AFFORDABLE TRANSPORTATION</h1>
+                <h1 className="text-2xl font-black text-yellow-500 tracking-tight">AFFORDABLE MAXI TAXI</h1>
                 {/* <p className="text-xs font-bold text-yellow-800 tracking-widest">PREMIUM TRANSPORTATION</p> */}
               </div>
             </div>
@@ -1637,7 +1639,7 @@ export default function App() {
                           className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black text-lg py-6"
                         >
                           <Check className="w-5 h-5 mr-2" />
-                          {isSubmittingBooking ? 'SENDING...' : 'GET QUOTE BY EMAIL'}
+                          {isSubmittingBooking ? 'OPENING WHATSAPP...' : 'GET QUOTE BY WHATSAPP'}
                         </Button>
                       </div>
                     </div>
@@ -1676,7 +1678,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
               >
-                AUCKLAND'S AFFORDABLE COMMUTE
+                AUCKLAND AFFORDABLE MAXI VANS
               </motion.h1>
               <motion.p
                 className="text-2xl font-bold text-yellow-400 mb-8"
@@ -1836,7 +1838,15 @@ export default function App() {
                     className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-7 shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     <ShoppingCart className="w-6 h-6 mr-3" />
-                    {isSubmittingBooking ? 'SENDING...' : 'GET QUOTE BY EMAIL'}
+                    {isSubmittingBooking ? 'OPENING WHATSAPP...' : 'GET QUOTE BY WHATSAPP'}
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={openToursQuote}
+                    className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-black text-lg py-7 shadow-xl transition-all duration-300 hover:scale-105"
+                  >
+                    <MapPin className="w-6 h-6 mr-3" />
+                    GET QUOTE FOR TOURS
                   </Button>
                   <div className="flex min-w-0 gap-3">
                     <a href="tel:+64277777242" className="min-w-0 flex-1">
@@ -1845,10 +1855,10 @@ export default function App() {
                         CALL US
                       </Button>
                     </a>
-                    <a href="https://wa.me/64277777242" target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1">
-                      <Button variant="outline" className="w-full font-bold border-2 border-green-600 text-green-600 hover:bg-green-50 transition-all duration-300">
-                        <MessageCircle className="w-5 h-5 mr-2" />
-                        WHATSAPP
+                    <a href="mailto:Luxurycabsltd@gmail.com" className="min-w-0 flex-1">
+                      <Button variant="outline" className="w-full font-bold border-2 border-yellow-700 text-yellow-700 hover:bg-yellow-50 transition-all duration-300">
+                        <Mail className="w-5 h-5 mr-2" />
+                        MAIL US
                       </Button>
                     </a>
                   </div>
