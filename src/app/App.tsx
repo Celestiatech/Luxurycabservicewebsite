@@ -29,7 +29,7 @@ export default function App() {
     email: '',
     phone: '',
     couponCode: '',
-    specialRequests: ''
+    specialRequests: '',
   });
 
   const [currentPage, setCurrentPage] = useState('home');
@@ -49,6 +49,15 @@ export default function App() {
   const [routeInfo, setRouteInfo] = useState<{ distanceText: string; durationText: string } | null>(null);
   const [routeInfoLoading, setRouteInfoLoading] = useState(false);
   const [routeInfoError, setRouteInfoError] = useState<string | null>(null);
+  const [postSubmitModal, setPostSubmitModal] = useState<{
+    open: boolean;
+    title: string;
+    subtitle: string;
+    detailsText: string;
+    whatsappUrl: string;
+    callUrl: string;
+    smsUrl: string;
+  } | null>(null);
 
   const [inquiryForm, setInquiryForm] = useState({
     name: '',
@@ -56,6 +65,8 @@ export default function App() {
     email: '',
     pickup: '',
     dropoff: '',
+    pickupTime: '',
+    dropTime: '',
     message: '',
   });
   const [inquirySending, setInquirySending] = useState(false);
@@ -79,6 +90,8 @@ export default function App() {
           email,
           pickup: inquiryForm.pickup.trim(),
           dropoff: inquiryForm.dropoff.trim(),
+          pickupTime: inquiryForm.pickupTime.trim(),
+          dropTime: inquiryForm.dropTime.trim(),
           message: inquiryForm.message.trim(),
         }),
       });
@@ -87,7 +100,7 @@ export default function App() {
         throw new Error(data?.error || 'Failed to send inquiry.');
       }
       setShowInquiryForm(false);
-      setInquiryForm({ name: '', phone: '', email: '', pickup: '', dropoff: '', message: '' });
+      setInquiryForm({ name: '', phone: '', email: '', pickup: '', dropoff: '', pickupTime: '', dropTime: '', message: '' });
       toast.success('Inquiry sent! We will respond within 30 minutes.');
     } catch (e: any) {
       toast.error(e?.message || 'Failed to send inquiry.');
@@ -893,7 +906,7 @@ export default function App() {
       rating: 5,
       text: 'Perfect for our wedding day! The 12-seater van was spacious and elegant. Made our day extra special.',
       service: 'Wedding',
-      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200'
+      image: 'https://media.istockphoto.com/id/1191193169/photo/portrait-of-a-confident-young-woman-at-the-park.webp?a=1&b=1&s=612x612&w=0&k=20&c=xuL5z1fnQt8NT18S4-8Y-lD6sIHp1BUJZ8kJ8rbVlGw='
     }
   ];
 
@@ -1348,6 +1361,32 @@ export default function App() {
                     value={inquiryForm.dropoff}
                     onChange={(value) => setInquiryForm((p) => ({ ...p, dropoff: value }))}
                   />
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <div className="space-y-1 group">
+                      <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                        Pickup Time <span className="text-gray-500">(optional)</span>
+                      </div>
+                      <Input
+                        aria-label="Pickup time"
+                        type="time"
+                        value={inquiryForm.pickupTime}
+                        onChange={(e) => setInquiryForm((p) => ({ ...p, pickupTime: e.target.value }))}
+                        className="font-semibold border-2 [color-scheme:light]"
+                      />
+                    </div>
+                    <div className="space-y-1 group">
+                      <div className="text-[11px] font-black text-gray-600 tracking-wider uppercase transition-colors group-focus-within:text-yellow-700">
+                        Drop-off Time <span className="text-gray-500">(optional)</span>
+                      </div>
+                      <Input
+                        aria-label="Drop-off time"
+                        type="time"
+                        value={inquiryForm.dropTime}
+                        onChange={(e) => setInquiryForm((p) => ({ ...p, dropTime: e.target.value }))}
+                        className="font-semibold border-2 [color-scheme:light]"
+                      />
+                    </div>
+                  </div>
                   <textarea
                     placeholder="Additional Requirements..."
                     className="w-full border-2 rounded-md p-3 font-semibold min-h-24"
@@ -1651,6 +1690,166 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Post Submit Alert (blocks until OK) */}
+      <AnimatePresence>
+        {postSubmitModal?.open ? (
+          <motion.div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="w-full max-w-md max-h-[75vh]"
+            >
+              <Card className="shadow-2xl overflow-hidden max-h-[75vh] flex flex-col">
+                <CardHeader className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 rounded-full bg-black/10 p-2">
+                      <CheckCircle2 className="h-6 w-6" />
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="text-xl font-black leading-tight">{postSubmitModal.title}</h2>
+                      <CardDescription className="text-gray-900 font-bold mt-0.5 text-sm">
+                        {postSubmitModal.subtitle}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 space-y-3 overflow-y-auto">
+                  <div className="rounded-xl border-2 border-gray-200 bg-white p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="font-black text-gray-900">Booking details</div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-9 px-3 font-bold border-2"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard?.writeText(postSubmitModal.detailsText);
+                            toast.success('Booking details copied.');
+                          } catch {
+                            toast.error('Copy not supported on this device.');
+                          }
+                        }}
+                      >
+                        <Check className="h-4 w-4 mr-2" />
+                        Copy
+                      </Button>
+                    </div>
+                    <div className="mt-3 grid grid-cols-1 gap-2 text-sm max-h-[24vh] overflow-y-auto pr-1">
+                      {postSubmitModal.detailsText
+                        .split('\n')
+                        .filter(Boolean)
+                        .map((line, idx) => {
+                          const i = line.indexOf(':');
+                          if (i === -1) {
+                            return (
+                              <div key={idx} className="font-black text-gray-900">
+                                {line}
+                              </div>
+                            );
+                          }
+                          const k = line.slice(0, i).trim();
+                          const v = line.slice(i + 1).trim();
+                          return (
+                            <div key={idx} className="flex gap-3 rounded-lg p-2">
+                              <div className="w-28 shrink-0 font-black text-gray-700">{k}</div>
+                              <div className="min-w-0 font-semibold text-gray-900 break-words">{v || '-'}</div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                  <div className="pt-1">
+                    <div className="text-[12px] font-black text-gray-900 tracking-wider uppercase">
+                      For instant quote
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <a
+                      href={postSubmitModal.whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard?.writeText(postSubmitModal.detailsText);
+                          toast.success('Booking details copied.');
+                        } catch {
+                          // ignore
+                        }
+                      }}
+                    >
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full min-w-0 border-2 border-green-600 text-green-700 hover:bg-green-50 px-2 h-10 text-[11px] font-black"
+                      >
+                        <span className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+                          <MessageCircle className="h-4 w-4 shrink-0" />
+                          <span>WhatsApp</span>
+                        </span>
+                      </Button>
+                    </a>
+                    <a
+                      href={postSubmitModal.callUrl}
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard?.writeText(postSubmitModal.detailsText);
+                          toast.success('Booking details copied.');
+                        } catch {
+                          // ignore
+                        }
+                      }}
+                    >
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full min-w-0 border-2 border-yellow-700 text-yellow-800 hover:bg-yellow-50 px-2 h-10 text-[11px] font-black"
+                      >
+                        <span className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+                          <Phone className="h-4 w-4 shrink-0" />
+                          <span>Call</span>
+                        </span>
+                      </Button>
+                    </a>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full min-w-0 border-2 border-gray-800 text-gray-900 hover:bg-gray-100 px-2 h-10 text-[11px] font-black"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard?.writeText(postSubmitModal.detailsText);
+                          toast.success('Booking details copied.');
+                        } catch {
+                          // ignore
+                        }
+                        window.location.href = postSubmitModal.smsUrl;
+                      }}
+                    >
+                      <span className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        <MessageCircle className="h-4 w-4 shrink-0" />
+                        <span>Message</span>
+                      </span>
+                    </Button>
+                  </div>
+                  <Button
+                    type="button"
+                    className="w-full bg-gray-900 hover:bg-black text-white font-black text-base py-5"
+                    onClick={() => setPostSubmitModal(null)}
+                  >
+                    OK
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
       {/* Hero Section with Direct Booking Form */}
       <section id="home" className="relative min-h-screen max-w-full overflow-x-hidden bg-black">
         <div className="absolute inset-0 max-w-full overflow-hidden">
@@ -1889,15 +2088,15 @@ export default function App() {
             ].map((stat, index) => (
               <motion.div
                 key={index}
-                className="mx-auto flex w-full max-w-3xl flex-col items-center justify-center gap-1 text-center md:flex-row md:justify-between md:gap-8 md:text-left"
+                className="mx-auto flex max-w-1xl flex-col items-center justify-center gap-1 text-center md:flex-row md:justify-between md:gap-8 md:text-left"
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 whileHover={{ scale: 1.1, y: -10 }}
               >
-                <div className="text-5xl font-black text-yellow-500 md:shrink-0 md:text-6xl">{stat.number}</div>
-                <div className="font-bold text-gray-300 md:text-2xl">{stat.label}</div>
+                <div className="text-5xl font-black text-yellow-500 md:shrink-0 md:text-6xl ">{stat.number}</div>
+                <div className="font-bold text-gray-300 md:text-6xl text-3xl">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -2375,7 +2574,7 @@ export default function App() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-5xl font-black mb-4 uppercase">HOW IT WORKS</h2>
-            <p className="text-xl font-bold text-gray-300">Simple 4-step booking process</p>
+            <p className="text-xl font-bold text-gray-300">Simple 3-step booking process</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {[
@@ -2693,4 +2892,3 @@ export default function App() {
     </div>
   );
 }
-
